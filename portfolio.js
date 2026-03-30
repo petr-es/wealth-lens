@@ -81,12 +81,11 @@ function render(d) {
   const bEtrade = s_etrade * S_PX / 1000;
 
   // ── Header ──────────────────────────────────────────────────────────────────
-  document.getElementById('header-date').textContent = d.date;
+  document.getElementById('header-date').textContent = `${d.date} ${d.updated.split(' ').pop()}`;
   document.title = `Portfolio – ${d.date}`;
   document.getElementById('header-meta').innerHTML =
     `FWRA.MI €${fmt(d.prices.FWRA_EUR)} · SPYY.DE €${fmt(d.prices.SPYY_EUR)} · S $${fmt(d.prices.S_USD)}<br>` +
-    `EUR/CZK ${fmt(EUR_CZK)} · USD/CZK ${fmt(USD_CZK)}<br>` +
-    `aktualizováno ${d.updated}`;
+    `EUR/CZK ${fmt(EUR_CZK)} · USD/CZK ${fmt(USD_CZK)}`;
 
   // ── Donut: aktiva ────────────────────────────────────────────────────────────
   drawDonut('donut-assets', [
