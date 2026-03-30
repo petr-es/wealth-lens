@@ -1,5 +1,6 @@
 const DATA = {
   "date": "30. 3. 2026",
+  "updated": "30. 3. 2026 10:00",
   "rates": {
     "EUR_CZK": 24.55,
     "USD_CZK": 21.42

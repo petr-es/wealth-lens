@@ -1,0 +1,40 @@
+name: Update prices
+
+on:
+  schedule:
+    # 10:00 Prague (CEST = UTC+2, summer)
+    - cron: '0 8 * * 1-5'
+    # 10:00 Prague (CET = UTC+1, winter)
+    - cron: '0 9 * * 1-5'
+    # 17:00 Prague (CEST = UTC+2, summer)
+    - cron: '0 15 * * 1-5'
+    # 17:00 Prague (CET = UTC+1, winter)
+    - cron: '0 16 * * 1-5'
+  workflow_dispatch: # allow manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install yfinance pytz
+
+      - name: Fetch prices and update data.js
+        run: python scripts/update_prices.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data.js
+          git diff --staged --quiet || git commit -m "chore: update prices $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push

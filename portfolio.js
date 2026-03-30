@@ -85,7 +85,8 @@ function render(d) {
   document.title = `Portfolio – ${d.date}`;
   document.getElementById('header-meta').innerHTML =
     `FWRA.MI €${fmt(d.prices.FWRA_EUR)} · SPYY.DE €${fmt(d.prices.SPYY_EUR)} · S $${fmt(d.prices.S_USD)}<br>` +
-    `EUR/CZK ${fmt(EUR_CZK)} · USD/CZK ${fmt(USD_CZK)}`;
+    `EUR/CZK ${fmt(EUR_CZK)} · USD/CZK ${fmt(USD_CZK)}<br>` +
+    `aktualizováno ${d.updated}`;
 
   // ── Donut: aktiva ────────────────────────────────────────────────────────────
   drawDonut('donut-assets', [
