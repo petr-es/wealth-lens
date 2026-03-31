@@ -167,33 +167,22 @@ function render(p, a) {
 
   // ── Tabulka vstupních hodnot ─────────────────────────────────────────────────
   fillPricesTable([
-    {
-      color:'var(--fwra)',  label:a.fwra.ticker,  url:a.fwra.yahooUrl,
-      price:`€${fmt(p.prices.FWRA_EUR)}`,
-      pxczk:`${fmt(FWRA_PX, 1)} ${LANG.currency}`,
+    { _v: vFWRA,  color:'var(--fwra)',  label:a.fwra.ticker,  url:a.fwra.yahooUrl,
+      price:`€${fmt(p.prices.FWRA_EUR)}`, pxczk:`${fmt(FWRA_PX, 1)} ${LANG.currency}`,
       units:fwra_total.toLocaleString(LANG.locale),
-      val:Math.round(vFWRA * 1000).toLocaleString(LANG.locale) + ' ' + LANG.currency,
-    },
-    {
-      color:'var(--spyy)',  label:a.spyy.ticker,  url:a.spyy.yahooUrl,
-      price:`€${fmt(p.prices.SPYY_EUR)}`,
-      pxczk:`${fmt(SPYY_PX, 0)} ${LANG.currency}`,
+      val:Math.round(vFWRA * 1000).toLocaleString(LANG.locale) + ' ' + LANG.currency },
+    { _v: vSPYY,  color:'var(--spyy)',  label:a.spyy.ticker,  url:a.spyy.yahooUrl,
+      price:`€${fmt(p.prices.SPYY_EUR)}`, pxczk:`${fmt(SPYY_PX, 0)} ${LANG.currency}`,
       units:spyy_total.toLocaleString(LANG.locale),
-      val:Math.round(vSPYY * 1000).toLocaleString(LANG.locale) + ' ' + LANG.currency,
-    },
-    {
-      color:'var(--s)',     label:a.s.ticker,     url:a.s.yahooUrl,
-      price:`$${fmt(p.prices.S_USD)}`,
-      pxczk:`${fmt(S_PX, 1)} ${LANG.currency}`,
+      val:Math.round(vSPYY * 1000).toLocaleString(LANG.locale) + ' ' + LANG.currency },
+    { _v: vS,     color:'var(--s)',     label:a.s.ticker,     url:a.s.yahooUrl,
+      price:`$${fmt(p.prices.S_USD)}`, pxczk:`${fmt(S_PX, 1)} ${LANG.currency}`,
       units:s_total.toLocaleString(LANG.locale),
-      val:Math.round(vS * 1000).toLocaleString(LANG.locale) + ' ' + LANG.currency,
-    },
-    {
-      color:'var(--alpha)', label:'Alpha Picks', url:null,
+      val:Math.round(vS * 1000).toLocaleString(LANG.locale) + ' ' + LANG.currency },
+    { _v: vAlpha, color:'var(--alpha)', label:'Alpha Picks',   url:null,
       price:LANG.fixed, pxczk:'–', units:'–',
-      val:Math.round(vAlpha * 1000).toLocaleString(LANG.locale) + ' ' + LANG.currency,
-    },
-  ]);
+      val:Math.round(vAlpha * 1000).toLocaleString(LANG.locale) + ' ' + LANG.currency },
+  ].sort((a, b) => b._v - a._v));
 
   // ── Totály ───────────────────────────────────────────────────────────────────
   const totalMil = (total / 1000).toLocaleString(LANG.locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
