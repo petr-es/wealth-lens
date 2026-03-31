@@ -17,7 +17,7 @@ header {
   align-items: baseline;
   flex-wrap: wrap;
   gap: 12px 20px;
-  margin-bottom: 36px;
+  margin-bottom: 24px;
 }
 
 header h1 {
@@ -48,16 +48,50 @@ header .total {
   white-space: nowrap;
 }
 
-header .meta {
+#update-btn {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
   color: var(--muted);
+  font-family: 'DM Mono', monospace;
   font-size: 11px;
-  text-align: right;
-  line-height: 1.7;
+  padding: 5px 10px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
 }
 
-@media (max-width: 560px) {
-  header .meta { margin-left: 0; text-align: left; width: 100%; }
+#update-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#update-btn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
+#update-btn.state-loading svg {
+  animation: spin 1s linear infinite;
+}
+
+#update-btn.state-error {
+  border-color: #f06080;
+  color: #f06080;
+}
+
+#update-btn.state-success {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ── Grid ────────────────────────────────────────────────────────────────────── */
@@ -181,9 +215,23 @@ table.legend--fixed th { overflow: hidden; text-overflow: ellipsis; }
 .units { color: var(--muted); }
 .dim   { color: var(--muted); font-size: 11px; }
 
+.dim a,
+.footnote a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.dim a:hover,
+.footnote a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 /* ── Footnote ────────────────────────────────────────────────────────────────── */
 .footnote-row {
-  margin-top: 20px;
+  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;

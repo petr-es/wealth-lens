@@ -24,7 +24,13 @@ const LANG_EN = {
   fixed:          'fixed',
   locale:         'en',
 
+  // Update button
+  btnUpdate:    'Update',
+  btnUpdating:  'Updating…',
+  btnDone:      'Done',
+  btnError:     'Error',
+
   // Footnote
-  footnote: (date) =>
-    `Alpha Picks: fixed estimate ~200 thous. CZK (T212, individual stocks) &nbsp;|&nbsp; Exchange rates from Yahoo Finance, ${date}`,
+  footnote: (date, eurCzk, usdCzk) =>
+    `Exchange rates from Yahoo Finance, ${date} &nbsp;·&nbsp; <a href="https://finance.yahoo.com/quote/EURCZK=X" target="_blank">EUR/CZK ${eurCzk}</a> &nbsp;·&nbsp; <a href="https://finance.yahoo.com/quote/USDCZK=X" target="_blank">USD/CZK ${usdCzk}</a>`,
 };

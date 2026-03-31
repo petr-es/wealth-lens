@@ -24,7 +24,13 @@ const LANG_CS = {
   fixed:          'fixní',
   locale:         'cs',
 
+  // Update tlačítko
+  btnUpdate:    'Aktualizovat',
+  btnUpdating:  'Aktualizuji…',
+  btnDone:      'Hotovo',
+  btnError:     'Chyba',
+
   // Poznámka pod čarou
-  footnote: (date) =>
-    `Alpha Picks: fixní odhad ~200 tis. Kč (T212, individuální akcie) &nbsp;|&nbsp; Kurzy dle Yahoo Finance, ${date}`,
+  footnote: (date, eurCzk, usdCzk) =>
+    `Kurzy dle Yahoo Finance, ${date} &nbsp;·&nbsp; <a href="https://finance.yahoo.com/quote/EURCZK=X" target="_blank">EUR/CZK ${eurCzk}</a> &nbsp;·&nbsp; <a href="https://finance.yahoo.com/quote/USDCZK=X" target="_blank">USD/CZK ${usdCzk}</a>`,
 };

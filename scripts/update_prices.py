@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch latest prices from Yahoo Finance and update data.js."""
+"""Fetch latest prices from Yahoo Finance and update scripts/prices.js."""
 
 import re
 import sys
@@ -15,6 +15,8 @@ TICKERS = {
     "EUR_CZK":   "EURCZK=X",
     "USD_CZK":   "USDCZK=X",
 }
+
+OUTPUT = "scripts/prices.js"
 
 
 def fetch_price(ticker: str) -> float | None:
@@ -48,7 +50,7 @@ def main():
             prices[key] = price
             print(f"  {ticker}: {price}")
 
-    with open("data.js", "r", encoding="utf-8") as f:
+    with open(OUTPUT, "r", encoding="utf-8") as f:
         content = f.read()
 
     # Update date and timestamp
@@ -63,10 +65,10 @@ def main():
             content,
         )
 
-    with open("data.js", "w", encoding="utf-8") as f:
+    with open(OUTPUT, "w", encoding="utf-8") as f:
         f.write(content)
 
-    print(f"data.js updated for {date_str}.")
+    print(f"{OUTPUT} updated for {date_str}.")
 
 
 if __name__ == "__main__":

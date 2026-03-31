@@ -4,15 +4,20 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Portfolio</title>
-  <link rel="stylesheet" href="styles/style.css">
-  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="themes/theme-blue.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
   <h1>Portfolio<span class="slash">/</span><span class="date" id="header-date">–</span></h1>
   <span class="total">–</span>
-  <div class="meta" id="header-meta"></div>
+  <button id="update-btn" onclick="triggerUpdate()" title="Aktualizovat ceny">
+    <svg id="update-icon" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>
+    </svg>
+    <span id="update-label" data-i18n="btnUpdate">Aktualizovat</span>
+  </button>
 </header>
 
 <div class="grid">
@@ -70,13 +75,12 @@
     <div class="table-scroll">
       <table class="legend legend--fixed">
         <colgroup>
-          <col><col><col><col><col><col>
+          <col><col><col><col><col>
         </colgroup>
         <thead>
           <tr>
             <th data-i18n="colAsset">Aktívum</th>
             <th data-i18n="colPrice">Cena</th>
-            <th data-i18n="colRate">Kurz</th>
             <th data-i18n="colCzkPerUnit">Kč / ks</th>
             <th data-i18n="colTotalQty">Ks celkem</th>
             <th data-i18n="colValue">Hodnota</th>
@@ -104,16 +108,19 @@
   </div>
 </div>
 
+<script src="config/config.js"></script>
 <script src="lang/lang-cs.js"></script>
 <script src="lang/lang-en.js"></script>
 <script>
   const LANGS = { cs: LANG_CS, en: LANG_EN };
   let LANG = LANGS[localStorage.getItem('lang') || 'cs'];
 </script>
-<script src="data.js"></script>
-<script src="portfolio.js"></script>
+<script src="assets.js"></script>
+<script src="scripts/prices.sample.js"></script>
+<script src="scripts/prices.js"></script>
+<script src="scripts/portfolio.js"></script>
 <script>
-  const THEMES = { blue: 'styles/style.css', grey: 'styles/style-grey.css', light: 'styles/style-light.css' };
+  const THEMES = { blue: 'themes/theme-blue.css', grey: 'themes/theme-grey.css', light: 'themes/theme-light.css' };
   const sheet  = document.querySelector('link[rel="stylesheet"]');
   const selTheme = document.getElementById('theme-select');
   const selLang  = document.getElementById('lang-select');
@@ -137,7 +144,7 @@
     ['tbl-assets', 'tbl-brokers', 'tbl-prices'].forEach(id => {
       document.getElementById(id).innerHTML = '';
     });
-    render(DATA);
+    render(PRICES, ASSETS);
     applyLang();
   }
 
@@ -151,6 +158,75 @@
   selLang.value = savedLang;
   document.documentElement.lang = savedLang;
   applyLang();
+</script>
+<script>
+  const REPO   = 'petr-es/portfolio-tracker';
+  const WORKFLOW = 'update-prices.yml';
+  const btn    = document.getElementById('update-btn');
+  const label  = document.getElementById('update-label');
+  let pollTimer = null;
+
+  function setBtnState(state) {
+    btn.className = state ? 'state-' + state : '';
+    btn.disabled  = state === 'loading';
+    const icon = document.getElementById('update-icon');
+    if (state === 'loading') {
+      label.textContent = LANG.btnUpdating;
+    } else if (state === 'error') {
+      icon.innerHTML = '<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>';
+      label.textContent = LANG.btnError;
+      setTimeout(() => { setBtnState(null); resetIcon(); }, 4000);
+    } else if (state === 'success') {
+      icon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+      label.textContent = LANG.btnDone;
+      setTimeout(() => { setBtnState(null); resetIcon(); }, 3000);
+    } else {
+      resetIcon();
+      label.textContent = LANG.btnUpdate;
+    }
+  }
+
+  function resetIcon() {
+    document.getElementById('update-icon').innerHTML =
+      '<path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/>';
+  }
+
+  async function pollLatestRun(triggeredAfter) {
+    const url = `https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=1`;
+    const res  = await fetch(url, { headers: { Authorization: `Bearer ${GITHUB_TOKEN}` } });
+    if (!res.ok) { setBtnState('error'); return; }
+    const { workflow_runs } = await res.json();
+    const run = workflow_runs[0];
+    if (!run || new Date(run.created_at) < triggeredAfter) {
+      pollTimer = setTimeout(() => pollLatestRun(triggeredAfter), 3000);
+      return;
+    }
+    if (run.status === 'completed') {
+      setBtnState(run.conclusion === 'success' ? 'success' : 'error');
+    } else {
+      pollTimer = setTimeout(() => pollLatestRun(triggeredAfter), 3000);
+    }
+  }
+
+  async function triggerUpdate() {
+    if (!GITHUB_TOKEN || GITHUB_TOKEN === 'your_token_here') {
+      alert('Nastav GITHUB_TOKEN v config.js');
+      return;
+    }
+    clearTimeout(pollTimer);
+    setBtnState('loading');
+    const triggeredAt = new Date();
+    const res = await fetch(
+      `https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ref: 'main' }),
+      }
+    );
+    if (!res.ok) { setBtnState('error'); return; }
+    setTimeout(() => pollLatestRun(triggeredAt), 4000);
+  }
 </script>
 
 </body>
