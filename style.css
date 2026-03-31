@@ -226,7 +226,7 @@ table.legend--fixed th { overflow: hidden; text-overflow: ellipsis; }
 .dim a,
 .val a,
 .footnote a {
-  color: var(--muted);
+  color: var(--text);
   text-decoration: none;
   transition: border-color 0.15s, color 0.15s;
 }
