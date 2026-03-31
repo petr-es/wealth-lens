@@ -13,7 +13,7 @@ const ASSETS = {
     holdings: { t212: 81.5 },
   },
   s: {
-    ticker:   'S',
+    ticker:   'S.NYSE',
     yahooUrl: 'https://finance.yahoo.com/quote/S',
     currency: 'USD',
     holdings: { ibkr: 1257, etrade: 586 },

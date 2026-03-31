@@ -100,6 +100,8 @@ header .total {
 
 @media (max-width: 680px) {
   .grid { grid-template-columns: 1fr; }
+  .col-pxczk { display: none; }
+  table.legend--fixed col:not(.col-pxczk) { width: 25%; }
 }
 
 .card-full { grid-column: 1 / -1; }
@@ -202,6 +204,7 @@ table.legend td {
 table.legend td:first-child { text-align: left; }
 
 table.legend--fixed { table-layout: fixed; }
+table.legend--fixed col { width: 20%; }
 table.legend--fixed td,
 table.legend--fixed th { overflow: hidden; text-overflow: ellipsis; }
 
