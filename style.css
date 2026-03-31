@@ -239,6 +239,38 @@ table.legend--fixed th { overflow: hidden; text-overflow: ellipsis; }
   border-bottom: 1px solid var(--accent);
 }
 
+/* ── Donut tooltip ───────────────────────────────────────────────────────────── */
+#donut-tooltip {
+  position: fixed;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.1s;
+  z-index: 100;
+}
+
+#donut-tooltip.visible { opacity: 1; }
+
+.tt-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.tt-label { color: var(--text); }
+.tt-pct   { color: var(--accent); }
+.tt-val   { color: var(--muted); }
+
 /* ── Footnote ────────────────────────────────────────────────────────────────── */
 .footnote-row {
   margin-top: 16px;

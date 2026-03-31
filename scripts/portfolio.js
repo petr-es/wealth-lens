@@ -18,9 +18,9 @@ function drawDonut(groupId, segments) {
     path.setAttribute('stroke-width', sw);
     path.setAttribute('stroke-linecap', 'round');
     if (seg.tooltip) {
-      const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-      title.textContent = seg.tooltip;
-      path.appendChild(title);
+      path.addEventListener('mouseenter', () => tooltipShow(seg.tooltip, seg.color));
+      path.addEventListener('mousemove',  e => tooltipMove(e));
+      path.addEventListener('mouseleave', tooltipHide);
     }
     g.appendChild(path);
     angle = endAngle;
@@ -164,3 +164,25 @@ function render(p, a) {
 }
 
 render(PRICES, ASSETS);
+
+// ── Donut tooltip ────────────────────────────────────────────────────────────
+const _tt = document.createElement('div');
+_tt.id = 'donut-tooltip';
+document.body.appendChild(_tt);
+
+function tooltipShow(text, color) {
+  const [label, pct, val] = text.split('  ');
+  _tt.innerHTML = `<span class="tt-dot" style="background:${color}"></span><span class="tt-label">${label}</span><span class="tt-pct">${pct}</span><span class="tt-val">${val}</span>`;
+  _tt.classList.add('visible');
+}
+
+function tooltipMove(e) {
+  const x = e.clientX + 14;
+  const y = e.clientY - 10;
+  _tt.style.left = x + 'px';
+  _tt.style.top  = y + 'px';
+}
+
+function tooltipHide() {
+  _tt.classList.remove('visible');
+}
