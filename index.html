@@ -178,7 +178,7 @@
     } else if (state === 'success') {
       icon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
       label.textContent = LANG.btnDone;
-      setTimeout(() => { setBtnState(null); resetIcon(); }, 3000);
+      setTimeout(() => location.reload(), 2000);
     } else {
       resetIcon();
       label.textContent = LANG.btnUpdate;
