@@ -226,16 +226,16 @@ table.legend--fixed th { overflow: hidden; text-overflow: ellipsis; }
 .dim a,
 .val a,
 .footnote a {
-  color: inherit;
+  color: var(--muted);
   text-decoration: none;
-  border-bottom: 1px solid var(--border);
   transition: border-color 0.15s, color 0.15s;
 }
 
 .dim a:hover,
+.val a:hover,
 .footnote a:hover {
   color: var(--accent);
-  border-bottom-color: var(--accent);
+  border-bottom: 1px solid var(--accent);
 }
 
 /* ── Footnote ────────────────────────────────────────────────────────────────── */
