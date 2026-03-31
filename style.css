@@ -188,6 +188,14 @@ table.legend thead th:first-child { text-align: left; }
 
 table.legend tbody tr + tr td { border-top: 1px solid var(--border); }
 
+table.legend tbody tr {
+  transition: background 0.1s;
+}
+
+table.legend tbody tr:hover td {
+  background: var(--surface-hover, color-mix(in srgb, var(--text) 4%, transparent));
+}
+
 table.legend td {
   padding: 7px 4px;
   text-align: right;

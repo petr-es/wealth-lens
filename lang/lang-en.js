@@ -7,7 +7,7 @@ const LANG_EN = {
   // Table headers
   colAsset:       'Asset',
   colShare:       'Share',
-  colThousands:   'thous. CZK',
+  colThousands:   'th. CZK',
   colQty:         'Qty',
   colBroker:      'Broker',
   colPrice:       'Price',

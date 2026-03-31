@@ -17,6 +17,11 @@ function drawDonut(groupId, segments) {
     path.setAttribute('stroke', seg.color);
     path.setAttribute('stroke-width', sw);
     path.setAttribute('stroke-linecap', 'round');
+    if (seg.tooltip) {
+      const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+      title.textContent = seg.tooltip;
+      path.appendChild(title);
+    }
     g.appendChild(path);
     angle = endAngle;
   });
@@ -45,7 +50,7 @@ function fillPricesTable(rows) {
       : r.price;
     tr.innerHTML = `
       <td><span class="dot" style="background:${r.color}"></span>${r.label}</td>
-      <td class="dim">${priceCell}</td>
+      <td class="val">${priceCell}</td>
       <td class="units">${r.pxczk}</td>
       <td class="units">${r.units}</td>
       <td class="val">${r.val}</td>
@@ -89,10 +94,10 @@ function render(p, a) {
 
   // ── Donut: aktiva ────────────────────────────────────────────────────────────
   drawDonut('donut-assets', [
-    { value: vFWRA,  color: 'var(--fwra)'  },
-    { value: vSPYY,  color: 'var(--spyy)'  },
-    { value: vAlpha, color: 'var(--alpha)' },
-    { value: vS,     color: 'var(--s)'     },
+    { value: vFWRA,  color: 'var(--fwra)',  tooltip: `FWRA  ${(vFWRA /total*100).toFixed(1)}%  ${Math.round(vFWRA).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
+    { value: vSPYY,  color: 'var(--spyy)',  tooltip: `SPYY  ${(vSPYY /total*100).toFixed(1)}%  ${Math.round(vSPYY).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
+    { value: vAlpha, color: 'var(--alpha)', tooltip: `Alpha  ${(vAlpha/total*100).toFixed(1)}%  ${Math.round(vAlpha).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
+    { value: vS,     color: 'var(--s)',     tooltip: `S  ${(vS    /total*100).toFixed(1)}%  ${Math.round(vS).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
   ]);
 
   fillTable('tbl-assets', [
@@ -104,10 +109,10 @@ function render(p, a) {
 
   // ── Donut: brokeři ───────────────────────────────────────────────────────────
   drawDonut('donut-brokers', [
-    { value: bT212,   color: 'var(--t212)'   },
-    { value: bIBKR,   color: 'var(--ibkr)'   },
-    { value: bRev,    color: 'var(--rev)'    },
-    { value: bEtrade, color: 'var(--etrade)' },
+    { value: bT212,   color: 'var(--t212)',   tooltip: `T212    ${(bT212  /total*100).toFixed(1)}%  ${Math.round(bT212).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
+    { value: bIBKR,   color: 'var(--ibkr)',   tooltip: `IBKR    ${(bIBKR  /total*100).toFixed(1)}%  ${Math.round(bIBKR).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
+    { value: bRev,    color: 'var(--rev)',    tooltip: `Revolut  ${(bRev   /total*100).toFixed(1)}%  ${Math.round(bRev).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
+    { value: bEtrade, color: 'var(--etrade)', tooltip: `E-Trade  ${(bEtrade/total*100).toFixed(1)}%  ${Math.round(bEtrade).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
   ]);
 
   fillTable('tbl-brokers', [
