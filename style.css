@@ -32,8 +32,8 @@ header h1 {
 .date {
   color: var(--muted);
   font-size: 19px;
-  font-family: 'DM Mono', monospace;
-  font-weight: 500;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
   white-space: nowrap;
 }
 
