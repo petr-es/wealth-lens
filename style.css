@@ -17,7 +17,7 @@ header {
   align-items: baseline;
   flex-wrap: wrap;
   gap: 12px 20px;
-  margin-bottom: 24px;
+  margin-bottom: 30px;
 }
 
 header h1 {
@@ -42,7 +42,7 @@ header h1 .date {
 
 header .total {
   font-family: 'Syne', sans-serif;
-  font-size: 15px;
+  font-size: 19px;
   font-weight: 600;
   color: var(--text);
   white-space: nowrap;
