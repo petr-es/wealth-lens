@@ -222,7 +222,6 @@
     if (!token) return;
     clearTimeout(pollTimer);
     setBtnState('loading');
-    const triggeredAt = new Date();
     const res = await fetch(
       `https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
       {
@@ -232,11 +231,12 @@
       }
     );
     if (!res.ok) {
-      // token může být špatný — smaž ho ať se příště zeptá znovu
       if (res.status === 401 || res.status === 403) localStorage.removeItem('gh_token');
       setBtnState('error');
       return;
     }
+    // Nastav triggeredAt až PO dispatch a odečti 5s buffer proti clock skew
+    const triggeredAt = new Date(Date.now() - 5000);
     setTimeout(() => pollLatestRun(triggeredAt, token), 4000);
   }
 </script>
