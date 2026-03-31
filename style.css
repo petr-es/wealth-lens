@@ -224,9 +224,12 @@ table.legend--fixed th { overflow: hidden; text-overflow: ellipsis; }
 .dim   { color: var(--muted); font-size: 11px; }
 
 .dim a,
-.val a,
-.footnote a {
+.val a {
   color: var(--text);
+}
+
+.footnote a {
+  color: var(--muted);
   text-decoration: none;
   transition: border-color 0.15s, color 0.15s;
 }
