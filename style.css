@@ -29,21 +29,21 @@ header h1 {
   white-space: nowrap;
 }
 
-header h1 .slash {
-  color: var(--border);
-  font-weight: 400;
-  margin: 0 6px;
+.header-sep {
+  color: var(--muted);
+  font-size: 14px;
 }
 
-header h1 .date {
+.date {
   color: var(--muted);
-  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
 }
 
 header .total {
-  font-family: 'Syne', sans-serif;
+  font-family: 'DM Mono', monospace;
   font-size: 19px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text);
   white-space: nowrap;
 }
