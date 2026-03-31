@@ -29,14 +29,11 @@ header h1 {
   white-space: nowrap;
 }
 
-.header-sep {
-  color: var(--muted);
-  font-size: 14px;
-}
-
 .date {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 19px;
+  font-family: 'DM Mono', monospace;
+  font-weight: 500;
   white-space: nowrap;
 }
 
