@@ -92,7 +92,7 @@ function fillPricesTable(rows) {
     tr.innerHTML = `
       <td><span class="dot" style="background:${r.color}"></span>${r.label}</td>
       <td class="val">${priceCell}</td>
-      <td class="units">${r.pxczk}</td>
+      <td class="units col-pxczk">${r.pxczk}</td>
       <td class="units">${r.units}</td>
       <td class="val">${r.val}</td>
     `;
@@ -170,21 +170,21 @@ function render(p, a) {
   // ── Tabulka vstupních hodnot ─────────────────────────────────────────────────
   fillPricesTable([
     {
-      color:'var(--fwra)',  label:'FWRA',  url:a.fwra.yahooUrl,
+      color:'var(--fwra)',  label:a.fwra.ticker,  url:a.fwra.yahooUrl,
       price:`€${fmt(p.prices.FWRA_EUR)}`,
       pxczk:`${fmt(FWRA_PX, 1)} ${LANG.currency}`,
       units:fwra_total.toLocaleString(LANG.locale),
       val:Math.round(vFWRA * 1000).toLocaleString(LANG.locale) + ' ' + LANG.currency,
     },
     {
-      color:'var(--spyy)',  label:'SPYY',  url:a.spyy.yahooUrl,
+      color:'var(--spyy)',  label:a.spyy.ticker,  url:a.spyy.yahooUrl,
       price:`€${fmt(p.prices.SPYY_EUR)}`,
       pxczk:`${fmt(SPYY_PX, 0)} ${LANG.currency}`,
       units:spyy_total.toLocaleString(LANG.locale),
       val:Math.round(vSPYY * 1000).toLocaleString(LANG.locale) + ' ' + LANG.currency,
     },
     {
-      color:'var(--s)',     label:'S',     url:a.s.yahooUrl,
+      color:'var(--s)',     label:a.s.ticker,     url:a.s.yahooUrl,
       price:`$${fmt(p.prices.S_USD)}`,
       pxczk:`${fmt(S_PX, 1)} ${LANG.currency}`,
       units:s_total.toLocaleString(LANG.locale),
