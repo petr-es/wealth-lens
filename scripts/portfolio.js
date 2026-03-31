@@ -3,27 +3,68 @@ function drawDonut(groupId, segments) {
   const cx = 80, cy = 80, r = 60, sw = 22;
   const tot = segments.reduce((a, s) => a + s.value, 0);
   let angle = -Math.PI / 2;
+  const paths = [];
+  const junctions = [];
+
   segments.forEach(seg => {
     const span = seg.value / tot * 2 * Math.PI;
     const endAngle = angle + span;
-    const gap = 0.025;
-    const a1 = angle + gap, a2 = endAngle - gap;
-    const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
-    const x2 = cx + r * Math.cos(a2), y2 = cy + r * Math.sin(a2);
-    const large = (a2 - a1) > Math.PI ? 1 : 0;
+    junctions.push(angle);
+    const x1 = cx + r * Math.cos(angle), y1 = cy + r * Math.sin(angle);
+    const x2 = cx + r * Math.cos(endAngle), y2 = cy + r * Math.sin(endAngle);
+    const large = span > Math.PI ? 1 : 0;
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', `M ${x1} ${y1} A ${r} ${r} 0 ${large} 1 ${x2} ${y2}`);
     path.setAttribute('fill', 'none');
     path.setAttribute('stroke', seg.color);
     path.setAttribute('stroke-width', sw);
-    path.setAttribute('stroke-linecap', 'round');
-    if (seg.tooltip) {
-      path.addEventListener('mouseenter', () => tooltipShow(seg.tooltip, seg.color));
-      path.addEventListener('mousemove',  e => tooltipMove(e));
-      path.addEventListener('mouseleave', tooltipHide);
-    }
+    path.setAttribute('stroke-linecap', 'butt');
+    path.style.transition = 'opacity 0.15s';
     g.appendChild(path);
+    paths.push(path);
     angle = endAngle;
+  });
+
+  // Radial gap lines — uniform width, perpendicular to the ring
+  const inner = r - sw / 2, outer = r + sw / 2;
+  junctions.forEach(a => {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', cx + inner * Math.cos(a));
+    line.setAttribute('y1', cy + inner * Math.sin(a));
+    line.setAttribute('x2', cx + outer * Math.cos(a));
+    line.setAttribute('y2', cy + outer * Math.sin(a));
+    line.setAttribute('stroke', 'var(--bg)');
+    line.setAttribute('stroke-width', '2');
+    line.setAttribute('pointer-events', 'none');
+    g.appendChild(line);
+  });
+
+  return paths;
+}
+
+function linkDonutTable(paths, tbodyId) {
+  const rows = Array.from(document.querySelectorAll(`#${tbodyId} tr`));
+
+  // Segment hover: dim other segments + dim other rows
+  paths.forEach((path, i) => {
+    path.addEventListener('mouseenter', () => {
+      paths.forEach((p, j) => { p.style.opacity = j === i ? '1' : '0.25'; });
+      rows.forEach((r, j)  => { r.classList.toggle('row-dim', j !== i); });
+    });
+    path.addEventListener('mouseleave', () => {
+      paths.forEach(p => { p.style.opacity = '1'; });
+      rows.forEach(r  => { r.classList.remove('row-dim'); });
+    });
+  });
+
+  // Row hover: CSS :hover handles the row highlight; dim other segments
+  rows.forEach((row, i) => {
+    row.addEventListener('mouseenter', () => {
+      paths.forEach((p, j) => { p.style.opacity = j === i ? '1' : '0.25'; });
+    });
+    row.addEventListener('mouseleave', () => {
+      paths.forEach(p => { p.style.opacity = '1'; });
+    });
   });
 }
 
@@ -93,11 +134,11 @@ function render(p, a) {
   document.title = `Portfolio – ${p.date}`;
 
   // ── Donut: aktiva ────────────────────────────────────────────────────────────
-  drawDonut('donut-assets', [
-    { value: vFWRA,  color: 'var(--fwra)',  tooltip: `FWRA  ${(vFWRA /total*100).toFixed(1)}%  ${Math.round(vFWRA).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
-    { value: vSPYY,  color: 'var(--spyy)',  tooltip: `SPYY  ${(vSPYY /total*100).toFixed(1)}%  ${Math.round(vSPYY).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
-    { value: vAlpha, color: 'var(--alpha)', tooltip: `Alpha  ${(vAlpha/total*100).toFixed(1)}%  ${Math.round(vAlpha).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
-    { value: vS,     color: 'var(--s)',     tooltip: `S  ${(vS    /total*100).toFixed(1)}%  ${Math.round(vS).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
+  const assetPaths = drawDonut('donut-assets', [
+    { value: vFWRA,  color: 'var(--fwra)'  },
+    { value: vSPYY,  color: 'var(--spyy)'  },
+    { value: vAlpha, color: 'var(--alpha)' },
+    { value: vS,     color: 'var(--s)'     },
   ]);
 
   fillTable('tbl-assets', [
@@ -107,12 +148,14 @@ function render(p, a) {
     { color:'var(--s)',     label:'S',     pct:(vS    /total*100).toFixed(1), val:Math.round(vS).toLocaleString(LANG.locale),     units:s_total.toLocaleString(LANG.locale)+' '+LANG.unitsSuffix },
   ]);
 
+  linkDonutTable(assetPaths, 'tbl-assets');
+
   // ── Donut: brokeři ───────────────────────────────────────────────────────────
-  drawDonut('donut-brokers', [
-    { value: bT212,   color: 'var(--t212)',   tooltip: `T212    ${(bT212  /total*100).toFixed(1)}%  ${Math.round(bT212).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
-    { value: bIBKR,   color: 'var(--ibkr)',   tooltip: `IBKR    ${(bIBKR  /total*100).toFixed(1)}%  ${Math.round(bIBKR).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
-    { value: bRev,    color: 'var(--rev)',    tooltip: `Revolut  ${(bRev   /total*100).toFixed(1)}%  ${Math.round(bRev).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
-    { value: bEtrade, color: 'var(--etrade)', tooltip: `E-Trade  ${(bEtrade/total*100).toFixed(1)}%  ${Math.round(bEtrade).toLocaleString(LANG.locale)} ${LANG.thousands} ${LANG.currency}` },
+  const brokerPaths = drawDonut('donut-brokers', [
+    { value: bT212,   color: 'var(--t212)'   },
+    { value: bIBKR,   color: 'var(--ibkr)'   },
+    { value: bRev,    color: 'var(--rev)'    },
+    { value: bEtrade, color: 'var(--etrade)' },
   ]);
 
   fillTable('tbl-brokers', [
@@ -121,6 +164,8 @@ function render(p, a) {
     { color:'var(--rev)',    label:'Revolut', pct:(bRev   /total*100).toFixed(1), val:Math.round(bRev).toLocaleString(LANG.locale),    units:'' },
     { color:'var(--etrade)', label:'E-Trade', pct:(bEtrade/total*100).toFixed(1), val:Math.round(bEtrade).toLocaleString(LANG.locale), units:'' },
   ]);
+
+  linkDonutTable(brokerPaths, 'tbl-brokers');
 
   // ── Tabulka vstupních hodnot ─────────────────────────────────────────────────
   fillPricesTable([
@@ -164,25 +209,3 @@ function render(p, a) {
 }
 
 render(PRICES, ASSETS);
-
-// ── Donut tooltip ────────────────────────────────────────────────────────────
-const _tt = document.createElement('div');
-_tt.id = 'donut-tooltip';
-document.body.appendChild(_tt);
-
-function tooltipShow(text, color) {
-  const [label, pct, val] = text.split('  ');
-  _tt.innerHTML = `<span class="tt-dot" style="background:${color}"></span><span class="tt-label">${label}</span><span class="tt-pct">${pct}</span><span class="tt-val">${val}</span>`;
-  _tt.classList.add('visible');
-}
-
-function tooltipMove(e) {
-  const x = e.clientX + 14;
-  const y = e.clientY - 10;
-  _tt.style.left = x + 'px';
-  _tt.style.top  = y + 'px';
-}
-
-function tooltipHide() {
-  _tt.classList.remove('visible');
-}
