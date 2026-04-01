@@ -54,7 +54,7 @@ async function pollLatestRun(triggeredAfter, token) {
   }
   if (run.status === 'completed') {
     if (run.conclusion === 'success') {
-      await applyFreshPrices();
+      try { await applyFreshPrices(); } catch (e) { console.error('applyFreshPrices:', e); }
       setBtnState('success');
     } else {
       setBtnState('error');
