@@ -9,6 +9,12 @@ var PRICE_HISTORY=[
       "FWRA_EUR": 7.13,
       "SPYY_EUR": 246.25,
       "S_USD": 13.27
+    },
+    "assets": {
+      "fwra": {"t212": 3124, "ibkr": 2203, "rev": 1416},
+      "spyy": {"t212": 81.5},
+      "s": {"ibkr": 1257, "etrade": 586},
+      "alpha": {"fixedCzk": 200}
     }
   },
   {
@@ -21,6 +27,12 @@ var PRICE_HISTORY=[
       "FWRA_EUR": 7.13,
       "SPYY_EUR": 246.25,
       "S_USD": 13.31
+    },
+    "assets": {
+      "fwra": {"t212": 3124, "ibkr": 2203, "rev": 1416},
+      "spyy": {"t212": 81.5},
+      "s": {"ibkr": 1257, "etrade": 586},
+      "alpha": {"fixedCzk": 200}
     }
   },
   {
@@ -33,6 +45,12 @@ var PRICE_HISTORY=[
       "FWRA_EUR": 7.13,
       "SPYY_EUR": 246.25,
       "S_USD": 13.31
+    },
+    "assets": {
+      "fwra": {"t212": 3124, "ibkr": 2203, "rev": 1416},
+      "spyy": {"t212": 81.5},
+      "s": {"ibkr": 1257, "etrade": 586},
+      "alpha": {"fixedCzk": 200}
     }
   },
   {
@@ -45,6 +63,12 @@ var PRICE_HISTORY=[
       "FWRA_EUR": 7.13,
       "SPYY_EUR": 246.25,
       "S_USD": 13.31
+    },
+    "assets": {
+      "fwra": {"t212": 3124, "ibkr": 2203, "rev": 1416},
+      "spyy": {"t212": 81.5},
+      "s": {"ibkr": 1257, "etrade": 586},
+      "alpha": {"fixedCzk": 200}
     }
   },
   {
@@ -57,6 +81,12 @@ var PRICE_HISTORY=[
       "FWRA_EUR": 7.13,
       "SPYY_EUR": 246.25,
       "S_USD": 13.31
+    },
+    "assets": {
+      "fwra": {"t212": 3124, "ibkr": 2203, "rev": 1416},
+      "spyy": {"t212": 81.5},
+      "s": {"ibkr": 1257, "etrade": 586},
+      "alpha": {"fixedCzk": 200}
     }
   }
 ];

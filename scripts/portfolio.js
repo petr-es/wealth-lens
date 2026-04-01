@@ -208,6 +208,22 @@ function buildPricesFromEntry(entry) {
   return { date, updated: `${date} ${time}`, rates: entry.rates, prices: entry.prices };
 }
 
+function buildAssetsFromEntry(entry) {
+  if (!entry.assets) return ASSETS;
+  const result = {};
+  for (const key of Object.keys(ASSETS)) {
+    result[key] = { ...ASSETS[key] };
+    if (entry.assets[key]) {
+      if (key === 'alpha') {
+        result[key].fixedCzk = entry.assets[key].fixedCzk ?? ASSETS[key].fixedCzk;
+      } else {
+        result[key].holdings = entry.assets[key];
+      }
+    }
+  }
+  return result;
+}
+
 function initHistorySelect() {
   const sel = document.getElementById('history-select');
   if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) return;
@@ -229,7 +245,7 @@ document.getElementById('history-select').addEventListener('change', function ()
   if (!entry) return;
   ['tbl-assets', 'tbl-brokers', 'tbl-prices'].forEach(id => { document.getElementById(id).innerHTML = ''; });
   ['donut-assets', 'donut-brokers'].forEach(id => { document.getElementById(id).innerHTML = ''; });
-  render(buildPricesFromEntry(entry), ASSETS);
+  render(buildPricesFromEntry(entry), buildAssetsFromEntry(entry));
 });
 
 render(PRICES, ASSETS);

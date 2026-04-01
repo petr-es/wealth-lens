@@ -27,7 +27,7 @@ function setLang(val) {
   initHistorySelect();
   if (sel) sel.value = prevIdx;
   const entry = window._historyEntries && _historyEntries[prevIdx];
-  render(entry ? buildPricesFromEntry(entry) : PRICES, ASSETS);
+  render(entry ? buildPricesFromEntry(entry) : PRICES, entry ? buildAssetsFromEntry(entry) : ASSETS);
   applyLang();
 }
 

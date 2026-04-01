@@ -17,8 +17,27 @@ TICKERS = {
     "USD_CZK":   "USDCZK=X",
 }
 
-OUTPUT = "scripts/prices.js"
+OUTPUT  = "scripts/prices.js"
 HISTORY = "history.js"
+ASSETS  = "assets.js"
+
+
+def parse_assets() -> dict:
+    """Extract holdings from assets.js using regex."""
+    with open(ASSETS, "r", encoding="utf-8") as f:
+        content = f.read()
+    result = {}
+    for name in ("fwra", "spyy", "s"):
+        m = re.search(rf'(?m)^\s+{name}:\s*\{{.*?holdings:\s*\{{([^}}]+)\}}', content, re.DOTALL)
+        if m:
+            result[name] = {
+                k: float(v)
+                for k, v in re.findall(r'(\w+):\s*([\d.]+)', m.group(1))
+            }
+    alpha_m = re.search(r'fixedCzk:\s*([\d.]+)', content)
+    if alpha_m:
+        result["alpha"] = {"fixedCzk": float(alpha_m.group(1))}
+    return result
 
 
 def fetch_price(ticker: str) -> float | None:
@@ -77,6 +96,7 @@ def main():
         "ts": now.astimezone(pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "rates": {k: prices[k] for k in ["EUR_CZK", "USD_CZK"] if k in prices},
         "prices": {k: prices[k] for k in ["FWRA_EUR", "SPYY_EUR", "S_USD"] if k in prices},
+        "assets": parse_assets(),
     }
     try:
         with open(HISTORY, "r", encoding="utf-8") as f:
