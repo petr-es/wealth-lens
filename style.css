@@ -47,6 +47,7 @@ header .total {
 
 #update-btn {
   margin-left: auto;
+  align-self: center;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -102,8 +103,6 @@ header .total {
   .grid { grid-template-columns: 1fr; }
   .col-pxczk { display: none; }
   table.legend--fixed col:not(.col-pxczk) { width: 25%; }
-  header { justify-content: center; }
-  #update-btn { margin-left: 0; }
 }
 
 .card-full { grid-column: 1 / -1; }
