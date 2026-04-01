@@ -30,9 +30,14 @@ function resetIcon() {
 }
 
 async function applyFreshPrices() {
-  const res  = await fetch(`scripts/prices.js?_=${Date.now()}`, { cache: 'no-store' });
-  const text = await res.text();
-  window.PRICES = new Function(text + '; return PRICES;')();
+  const [pricesRes, historyRes] = await Promise.all([
+    fetch(`scripts/prices.js?_=${Date.now()}`, { cache: 'no-store' }),
+    fetch(`history.js?_=${Date.now()}`, { cache: 'no-store' }),
+  ]);
+  const pricesText  = await pricesRes.text();
+  const historyText = await historyRes.text();
+  window.PRICES        = new Function(pricesText  + '; return PRICES;')();
+  window.PRICE_HISTORY = new Function(historyText + '; return PRICE_HISTORY;')();
   ['tbl-assets', 'tbl-brokers', 'tbl-prices'].forEach(id => {
     document.getElementById(id).innerHTML = '';
   });
@@ -40,6 +45,7 @@ async function applyFreshPrices() {
     document.getElementById(id).innerHTML = '';
   });
   render(window.PRICES, ASSETS);
+  initHistorySelect();
 }
 
 async function pollLatestRun(triggeredAfter, token) {

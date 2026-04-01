@@ -130,7 +130,6 @@ function render(p, a) {
   const bEtrade = s_etrade * S_PX / 1000;
 
   // ── Header ──────────────────────────────────────────────────────────────────
-  document.getElementById('header-date').textContent = `${p.date} ${p.updated.split(' ').pop()}`;
   document.title = 'Wealth Lens';
 
   // ── Donut: aktiva ────────────────────────────────────────────────────────────
@@ -195,4 +194,43 @@ function render(p, a) {
   document.getElementById('footnote').innerHTML = LANG.footnote(p.date, fmt(EUR_CZK), fmt(USD_CZK));
 }
 
+function _historyFormatTs(ts) {
+  const d = new Date(ts);
+  const date = d.toLocaleDateString('cs-CZ', { timeZone: 'Europe/Prague', day: 'numeric', month: 'numeric', year: 'numeric' });
+  const time = d.toLocaleTimeString('cs-CZ', { timeZone: 'Europe/Prague', hour: '2-digit', minute: '2-digit' });
+  return `${date} ${time}`;
+}
+
+function buildPricesFromEntry(entry) {
+  const d = new Date(entry.ts);
+  const date = d.toLocaleDateString('cs-CZ', { timeZone: 'Europe/Prague', day: 'numeric', month: 'numeric', year: 'numeric' });
+  const time = d.toLocaleTimeString('cs-CZ', { timeZone: 'Europe/Prague', hour: '2-digit', minute: '2-digit' });
+  return { date, updated: `${date} ${time}`, rates: entry.rates, prices: entry.prices };
+}
+
+function initHistorySelect() {
+  const sel = document.getElementById('history-select');
+  if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) return;
+  const prev = sel.value;
+  window._historyEntries = [...PRICE_HISTORY].reverse();
+  sel.innerHTML = '';
+  _historyEntries.forEach((entry, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = _historyFormatTs(entry.ts);
+    sel.appendChild(opt);
+  });
+  sel.value = (prev && parseInt(prev) < _historyEntries.length) ? prev : '0';
+}
+
+document.getElementById('history-select').addEventListener('change', function () {
+  if (!window._historyEntries) return;
+  const entry = _historyEntries[parseInt(this.value)];
+  if (!entry) return;
+  ['tbl-assets', 'tbl-brokers', 'tbl-prices'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+  ['donut-assets', 'donut-brokers'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+  render(buildPricesFromEntry(entry), ASSETS);
+});
+
 render(PRICES, ASSETS);
+initHistorySelect();

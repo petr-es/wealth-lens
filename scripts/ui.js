@@ -22,7 +22,12 @@ function setLang(val) {
   ['tbl-assets', 'tbl-brokers', 'tbl-prices'].forEach(id => {
     document.getElementById(id).innerHTML = '';
   });
-  render(PRICES, ASSETS);
+  const sel = document.getElementById('history-select');
+  const prevIdx = sel ? parseInt(sel.value) : 0;
+  initHistorySelect();
+  if (sel) sel.value = prevIdx;
+  const entry = window._historyEntries && _historyEntries[prevIdx];
+  render(entry ? buildPricesFromEntry(entry) : PRICES, ASSETS);
   applyLang();
 }
 

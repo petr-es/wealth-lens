@@ -29,12 +29,19 @@ header h1 {
   white-space: nowrap;
 }
 
-.date {
+#history-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent var(--chevron-svg) no-repeat right center;
+  border: none;
   color: var(--muted);
   font-size: 19px;
   font-family: 'Syne', sans-serif;
   font-weight: 600;
   white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+  padding-right: 16px;
 }
 
 header .total {
