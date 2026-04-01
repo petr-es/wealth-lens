@@ -14,10 +14,25 @@ body {
 /* ── Header ─────────────────────────────────────────────────────────────────── */
 header {
   display: flex;
-  align-items: baseline;
   flex-wrap: wrap;
+  align-items: center;
   gap: 12px 20px;
   margin-bottom: 30px;
+}
+
+.header-top    { display: contents; }
+.header-bottom { display: contents; }
+
+header h1          { order: 1; }
+#history-select    { order: 2; }
+header .total      { order: 3; }
+#update-btn        { order: 4; margin-left: auto; }
+
+@media (max-width: 680px) {
+  header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .header-top    { display: flex; align-items: center; justify-content: space-between; width: 100%; order: 1; }
+  .header-bottom { display: flex; align-items: baseline; gap: 20px; order: 2; }
+  header h1, #history-select, header .total, #update-btn { order: unset; margin-left: 0; }
 }
 
 header h1 {
@@ -53,8 +68,6 @@ header .total {
 }
 
 #update-btn {
-  margin-left: auto;
-  align-self: center;
   display: flex;
   align-items: center;
   gap: 6px;
