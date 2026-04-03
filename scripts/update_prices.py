@@ -76,6 +76,13 @@ def main():
             prices[key] = price
             print(f"  {ticker}: {price}")
 
+    # Validate that all required prices were successfully fetched BEFORE updating files
+    missing = REQUIRED - set(prices.keys())
+    if missing:
+        print(f"ERROR: missing prices: {', '.join(sorted(missing))} — no files updated, history not written.", file=sys.stderr)
+        sys.exit(1)
+
+    # All prices OK — now update prices.js
     with open(OUTPUT, "r", encoding="utf-8") as f:
         content = f.read()
 
@@ -96,13 +103,7 @@ def main():
 
     print(f"{OUTPUT} updated for {date_str}.")
 
-    # Abort if any required price is missing — do not write history
-    missing = REQUIRED - set(prices.keys())
-    if missing:
-        print(f"ERROR: missing prices: {', '.join(sorted(missing))} — history not updated.", file=sys.stderr)
-        sys.exit(1)
-
-    # Append to history
+    # Append to history only on success
     entry = {
         "ts": now.astimezone(pytz.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "rates": {k: prices[k] for k in ["EUR_CZK", "USD_CZK"] if k in prices},
