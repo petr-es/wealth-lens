@@ -1,9 +1,9 @@
 var PRICES = {
   "date": "3. 4. 2026",
-  "updated": "3. 4. 2026 12:09",
+  "updated": "3. 4. 2026 13:25",
   "rates": {
     "EUR_CZK": 24.5,
-    "USD_CZK": 21.22
+    "USD_CZK": 21.23
   },
   "prices": {
     "FWRA_EUR": 7.12,
