@@ -1,13 +1,13 @@
 var PRICES = {
-  "date": "13. 4. 2026",
-  "updated": "13. 4. 2026 21:56",
+  "date": "14. 4. 2026",
+  "updated": "14. 4. 2026 13:41",
   "rates": {
-    "EUR_CZK": 24.36,
-    "USD_CZK": 20.7
+    "EUR_CZK": 24.34,
+    "USD_CZK": 20.63
   },
   "prices": {
-    "FWRA_EUR": 7.31,
-    "SPYY_EUR": 252.45,
-    "S_USD": 12.78
+    "FWRA_EUR": 7.35,
+    "SPYY_EUR": 253.65,
+    "S_USD": 12.79
   }
 };
