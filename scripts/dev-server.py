@@ -8,7 +8,7 @@ import os
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).parent.parent
 
 MIME = {
     '.html': 'text/html',

@@ -2,6 +2,6 @@
   "name": "wealth-lens",
   "private": true,
   "scripts": {
-    "dev": "python3 dev-server.py"
+    "dev": "python3 scripts/dev-server.py"
   }
 }
