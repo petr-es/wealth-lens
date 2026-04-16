@@ -29,7 +29,8 @@
 
   <div class="card">
     <div class="card-title" data-i18n="assetsByAsset">Složení dle aktiva</div>
-    <div class="chart-wrap">
+    <div class="card-overlay" id="overlay-assets"></div>
+    <div class="chart-wrap" id="content-assets">
       <svg class="donut" viewBox="0 0 160 160">
         <g id="donut-assets"></g>
         <text class="donut-center" x="80" y="77" id="center-assets">–</text>
@@ -53,7 +54,8 @@
 
   <div class="card">
     <div class="card-title" data-i18n="assetsByBroker">Složení dle brokera</div>
-    <div class="chart-wrap">
+    <div class="card-overlay" id="overlay-brokers"></div>
+    <div class="chart-wrap" id="content-brokers">
       <svg class="donut" viewBox="0 0 160 160">
         <g id="donut-brokers"></g>
         <text class="donut-center" x="80" y="77" id="center-brokers">–</text>
@@ -77,7 +79,8 @@
 
   <div class="card card-full">
     <div class="card-title" data-i18n="assets">Assety</div>
-    <div class="table-scroll">
+    <div class="card-overlay" id="overlay-prices"></div>
+    <div class="table-scroll" id="content-prices">
       <table class="legend legend--fixed">
         <colgroup>
           <col><col><col class="col-pxczk"><col><col>
@@ -118,7 +121,6 @@
 <script src="scripts/lang-init.js"></script>
 <script src="assets.js"></script>
 <script src="history.js"></script>
-<script src="scripts/prices.js"></script>
 <script src="scripts/portfolio.js"></script>
 <script src="scripts/ui.js"></script>
 <script src="scripts/updater.js"></script>

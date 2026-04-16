@@ -1,0 +1,12 @@
+{
+  "name": "wealth-lens",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.js"
+  },
+  "dependencies": {
+    "yahoo-finance2": "^2.13.3"
+  }
+}

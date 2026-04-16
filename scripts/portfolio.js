@@ -251,5 +251,4 @@ document.getElementById('history-select').addEventListener('change', function ()
   render(buildPricesFromEntry(entry), buildAssetsFromEntry(entry));
 });
 
-render(PRICES, ASSETS);
-initHistorySelect();
+// Initial render is triggered by updater.js after live prices are fetched.

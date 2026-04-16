@@ -34,6 +34,7 @@ const LANG_EN = {
   toastRetry:        'Try again',
   toastUpdateFailed: 'Update failed — could not fetch all prices.',
   toastTokenError:   'Invalid token — update failed.',
+  overlayError:      'Could not fetch prices.',
 
   // Footnote
   footnote: (date, eurCzk, usdCzk) =>

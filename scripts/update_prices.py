@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch latest prices from Yahoo Finance and update scripts/prices.js and scripts/history.js."""
+"""Fetch latest prices from Yahoo Finance and append a snapshot to history.js."""
 
 import json
 import re
@@ -19,7 +19,6 @@ TICKERS = {
 
 REQUIRED = {"FWRA_EUR", "SPYY_EUR", "S_USD", "EUR_CZK", "USD_CZK"}
 
-OUTPUT  = "scripts/prices.js"
 HISTORY = "history.js"
 ASSETS  = "assets.js"
 
@@ -55,15 +54,9 @@ def fetch_price(ticker: str) -> float | None:
     return None
 
 
-def czech_date(dt: datetime) -> str:
-    return f"{dt.day}. {dt.month}. {dt.year}"
-
-
 def main():
     prague = pytz.timezone("Europe/Prague")
     now = datetime.now(prague)
-    date_str    = czech_date(now)
-    updated_str = f"{czech_date(now)} {now.strftime('%H:%M')}"
 
     print(f"Fetching prices at {now.strftime('%Y-%m-%d %H:%M %Z')} ...")
 
@@ -81,27 +74,6 @@ def main():
     if missing:
         print(f"ERROR: missing prices: {', '.join(sorted(missing))} — no files updated, history not written.", file=sys.stderr)
         sys.exit(1)
-
-    # All prices OK — now update prices.js
-    with open(OUTPUT, "r", encoding="utf-8") as f:
-        content = f.read()
-
-    # Update date and timestamp
-    content = re.sub(r'"date":\s*"[^"]*"',    f'"date": "{date_str}"',       content)
-    content = re.sub(r'"updated":\s*"[^"]*"', f'"updated": "{updated_str}"', content)
-
-    # Update each price/rate only if successfully fetched
-    for key, value in prices.items():
-        content = re.sub(
-            rf'"{key}":\s*(?:[\d.]+|[Nn]a[Nn])',
-            f'"{key}": {value}',
-            content,
-        )
-
-    with open(OUTPUT, "w", encoding="utf-8") as f:
-        f.write(content)
-
-    print(f"{OUTPUT} updated for {date_str}.")
 
     # Append to history only on success
     entry = {

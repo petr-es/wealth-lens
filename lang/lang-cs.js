@@ -34,6 +34,7 @@ const LANG_CS = {
   toastRetry:        'Zkusit znova',
   toastUpdateFailed: 'Aktualizace selhala — nepodařilo se načíst všechny ceny.',
   toastTokenError:   'Neplatný token — aktualizace selhala.',
+  overlayError:      'Nepodařilo se načíst ceny.',
 
   // Poznámka pod čarou
   footnote: (date, eurCzk, usdCzk) =>
