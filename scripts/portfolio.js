@@ -68,16 +68,19 @@ function linkDonutTable(paths, tbodyId) {
   });
 }
 
-function fillTable(tbodyId, rows) {
+function fillTable(tbodyId, rows, {unitsFirst = false} = {}) {
   const tb = document.getElementById(tbodyId);
   rows.forEach(r => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><span class="dot" style="background:${r.color}"></span>${r.label}</td>
-      <td class="pct">${r.pct}%</td>
-      <td class="val">${r.val}</td>
-      <td class="units">${r.units}</td>
-    `;
+    tr.innerHTML = unitsFirst
+      ? `<td><span class="dot" style="background:${r.color}"></span>${r.label}</td>
+         <td class="pct">${r.pct}%</td>
+         <td class="units">${r.units}</td>
+         <td class="val">${r.val}</td>`
+      : `<td><span class="dot" style="background:${r.color}"></span>${r.label}</td>
+         <td class="pct">${r.pct}%</td>
+         <td class="val">${r.val}</td>
+         <td class="units">${r.units}</td>`;
     tb.appendChild(tr);
   });
 }
@@ -145,7 +148,7 @@ function render(p, a) {
     color: i.color, label: i.label, units: i.units,
     pct: (i.value / total * 100).toFixed(1),
     val: Math.round(i.value).toLocaleString(LANG.locale),
-  })));
+  })), {unitsFirst: true});
   linkDonutTable(assetPaths, 'tbl-assets');
 
   // ── Donut: brokeři ───────────────────────────────────────────────────────────
