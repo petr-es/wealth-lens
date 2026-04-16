@@ -21,7 +21,6 @@ const LANG_EN = {
   million:        'mil.',
   thousands:      'th.',
   unitsSuffix:    'pcs',
-  unitsSuffixLong: 'Pieces',
   fixed:          'fixed',
   locale:         'en',
 

@@ -21,7 +21,6 @@ const LANG_CS = {
   million:        'mil.',
   thousands:      'tis.',
   unitsSuffix:    'ks',
-  unitsSuffixLong: 'Kusů',
   fixed:          'fixní',
   locale:         'cs',
 
