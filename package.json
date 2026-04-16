@@ -6,7 +6,5 @@
   "scripts": {
     "dev": "node dev-server.js"
   },
-  "dependencies": {
-    "yahoo-finance2": "^2.13.3"
-  }
+  "dependencies": {}
 }

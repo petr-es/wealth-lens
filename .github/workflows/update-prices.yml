@@ -22,10 +22,12 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install yfinance pytz
+        run: pip install pytz
 
-      - name: Fetch prices and update data.js
+      - name: Fetch prices and update history.js
         run: python scripts/update_prices.py
+        env:
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
 
       - name: Commit and push if changed
         run: |
