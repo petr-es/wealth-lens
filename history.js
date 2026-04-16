@@ -1332,5 +1332,92 @@ var PRICE_HISTORY=[
         "fixedCzk": 200.0
       }
     }
+  },
+  {
+    "ts": "2026-04-15T14:57:07Z",
+    "rates": {
+      "EUR_CZK": 24.33,
+      "USD_CZK": 20.62
+    },
+    "prices": {
+      "FWRA_EUR": 7.42,
+      "SPYY_EUR": 256.5,
+      "S_USD": 12.99
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 390.0
+      },
+      "alpha": {
+        "fixedCzk": 200.0
+      }
+    }
+  },
+  {
+    "ts": "2026-04-15T16:17:16Z",
+    "rates": {
+      "EUR_CZK": 24.32,
+      "USD_CZK": 20.61
+    },
+    "prices": {
+      "FWRA_EUR": 7.42,
+      "SPYY_EUR": 256.55,
+      "S_USD": 13.07
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 390.0
+      },
+      "alpha": {
+        "fixedCzk": 200.0
+      }
+    }
+  },
+  {
+    "ts": "2026-04-15T19:55:30Z",
+    "rates": {
+      "EUR_CZK": 24.32,
+      "USD_CZK": 20.6
+    },
+    "prices": {
+      "FWRA_EUR": 7.42,
+      "SPYY_EUR": 256.55,
+      "S_USD": 13.27
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 390.0
+      },
+      "alpha": {
+        "fixedCzk": 200.0
+      }
+    }
   }
 ];
