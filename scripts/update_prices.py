@@ -23,7 +23,7 @@ HISTORY = 'history.js'
 ASSETS  = 'assets.js'
 
 
-def fetch_price(symbol: str) -> float | None:
+def fetch_price(symbol: str):
     try:
         info = yf.Ticker(symbol).info
         val = info.get('regularMarketPrice') or info.get('previousClose')
