@@ -22,7 +22,7 @@ const ASSETS = {
     ticker:   null,
     yahooUrl: null,
     currency: 'CZK',
-    fixedCzk: 200,   // fixní odhad v tis. Kč
+    fixedCzk: 215,   // fixní odhad v tis. Kč
     holdings: {},
   },
 };
