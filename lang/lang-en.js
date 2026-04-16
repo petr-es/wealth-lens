@@ -8,7 +8,7 @@ const LANG_EN = {
   colAsset:       'Asset',
   colShare:       'Share',
   colThousands:   'th. CZK',
-  colQty:         'Qty',
+  colQty:         'Pieces',
   colBroker:      'Broker',
   colPrice:       'Price',
   colRate:        'Rate',
@@ -21,6 +21,7 @@ const LANG_EN = {
   million:        'mil.',
   thousands:      'th.',
   unitsSuffix:    'pcs',
+  unitsSuffixLong: 'Pieces',
   fixed:          'fixed',
   locale:         'en',
 

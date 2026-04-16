@@ -137,10 +137,10 @@ function render(p, a) {
 
   // ── Donut: aktiva ────────────────────────────────────────────────────────────
   const assetItems = [
-    { value: vFWRA,  color:'var(--fwra)',  label:'FWRA',  units:fwra_total.toLocaleString(LANG.locale)+' '+LANG.unitsSuffix },
-    { value: vSPYY,  color:'var(--spyy)',  label:'SPYY',  units:spyy_total+' '+LANG.unitsSuffix },
+    { value: vFWRA,  color:'var(--fwra)',  label:'FWRA',  units:fwra_total.toLocaleString(LANG.locale)+' '+LANG.unitsSuffixLong },
+    { value: vSPYY,  color:'var(--spyy)',  label:'SPYY',  units:spyy_total+' '+LANG.unitsSuffixLong },
     { value: vAlpha, color:'var(--alpha)', label:'Alpha', units:'–' },
-    { value: vS,     color:'var(--s)',     label:'S',     units:s_total.toLocaleString(LANG.locale)+' '+LANG.unitsSuffix },
+    { value: vS,     color:'var(--s)',     label:'S',     units:s_total.toLocaleString(LANG.locale)+' '+LANG.unitsSuffixLong },
   ].sort((a, b) => b.value - a.value);
 
   const assetPaths = drawDonut('donut-assets', assetItems);

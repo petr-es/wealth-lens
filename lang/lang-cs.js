@@ -8,7 +8,7 @@ const LANG_CS = {
   colAsset:       'Aktívum',
   colShare:       'Podíl',
   colThousands:   'tis. Kč',
-  colQty:         'Ks',
+  colQty:         'Kusů',
   colBroker:      'Broker',
   colPrice:       'Cena',
   colRate:        'Kurz',
@@ -21,6 +21,7 @@ const LANG_CS = {
   million:        'mil.',
   thousands:      'tis.',
   unitsSuffix:    'ks',
+  unitsSuffixLong: 'Kusů',
   fixed:          'fixní',
   locale:         'cs',
 
