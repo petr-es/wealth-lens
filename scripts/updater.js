@@ -89,6 +89,7 @@ async function triggerUpdate() {
     window.PRICES = prices;
     showOverlay(null);
     render(window.PRICES, ASSETS);
+    document.getElementById('history-select').value = 'live';
     setBtnState('success');
   } catch (e) {
     console.error('fetchPrices:', e);

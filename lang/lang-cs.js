@@ -24,6 +24,9 @@ const LANG_CS = {
   fixed:          'fixní',
   locale:         'cs',
 
+  // Selektor historie
+  selectNow: 'Nyní',
+
   // Update tlačítko
   btnUpdate:    'Aktualizovat',
   btnUpdating:  'Aktualizuji…',

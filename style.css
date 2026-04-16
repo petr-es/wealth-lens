@@ -56,7 +56,18 @@ header h1 {
   white-space: nowrap;
   cursor: pointer;
   outline: none;
-  padding-right: 16px;
+  padding-right: 20px;
+  width: 0; /* set dynamically by JS */
+}
+
+#history-select-sizer {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  font-size: 19px;
+  font-family: 'Syne', sans-serif;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 header .total {

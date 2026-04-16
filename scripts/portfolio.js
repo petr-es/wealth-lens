@@ -227,27 +227,42 @@ function buildAssetsFromEntry(entry) {
   return result;
 }
 
+function syncSelectWidth(sel) {
+  const sizer = document.getElementById('history-select-sizer');
+  sizer.textContent = sel.options[sel.selectedIndex]?.textContent || '';
+  sel.style.width = (sizer.offsetWidth + 22) + 'px'; // +22 for chevron
+}
+
 function initHistorySelect() {
   const sel = document.getElementById('history-select');
   if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) return;
-  const prev = sel.value;
   window._historyEntries = [...PRICE_HISTORY].reverse();
   sel.innerHTML = '';
+  const nowOpt = document.createElement('option');
+  nowOpt.value = 'live';
+  nowOpt.textContent = LANG.selectNow;
+  sel.appendChild(nowOpt);
   _historyEntries.forEach((entry, i) => {
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = _historyFormatTs(entry.ts);
     sel.appendChild(opt);
   });
-  sel.value = (prev && parseInt(prev) < _historyEntries.length) ? prev : '0';
+  sel.value = 'live';
+  syncSelectWidth(sel);
 }
 
 document.getElementById('history-select').addEventListener('change', function () {
+  syncSelectWidth(this);
+  ['tbl-assets', 'tbl-brokers', 'tbl-prices'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+  ['donut-assets', 'donut-brokers'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+  if (this.value === 'live') {
+    render(window.PRICES, ASSETS);
+    return;
+  }
   if (!window._historyEntries) return;
   const entry = _historyEntries[parseInt(this.value)];
   if (!entry) return;
-  ['tbl-assets', 'tbl-brokers', 'tbl-prices'].forEach(id => { document.getElementById(id).innerHTML = ''; });
-  ['donut-assets', 'donut-brokers'].forEach(id => { document.getElementById(id).innerHTML = ''; });
   render(buildPricesFromEntry(entry), buildAssetsFromEntry(entry));
 });
 

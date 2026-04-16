@@ -24,6 +24,9 @@ const LANG_EN = {
   fixed:          'fixed',
   locale:         'en',
 
+  // History selector
+  selectNow: 'Now',
+
   // Update button
   btnUpdate:    'Update',
   btnUpdating:  'Updating…',
