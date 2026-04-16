@@ -16,7 +16,7 @@ const ASSETS = {
     ticker:   'S.NYSE',
     yahooUrl: 'https://finance.yahoo.com/quote/S',
     currency: 'USD',
-    holdings: { ibkr: 1257, etrade: 390 },
+    holdings: { ibkr: 1257, etrade: 0 },
   },
   alpha: {
     ticker:   null,
