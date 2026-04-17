@@ -24,6 +24,10 @@ const LANG_CS = {
   fixed:          'fixní',
   locale:         'cs',
 
+  // Graf vývoje portfolia
+  portfolioHistory: 'Vývoj portfolia',
+  noData:           'Nedostatek dat pro zvolené období',
+
   // Selektor historie
   selectNow: 'Nyní',
 

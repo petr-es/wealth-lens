@@ -24,6 +24,10 @@ const LANG_EN = {
   fixed:          'fixed',
   locale:         'en',
 
+  // Portfolio history chart
+  portfolioHistory: 'Portfolio history',
+  noData:           'Not enough data for the selected period',
+
   // History selector
   selectNow: 'Now',
 

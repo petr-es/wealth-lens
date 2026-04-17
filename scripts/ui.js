@@ -23,12 +23,14 @@ function setLang(val) {
     document.getElementById(id).innerHTML = '';
   });
   const sel = document.getElementById('history-select');
-  const prevIdx = sel ? parseInt(sel.value) : 0;
+  const prevVal = sel ? sel.value : 'live';
   initHistorySelect();
-  if (sel) sel.value = prevIdx;
+  if (sel) { sel.value = prevVal; syncSelectWidth(sel); }
+  const prevIdx = parseInt(prevVal);
   const entry = window._historyEntries && _historyEntries[prevIdx];
   render(entry ? buildPricesFromEntry(entry) : PRICES, entry ? buildAssetsFromEntry(entry) : ASSETS);
   applyLang();
+  drawHistoryChart(_currentTf);
 }
 
 // restore theme

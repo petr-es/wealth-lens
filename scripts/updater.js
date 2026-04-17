@@ -43,8 +43,8 @@ function dismissToast() {
   if (t) t.remove();
 }
 
-const OVERLAYS  = ['overlay-assets', 'overlay-brokers', 'overlay-prices'];
-const CONTENTS  = ['content-assets', 'content-brokers', 'content-prices'];
+const OVERLAYS  = ['overlay-assets', 'overlay-brokers', 'overlay-prices', 'overlay-history'];
+const CONTENTS  = ['content-assets', 'content-brokers', 'content-prices', 'content-history'];
 
 function showOverlay(state, msgHtml = '') {
   OVERLAYS.forEach(id => {
@@ -71,6 +71,7 @@ function setLoadingState() {
   ['donut-assets', 'donut-brokers'].forEach(id => {
     document.getElementById(id).innerHTML = '';
   });
+  document.getElementById('chart-history').innerHTML = '';
   showOverlay('loading');
 }
 
@@ -90,6 +91,7 @@ async function triggerUpdate() {
     showOverlay(null);
     render(window.PRICES, ASSETS);
     document.getElementById('history-select').value = 'live';
+    drawHistoryChart(_currentTf);
     setBtnState('success');
   } catch (e) {
     console.error('fetchPrices:', e);
@@ -106,6 +108,7 @@ fetchPrices().then(prices => {
   showOverlay(null);
   render(window.PRICES, ASSETS);
   initHistorySelect();
+  initHistoryChart();
 }).catch(e => {
   console.error('fetchPrices on load:', e);
   showOverlay('error', LANG.overlayError);
