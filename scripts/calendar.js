@@ -48,7 +48,7 @@
 
   function _formatEntryLabel(entry) {
     const d = new Date(entry.ts);
-    const loc = LANG.locale === 'cs' ? 'cs-CZ' : 'en-GB';
+    const loc = _dateLoc();
     const tz = { timeZone: 'Europe/Prague' };
     const date = d.toLocaleDateString(loc, { ...tz, day: 'numeric', month: 'numeric', year: 'numeric' });
     const time = d.toLocaleTimeString(loc, { ...tz, hour: '2-digit', minute: '2-digit' });

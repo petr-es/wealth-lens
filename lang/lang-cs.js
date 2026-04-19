@@ -8,7 +8,6 @@ const LANG_CS = {
   // Záhlaví tabulek
   colAsset:       'Aktivum',
   colShare:       'Podíl',
-  colThousands:   'tis. Kč',
   colQty:         'KS',
   colBroker:      'Broker',
   colPrice:       'Cena',
@@ -19,8 +18,6 @@ const LANG_CS = {
   // Měna a jednotky
   currency:       'Kč',
   million:        'M',
-  thousands:      'tis.',
-  unitsSuffix:    'ks',
   fixed:          'fixní',
   locale:         'cs',
 
@@ -33,12 +30,10 @@ const LANG_CS = {
   btnUpdate:    'Aktualizovat',
   btnUpdating:  'Aktualizuji…',
   btnDone:      'Hotovo',
-  btnError:     'Chyba',
 
   // Toaster a chyby
   toastRetry:        'Zkusit znova',
   toastUpdateFailed: 'Aktualizace selhala — nepodařilo se načíst všechny ceny.',
-  toastTokenError:   'Neplatný token — aktualizace selhala.',
   overlayError:      'Nepodařilo se načíst ceny.',
 
   // Kalendář

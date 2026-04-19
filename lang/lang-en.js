@@ -8,7 +8,6 @@ const LANG_EN = {
   // Table headers
   colAsset:       'Asset',
   colShare:       'Share',
-  colThousands:   'th. CZK',
   colQty:         'QTY',
   colBroker:      'Broker',
   colPrice:       'Price',
@@ -19,8 +18,6 @@ const LANG_EN = {
   // Currency and units
   currency:       'CZK',
   million:        'M',
-  thousands:      'th.',
-  unitsSuffix:    'pcs',
   fixed:          'fixed',
   locale:         'en',
 
@@ -33,12 +30,10 @@ const LANG_EN = {
   btnUpdate:    'Update',
   btnUpdating:  'Updating…',
   btnDone:      'Done',
-  btnError:     'Error',
 
   // Toaster and errors
   toastRetry:        'Try again',
   toastUpdateFailed: 'Update failed — could not fetch all prices.',
-  toastTokenError:   'Invalid token — update failed.',
   overlayError:      'Could not fetch prices.',
 
   // Calendar

@@ -1,12 +1,13 @@
 // ── Formatting helpers ──────────────────────────────────────────────────────
 const NBSP = '\u00a0';
+const _loc     = () => _loc();
+const _dateLoc = () => _dateLoc();
 
 function fmtCzk(n) {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
-  const s = Math.round(n).toLocaleString(LANG.locale === 'cs' ? 'cs-CZ' : 'en-US');
+  const s = Math.round(n).toLocaleString(_loc());
   return LANG.locale === 'cs' ? s.replace(/\s/g, NBSP) : s;
 }
-function fmtCzkShort(n) { return fmtCzk(n); }
 function fmtPct(n, digits = 1) {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
   const s = n.toFixed(digits);
@@ -19,7 +20,7 @@ function fmtNum(n, dec = 2) {
 }
 function fmtShares(n) {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
-  const s = n.toLocaleString(LANG.locale === 'cs' ? 'cs-CZ' : 'en-US');
+  const s = n.toLocaleString(_loc());
   return LANG.locale === 'cs' ? s.replace(/\s/g, NBSP) : s;
 }
 
@@ -380,7 +381,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
       <span class="name">${i.label}</span>
       <span class="pct">${fmtPct(parseFloat(pct), 1)}</span>
       <span class="pcs">${pcs}</span>
-      <span class="val">${fmtCzkShort(Math.round(i.value))}</span>
+      <span class="val">${fmtCzk(Math.round(i.value))}</span>
     `;
     listAssets.appendChild(row);
     return row;
@@ -392,11 +393,11 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
   const targetM = totalTis / 1000;
   if (animate) {
     animateNumber(centerAssets, _lastDonutAssetTotal, targetM, 1100, (v) => {
-      const s = v.toLocaleString(LANG.locale === 'cs' ? 'cs-CZ' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const s = v.toLocaleString(_loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       return `${s}<span class="donut-suffix">${LANG.million}</span>`;
     }, { html: true });
   } else {
-    const s = targetM.toLocaleString(LANG.locale === 'cs' ? 'cs-CZ' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const s = targetM.toLocaleString(_loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     centerAssets.innerHTML = `${s}<span class="donut-suffix">${LANG.million}</span>`;
   }
   _lastDonutAssetTotal = targetM;
@@ -423,7 +424,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
       <span class="name">${i.label}</span>
       <span class="pct">${fmtPct(parseFloat(pct), 1)}</span>
       <span class="pcs"></span>
-      <span class="val">${fmtCzkShort(Math.round(i.value))}</span>
+      <span class="val">${fmtCzk(Math.round(i.value))}</span>
     `;
     listBrokers.appendChild(row);
     return row;
@@ -433,11 +434,11 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
   const centerBrokers = document.getElementById('center-brokers');
   if (animate) {
     animateNumber(centerBrokers, _lastDonutBrokerTotal, targetM, 1100, (v) => {
-      const s = v.toLocaleString(LANG.locale === 'cs' ? 'cs-CZ' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const s = v.toLocaleString(_loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       return `${s}<span class="donut-suffix">${LANG.million}</span>`;
     }, { html: true });
   } else {
-    const s = targetM.toLocaleString(LANG.locale === 'cs' ? 'cs-CZ' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const s = targetM.toLocaleString(_loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     centerBrokers.innerHTML = `${s}<span class="donut-suffix">${LANG.million}</span>`;
   }
   _lastDonutBrokerTotal = targetM;
@@ -520,7 +521,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
     let updatedStr = '—';
     if (p._rawTs) {
       const d = new Date(p._rawTs);
-      const loc = LANG.locale === 'cs' ? 'cs-CZ' : 'en-GB';
+      const loc = _dateLoc();
       const tz = { timeZone: 'Europe/Prague' };
       const date = d.toLocaleDateString(loc, { ...tz, day: 'numeric', month: 'numeric', year: 'numeric' });
       const time = d.toLocaleTimeString(loc, { ...tz, hour: '2-digit', minute: '2-digit' });
@@ -592,7 +593,7 @@ function _xLabel(ts, rangeDays) {
     const [day, mon] = raw.replace(/\s/g, '').split('.').filter(Boolean);
     return LANG.locale === 'cs' ? `${day}.${mon}.` : `${mon}/${day}`;
   }
-  const loc = LANG.locale === 'cs' ? 'cs-CZ' : 'en-GB';
+  const loc = _dateLoc();
   if (rangeDays <= 200) return d.toLocaleDateString(loc, { ...tz, month: 'short' });
   return d.toLocaleDateString(loc, { ...tz, month: 'short', year: '2-digit' });
 }
@@ -826,7 +827,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     t.setAttribute('fill', 'currentColor'); t.setAttribute('fill-opacity', '0.4');
     t.setAttribute('font-size', '10');
     t.setAttribute('font-family', 'JetBrains Mono, monospace');
-    t.textContent = Math.round(tick).toLocaleString(LANG.locale === 'cs' ? 'cs-CZ' : 'en-US');
+    t.textContent = Math.round(tick).toLocaleString(_loc());
     svgEl.appendChild(t);
   });
 
@@ -900,7 +901,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
       timeStr = d.toLocaleTimeString('en-US', { ...tz, hour: 'numeric', minute: '2-digit', hour12: true });
     }
     tooltip.innerHTML = `<div class="tip-date">${dateStr} ${timeStr}</div>`
-      + `<div class="tip-val">${Math.round(closest.value * 1000).toLocaleString(LANG.locale === 'cs' ? 'cs-CZ' : 'en-US')} ${LANG.currency}</div>`;
+      + `<div class="tip-val">${Math.round(closest.value * 1000).toLocaleString(_loc())} ${LANG.currency}</div>`;
 
     const wrapW = wrap.offsetWidth;
     const tipW = tooltip.offsetWidth;
