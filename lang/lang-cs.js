@@ -3,33 +3,31 @@ const LANG_CS = {
   assetsByAsset:  'Složení dle aktiva',
   assetsByBroker: 'Složení dle brokera',
   assets:         'Aktiva',
+  portfolioHistory: 'Historie',
 
   // Záhlaví tabulek
-  colAsset:       'Aktívum',
+  colAsset:       'Aktivum',
   colShare:       'Podíl',
   colThousands:   'tis. Kč',
-  colQty:         'Kusů',
+  colQty:         'KS',
   colBroker:      'Broker',
   colPrice:       'Cena',
-  colRate:        'Kurz',
-  colCzkPerUnit:  'Kč / ks',
   colTotalQty:    'Ks celkem',
   colValue:       'Hodnota',
+  col7d:          '30D',
 
   // Měna a jednotky
   currency:       'Kč',
-  million:        'mil.',
+  million:        'M',
   thousands:      'tis.',
   unitsSuffix:    'ks',
   fixed:          'fixní',
   locale:         'cs',
 
-  // Graf vývoje portfolia
-  portfolioHistory: 'Vývoj portfolia',
+  // Graf a historie
   noData:           'Nedostatek dat pro zvolené období',
-
-  // Selektor historie
-  selectNow: 'Nyní',
+  selectNow:        'Nyní',
+  updated:          'Aktualizováno',
 
   // Update tlačítko
   btnUpdate:    'Aktualizovat',
@@ -37,13 +35,15 @@ const LANG_CS = {
   btnDone:      'Hotovo',
   btnError:     'Chyba',
 
-  // Toaster chyby
+  // Toaster a chyby
   toastRetry:        'Zkusit znova',
   toastUpdateFailed: 'Aktualizace selhala — nepodařilo se načíst všechny ceny.',
   toastTokenError:   'Neplatný token — aktualizace selhala.',
   overlayError:      'Nepodařilo se načíst ceny.',
 
-  // Poznámka pod čarou
-  footnote: (date, eurCzk, usdCzk) =>
-    `Kurzy dle Yahoo Finance, ${date} &nbsp;·&nbsp; <a href="https://finance.yahoo.com/quote/EURCZK=X" target="_blank">EUR/CZK ${eurCzk}</a> &nbsp;·&nbsp; <a href="https://finance.yahoo.com/quote/USDCZK=X" target="_blank">USD/CZK ${usdCzk}</a>`,
+  // Kalendář
+  calMonths:    ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'],
+  calDow:       ['Po','Út','St','Čt','Pá','So','Ne'], // Monday-first
+  calPrev:      'Předchozí měsíc',
+  calNext:      'Další měsíc',
 };

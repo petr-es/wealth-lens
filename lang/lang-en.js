@@ -3,33 +3,31 @@ const LANG_EN = {
   assetsByAsset:  'Composition by asset',
   assetsByBroker: 'Composition by broker',
   assets:         'Assets',
+  portfolioHistory: 'History',
 
   // Table headers
   colAsset:       'Asset',
   colShare:       'Share',
   colThousands:   'th. CZK',
-  colQty:         'Pieces',
+  colQty:         'QTY',
   colBroker:      'Broker',
   colPrice:       'Price',
-  colRate:        'Rate',
-  colCzkPerUnit:  'CZK / unit',
   colTotalQty:    'Total qty',
   colValue:       'Value',
+  col7d:          '30D',
 
   // Currency and units
   currency:       'CZK',
-  million:        'mil.',
+  million:        'M',
   thousands:      'th.',
   unitsSuffix:    'pcs',
   fixed:          'fixed',
   locale:         'en',
 
-  // Portfolio history chart
-  portfolioHistory: 'Portfolio history',
+  // Chart and history
   noData:           'Not enough data for the selected period',
-
-  // History selector
-  selectNow: 'Now',
+  selectNow:        'Now',
+  updated:          'Updated',
 
   // Update button
   btnUpdate:    'Update',
@@ -37,13 +35,15 @@ const LANG_EN = {
   btnDone:      'Done',
   btnError:     'Error',
 
-  // Error toaster
+  // Toaster and errors
   toastRetry:        'Try again',
   toastUpdateFailed: 'Update failed — could not fetch all prices.',
   toastTokenError:   'Invalid token — update failed.',
   overlayError:      'Could not fetch prices.',
 
-  // Footnote
-  footnote: (date, eurCzk, usdCzk) =>
-    `Exchange rates from Yahoo Finance, ${date} &nbsp;·&nbsp; <a href="https://finance.yahoo.com/quote/EURCZK=X" target="_blank">EUR/CZK ${eurCzk}</a> &nbsp;·&nbsp; <a href="https://finance.yahoo.com/quote/USDCZK=X" target="_blank">USD/CZK ${usdCzk}</a>`,
+  // Calendar
+  calMonths:    ['January','February','March','April','May','June','July','August','September','October','November','December'],
+  calDow:       ['Mo','Tu','We','Th','Fr','Sa','Su'], // Monday-first
+  calPrev:      'Previous month',
+  calNext:      'Next month',
 };
