@@ -823,6 +823,11 @@ body {
   .donut-wrap svg { width: 124px; height: 124px; }
   .donut-value { font-size: 16px; }
 
+  /* Condensed legend rows */
+  .alloc-row { padding: 3px 6px; min-height: 26px; gap: 6px; font-size: 10px; }
+  .alloc-list { gap: 2px; }
+  .alloc-head { gap: 6px; padding: 0 6px 4px; }
+
   /* Hide qty column in asset widget; tighter name col so pct/val have room */
   #head-assets { grid-template-columns: 8px 1fr 1.2fr 1.1fr; }
   #head-assets > div:nth-child(3) { display: none; }
