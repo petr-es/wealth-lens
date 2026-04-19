@@ -406,7 +406,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
     { value: bT212,   color: 'var(--t212)',   label: 'T212' },
     { value: bIBKR,   color: 'var(--ibkr)',   label: 'IBKR' },
     { value: bRev,    color: 'var(--rev)',    label: 'Revolut' },
-    { value: bEtrade, color: 'var(--etrade)', label: 'E-Trade' },
+    { value: bEtrade, color: 'var(--etrade)', label: 'Etrade' },
   ].sort((x, y) => y.value - x.value);
 
   const donutBrokers = document.getElementById('donut-brokers');
