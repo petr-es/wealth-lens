@@ -339,9 +339,9 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
   const totalTis = vFWRA + vSPYY + vS + vAlpha;
   const totalCzk = totalTis * 1000;
 
-  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + vSPYY;
+  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + vSPYY + vAlpha;
   const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + s_ibkr * S_PX / 1000;
-  const bRev    = (a.fwra.holdings.rev  || 0) * FWRA_PX / 1000 + vAlpha;
+  const bRev    = (a.fwra.holdings.rev  || 0) * FWRA_PX / 1000;
   const bEtrade = s_etrade * S_PX / 1000;
 
   document.title = 'Wealth Lens';
