@@ -660,7 +660,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
   const wrap = document.getElementById('chart-wrap');
   const W = wrap.offsetWidth || 800;
   const H = wrap.offsetHeight || 240;
-  const pL = 4, pR = 54, pT = 18, pB = 28;
+  const pL = 4, pR = 38, pT = 18, pB = 28;
   const cW = W - pL - pR, cH = H - pT - pB;
   svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
@@ -734,7 +734,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     if (y < pT - 2 || y > pT + cH + 2) return;
     const line = document.createElementNS(SVG_NS, 'line');
     line.setAttribute('x1', pL); line.setAttribute('y1', y.toFixed(1));
-    line.setAttribute('x2', pL + cW); line.setAttribute('y2', y.toFixed(1));
+    line.setAttribute('x2', W - 2); line.setAttribute('y2', y.toFixed(1));
     line.setAttribute('stroke', 'currentColor'); line.setAttribute('stroke-opacity', '0.06');
     line.setAttribute('stroke-dasharray', '2 4');
     svgEl.appendChild(line);
@@ -820,7 +820,8 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     const y = sy(tick);
     if (y < pT - 2 || y > pT + cH + 2) return;
     const t = document.createElementNS(SVG_NS, 'text');
-    t.setAttribute('x', (pL + cW + 5).toString()); t.setAttribute('y', y.toFixed(1));
+    t.setAttribute('x', (W - 2).toString()); t.setAttribute('y', y.toFixed(1));
+    t.setAttribute('text-anchor', 'end');
     t.setAttribute('dominant-baseline', 'middle');
     t.setAttribute('fill', 'currentColor'); t.setAttribute('fill-opacity', '0.4');
     t.setAttribute('font-size', '10');

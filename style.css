@@ -818,16 +818,18 @@ body {
 
 @media (max-width: 520px) {
   /* Smaller donuts */
-  .alloc { grid-template-columns: 118px 1fr; gap: 16px; }
-  .donut-wrap { width: 118px; height: 118px; }
-  .donut-wrap svg { width: 118px; height: 118px; }
-  .donut-value { font-size: 16px; }
+  .alloc { grid-template-columns: 132px 1fr; gap: 16px; }
+  .donut-wrap { width: 132px; height: 132px; }
+  .donut-wrap svg { width: 132px; height: 132px; }
+  .donut-value { font-size: 17px; }
 
-  /* Hide qty column in asset widget */
-  #head-assets { grid-template-columns: 8px 2fr 1fr 1fr; }
+  /* Hide qty column in asset widget; tighter name col so pct/val have room */
+  #head-assets { grid-template-columns: 8px 1fr 1.2fr 1.1fr; }
   #head-assets > div:nth-child(3) { display: none; }
-  #list-assets .alloc-row { grid-template-columns: 8px 2fr 1fr 1fr; }
+  #list-assets .alloc-row { grid-template-columns: 8px 1fr 1.2fr 1.1fr; }
   #list-assets .alloc-row .pcs { display: none; }
+  #head-brokers { grid-template-columns: 8px 1fr 1.2fr 1.1fr; }
+  #list-brokers .alloc-row { grid-template-columns: 8px 1fr 1.2fr 1.1fr; }
 
   /* Table value: show tis. only, squeeze sparkline */
   .val-full { display: none; }
