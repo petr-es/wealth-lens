@@ -206,6 +206,7 @@
     }
     _renderCalendar();
     popover.hidden = false;
+    _positionPopover();
     _ensureBackdrop().hidden = false;
     btn.classList.add('active');
     btn.setAttribute('aria-expanded', 'true');
@@ -214,8 +215,29 @@
     document.addEventListener('keydown', _onKeyDown);
   }
 
+  function _positionPopover() {
+    const r = btn.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 520;
+    const margin = 8;
+    if (isMobile) {
+      const w = Math.min(300, window.innerWidth - margin * 2);
+      popover.style.width = w + 'px';
+      popover.style.top  = (r.bottom + margin) + 'px';
+      popover.style.left = ((window.innerWidth - w) / 2) + 'px';
+    } else {
+      popover.style.width = '';
+      const pw = popover.offsetWidth || 260;
+      let left = r.right - pw;
+      if (left < margin) left = margin;
+      if (left + pw > window.innerWidth - margin) left = window.innerWidth - margin - pw;
+      popover.style.top  = (r.bottom + margin) + 'px';
+      popover.style.left = left + 'px';
+    }
+  }
+
   function closePopover() {
     popover.hidden = true;
+    popover.style.top = popover.style.left = popover.style.width = '';
     if (backdrop) backdrop.hidden = true;
     btn.classList.remove('active');
     btn.setAttribute('aria-expanded', 'false');

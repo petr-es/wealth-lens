@@ -565,8 +565,7 @@ body {
 
 /* ── Calendar picker popover ───────────────────────────────────────────── */
 .cal-popover {
-  position: absolute;
-  top: calc(100% + 8px); left: 0;
+  position: fixed;
   min-width: 260px;
   background: oklch(0.15 0.02 260 / 0.96);
   border: 1px solid var(--stroke-strong);
@@ -847,11 +846,8 @@ body {
   .chart-controls { display: flex; width: 100%; }
   .chart-controls button { flex: 1; padding: 4px 0; }
 
-  /* Mobile cal picker: centered dropdown below the button */
+  /* Mobile cal picker: scrollable */
   .cal-popover {
-    left: 50%;
-    transform: translateX(-50%);
-    width: min(300px, 92vw);
     max-height: 70vh;
     overflow-y: auto;
   }
@@ -859,7 +855,7 @@ body {
     position: fixed;
     inset: 0;
     background: oklch(0 0 0 / 0.5);
-    z-index: 99;
+    z-index: 49;
   }
 }
 

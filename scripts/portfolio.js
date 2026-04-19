@@ -1,7 +1,7 @@
 // ── Formatting helpers ──────────────────────────────────────────────────────
 const NBSP = '\u00a0';
-const _loc     = () => _loc();
-const _dateLoc = () => _dateLoc();
+const _loc     = () => LANG.locale === 'cs' ? 'cs-CZ' : 'en-US';
+const _dateLoc = () => LANG.locale === 'cs' ? 'cs-CZ' : 'en-GB';
 
 function fmtCzk(n) {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
