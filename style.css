@@ -452,7 +452,7 @@ body {
 .val-tis { display: none; }
 
 /* ── Portfolio chart ───────────────────────────────────────────────────── */
-.chart-card { padding: 28px; }
+.chart-card { padding: 24px; }
 .chart-controls {
   display: inline-flex;
   align-items: center;
@@ -818,10 +818,10 @@ body {
 
 @media (max-width: 520px) {
   /* Smaller donuts */
-  .alloc { grid-template-columns: 132px 1fr; gap: 16px; }
-  .donut-wrap { width: 132px; height: 132px; }
-  .donut-wrap svg { width: 132px; height: 132px; }
-  .donut-value { font-size: 17px; }
+  .alloc { grid-template-columns: 124px 1fr; gap: 16px; }
+  .donut-wrap { width: 124px; height: 124px; }
+  .donut-wrap svg { width: 124px; height: 124px; }
+  .donut-value { font-size: 16px; }
 
   /* Hide qty column in asset widget; tighter name col so pct/val have room */
   #head-assets { grid-template-columns: 8px 1fr 1.2fr 1.1fr; }
