@@ -504,7 +504,9 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
 
     const valCell = document.createElement('div');
     valCell.className = 'num';
-    valCell.textContent = fmtCzk(r.valCzk) + ' ' + LANG.currency;
+    valCell.innerHTML =
+      `<span class="val-full">${fmtCzk(r.valCzk)} ${LANG.currency}</span>` +
+      `<span class="val-tis">${fmtCzk(Math.round(r.valCzk / 1000))}</span>`;
     row.appendChild(valCell);
 
     tb.appendChild(row);

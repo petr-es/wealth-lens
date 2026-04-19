@@ -449,6 +449,7 @@ body {
 
 .spark-cell { justify-content: flex-end; padding-right: 14px !important; }
 .spark-cell svg { display: block; }
+.val-tis { display: none; }
 
 /* ── Portfolio chart ───────────────────────────────────────────────────── */
 .chart-card { padding: 28px; }
@@ -816,14 +817,28 @@ body {
 }
 
 @media (max-width: 520px) {
-  /* Phones: side-by-side alloc with tighter gap */
-  .alloc { grid-template-columns: 154px 1fr; gap: 20px; }
+  /* Smaller donuts */
+  .alloc { grid-template-columns: 118px 1fr; gap: 16px; }
+  .donut-wrap { width: 118px; height: 118px; }
+  .donut-wrap svg { width: 118px; height: 118px; }
+  .donut-value { font-size: 16px; }
 
-  /* Hide qty column in asset widget (saves horizontal space) */
+  /* Hide qty column in asset widget */
   #head-assets { grid-template-columns: 8px 2fr 1fr 1fr; }
   #head-assets > div:nth-child(3) { display: none; }
   #list-assets .alloc-row { grid-template-columns: 8px 2fr 1fr 1fr; }
   #list-assets .alloc-row .pcs { display: none; }
+
+  /* Table value: show tis. only, squeeze sparkline */
+  .val-full { display: none; }
+  .val-tis { display: inline; }
+  .spark-cell { padding-right: 4px !important; }
+  .spark-cell svg { width: 56px !important; }
+
+  /* Full-width timeframe selector */
+  .chart-header { flex-direction: column; align-items: stretch; gap: 10px; }
+  .chart-controls { display: flex; width: 100%; }
+  .chart-controls button { flex: 1; padding: 4px 0; }
 
   /* Mobile cal picker: centered dropdown below the button */
   .cal-popover {
