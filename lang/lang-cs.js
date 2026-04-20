@@ -27,12 +27,14 @@ const LANG_CS = {
   updated:          'Aktualizováno',
 
   // Update tlačítko
-  btnUpdate:    'Aktualizovat',
-  btnUpdating:  'Aktualizuji…',
-  btnDone:      'Hotovo',
+  btnUpdate:      'Aktualizovat',
+  btnUpdateTitle: 'Aktualizovat ceny',
+  btnUpdating:    'Aktualizuji…',
+  btnDone:        'Hotovo',
 
   // Toaster a chyby
   toastRetry:        'Zkusit znova',
+  toastClose:        'Zavřít',
   toastUpdateFailed: 'Aktualizace selhala — nepodařilo se načíst všechny ceny.',
   overlayError:      'Nepodařilo se načíst ceny.',
 

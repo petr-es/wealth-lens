@@ -1,4 +1,6 @@
 const API_URL = '/api/prices';
+const FETCH_TIMEOUT_MS = 15000;
+const SUCCESS_RESET_MS = 4000;
 
 const btn   = document.getElementById('update-btn');
 const label = document.getElementById('update-label');
@@ -12,7 +14,7 @@ function setBtnState(state) {
   } else if (state === 'success') {
     icon.innerHTML = '<polyline points="13 4 6 11 3 8" stroke-linecap="round" stroke-linejoin="round"/>';
     label.textContent = LANG.btnDone;
-    setTimeout(() => setBtnState(null), 4000);
+    setTimeout(() => setBtnState(null), SUCCESS_RESET_MS);
   } else {
     resetIcon();
     label.textContent = LANG.btnUpdate;
@@ -25,14 +27,29 @@ function resetIcon() {
 }
 
 function showToast(message) {
-  const existing = document.getElementById('update-toast');
-  if (existing) existing.remove();
+  dismissToast();
   const toast = document.createElement('div');
   toast.id = 'update-toast';
-  toast.innerHTML =
-    `<span class="toast-msg">${message}</span>` +
-    `<button class="toast-retry" onclick="dismissToast();triggerUpdate()">${LANG.toastRetry}</button>` +
-    `<button class="toast-close" onclick="dismissToast()">×</button>`;
+  toast.setAttribute('role', 'alert');
+
+  const msg = document.createElement('span');
+  msg.className = 'toast-msg';
+  msg.textContent = message;
+
+  const retry = document.createElement('button');
+  retry.className = 'toast-retry';
+  retry.type = 'button';
+  retry.textContent = LANG.toastRetry;
+  retry.addEventListener('click', () => { dismissToast(); triggerUpdate(); });
+
+  const close = document.createElement('button');
+  close.className = 'toast-close';
+  close.type = 'button';
+  close.setAttribute('aria-label', LANG.toastClose || 'Close');
+  close.textContent = '×';
+  close.addEventListener('click', dismissToast);
+
+  toast.append(msg, retry, close);
   document.body.appendChild(toast);
 }
 
@@ -44,14 +61,23 @@ function dismissToast() {
 const OVERLAYS = ['overlay-assets', 'overlay-brokers', 'overlay-prices', 'overlay-history'];
 const CONTENTS = ['content-assets', 'content-brokers', 'content-prices', 'content-history'];
 
-function showOverlay(state, msgHtml = '') {
+function showOverlay(state, msgText = '') {
   OVERLAYS.forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     el.className = `card-overlay ${state ? 'is-' + state : ''}`;
-    el.innerHTML = state === 'error'
-      ? `<div class="overlay-error-icon">!</div><div class="overlay-error-msg">${msgHtml}</div>`
-      : '';
+    if (state === 'error') {
+      el.innerHTML = '';
+      const icon = document.createElement('div');
+      icon.className = 'overlay-error-icon';
+      icon.textContent = '!';
+      const msg = document.createElement('div');
+      msg.className = 'overlay-error-msg';
+      msg.textContent = msgText;
+      el.append(icon, msg);
+    } else {
+      el.innerHTML = '';
+    }
   });
   CONTENTS.forEach(id => {
     const el = document.getElementById(id);
@@ -64,10 +90,25 @@ function setLoadingState() {
   showOverlay('loading');
 }
 
+function _isValidPricesShape(data) {
+  return data
+    && typeof data === 'object'
+    && data.rates && typeof data.rates === 'object'
+    && data.prices && typeof data.prices === 'object';
+}
+
 async function fetchPrices() {
-  const res = await fetch(API_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(API_URL, { signal: controller.signal });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!_isValidPricesShape(data)) throw new Error('Invalid response shape');
+    return data;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 async function triggerUpdate() {
@@ -89,12 +130,21 @@ async function triggerUpdate() {
     drawHistoryChart(_currentTf, { animate: true });
     setBtnState('success');
   } catch (e) {
-    console.error('fetchPrices:', e);
     setBtnState(null);
     showOverlay('error', LANG.overlayError);
     showToast(LANG.toastUpdateFailed);
   }
 }
+
+btn.addEventListener('click', triggerUpdate);
+
+// Keep the button's native tooltip in sync with the current locale.
+function _syncBtnTitle() {
+  btn.setAttribute('title', LANG.btnUpdateTitle || LANG.btnUpdate);
+  btn.setAttribute('aria-label', LANG.btnUpdateTitle || LANG.btnUpdate);
+}
+_syncBtnTitle();
+document.addEventListener('wl:locale-change', _syncBtnTitle);
 
 // Fetch live prices on page load
 setLoadingState();
@@ -103,8 +153,7 @@ fetchPrices().then(prices => {
   showOverlay(null);
   render(window.PRICES, ASSETS, { animate: true, isLive: true });
   initHistoryChart();
-}).catch(e => {
-  console.error('fetchPrices on load:', e);
+}).catch(() => {
   showOverlay('error', LANG.overlayError);
   showToast(LANG.toastUpdateFailed);
 });

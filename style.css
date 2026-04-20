@@ -485,7 +485,7 @@ body {
 .tick-cell a { color: inherit; text-decoration: none; }
 .tick-cell a:hover .tick { color: var(--accent); }
 
-.spark-cell { justify-content: flex-end; padding-right: 14px !important; }
+.trow > .spark-cell { justify-content: flex-end; padding-right: 14px; }
 .spark-cell svg { display: block; }
 .val-tis { display: none; }
 
@@ -871,7 +871,7 @@ body {
   /* Table value: show tis. only, squeeze sparkline */
   .val-full { display: none; }
   .val-tis { display: inline; }
-  .spark-cell { padding-right: 4px; }
+  .trow > .spark-cell { padding-right: 4px; }
   .spark-cell svg { width: 56px; }
 
   /* Full-width timeframe selector */
