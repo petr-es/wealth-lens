@@ -180,14 +180,20 @@ body {
   display: grid;
   grid-template-columns: auto auto auto 1fr auto;
   grid-template-areas: "brand hero scope . actions";
+  container-type: inline-size;
   align-items: center;
   gap: 16px; margin-bottom: var(--card-pad);
   padding: 0 4px;
 }
-.brand-mark  { grid-area: brand; }
-.hero        { grid-area: hero; }
-.scope-wrap  { grid-area: scope; }
-.header-actions { grid-area: actions; }
+.header > .brand-mark    { grid-area: brand; }
+.header > .hero          { grid-area: hero; }
+.header > .scope-wrap    { grid-area: scope; }
+.header > .header-actions { grid-area: actions; }
+
+@container (max-width: 385px) {
+  .brand-name { display: none; }
+}
+
 .brand-mark {
   display: inline-flex; align-items: center; gap: 10px;
   white-space: nowrap;
