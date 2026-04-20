@@ -53,8 +53,8 @@
   --brand-size: 30px;
 
   /* Touch / mobile */
-  --fab-inset: 20px;                        /* FAB distance from screen edges */
-  --fab-size: 44px;                         /* Apple HIG min touch target */
+  --fab-inset: 36px;                        /* FAB distance from screen edges */
+  --fab-size: 64px;                         /* prominent FAB size */
 
   /* Semantic color tints */
   --pos-soft: oklch(0.82 0.18 150 / 0.12);
@@ -877,8 +877,13 @@ body {
     padding: 0;
     justify-content: center;
     z-index: 50;
-    box-shadow: 0 4px 16px var(--shadow-dark);
+    background: var(--accent);
+    border-color: transparent;
+    color: var(--bg-0);
+    box-shadow: 0 4px 24px var(--accent-glow), 0 8px 32px var(--shadow-dark);
   }
+  #update-btn svg { width: 22px; height: 22px; }
+  #update-btn:hover:not(:disabled) { color: var(--bg-0); border-color: transparent; }
 
 }
 
