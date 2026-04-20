@@ -178,11 +178,16 @@ body {
 /* ── Header ────────────────────────────────────────────────────────────── */
 .header {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto auto auto 1fr auto;
+  grid-template-areas: "brand hero scope . actions";
   align-items: center;
   gap: 16px; margin-bottom: var(--card-pad);
   padding: 0 4px;
 }
+.brand-mark  { grid-area: brand; }
+.hero        { grid-area: hero; }
+.scope-wrap  { grid-area: scope; }
+.header-actions { grid-area: actions; }
 .brand-mark {
   display: inline-flex; align-items: center; gap: 10px;
   white-space: nowrap;
@@ -828,17 +833,15 @@ body {
   .alloc { grid-template-columns: 1fr; gap: 20px; }
   .donut-wrap { margin: 0 auto; }
 
-  /* Header: brand + actions on row 1; hero (value/delta/scope) on row 2 */
+  /* Header: brand + scope + actions on row 1; value + delta on row 2 */
   .header {
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: auto auto 1fr auto;
     grid-template-areas:
-      "brand .    actions"
-      "hero  hero hero";
+      "brand scope . actions"
+      "hero  hero  hero  hero";
     row-gap: 14px;
   }
-  .brand-mark { grid-area: brand; }
-  .header-actions { grid-area: actions; justify-self: end; }
-  .hero { grid-area: hero; justify-content: flex-start; flex-wrap: wrap; }
+  .hero { justify-content: flex-start; flex-wrap: wrap; }
   .brand-divider { display: none; }
 }
 
