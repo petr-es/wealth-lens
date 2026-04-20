@@ -891,7 +891,7 @@ body {
 }
 
 @media (max-width: 480px) {
-  .brand-full { display: none; }
+  .brand-prefix { display: none; }
 
   /* Smaller donuts */
   .alloc { grid-template-columns: 124px 1fr; gap: 16px; }
