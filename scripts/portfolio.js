@@ -1,3 +1,24 @@
+// ── Constants ───────────────────────────────────────────────────────────────
+const DURATIONS = {
+  TOTAL:  1200,   // header total count-up
+  DONUT:  1100,   // donut sweep + center value
+  CHART:  1300,   // history chart stroke
+};
+
+const DONUT = {
+  SIZE:      160,
+  THICKNESS: 26,
+  GAP:       3,   // px gap between segments
+};
+
+const SPARK = {
+  WIDTH:        90,
+  HEIGHT:       22,
+  STROKE_WIDTH: 1.3,
+};
+
+const PRICE_WINDOW_DAYS = 30; // sparkline history window
+
 // ── Formatting helpers ──────────────────────────────────────────────────────
 const NBSP = '\u00a0';
 const _loc     = () => LANG.locale === 'cs' ? 'cs-CZ' : 'en-US';
@@ -49,7 +70,7 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 function drawDonut(svgEl, segments, { animate = true } = {}) {
   svgEl.innerHTML = '';
-  const size = 160, thickness = 26, gap = 3;
+  const size = DONUT.SIZE, thickness = DONUT.THICKNESS, gap = DONUT.GAP;
   const r = (size - thickness) / 2;
   const c = size / 2;
   const circ = 2 * Math.PI * r;
@@ -85,10 +106,9 @@ function drawDonut(svgEl, segments, { animate = true } = {}) {
   });
 
   if (animate) {
-    const duration = 1100;
     const start = performance.now();
     const tick = (t) => {
-      const p = Math.min(1, (t - start) / duration);
+      const p = Math.min(1, (t - start) / DURATIONS.DONUT);
       const e = 1 - Math.pow(1 - p, 3);
       paths.forEach((path) => {
         const segStart = parseFloat(path.dataset.segStart);
@@ -136,7 +156,7 @@ function linkDonutLegend(paths, rowEls) {
 }
 
 // ── Sparkline ───────────────────────────────────────────────────────────────
-function buildSparkline(data, color, { width = 90, height = 22, strokeWidth = 1.3 } = {}) {
+function buildSparkline(data, color, { width = SPARK.WIDTH, height = SPARK.HEIGHT, strokeWidth = SPARK.STROKE_WIDTH } = {}) {
   if (!data || data.length < 2) {
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
@@ -208,7 +228,7 @@ function _pricePerUnit(entry, assetKey) {
 // Get last N entries' per-unit price series for an asset.
 // Returns { series: number[], deltaPct: number|null } — deltaPct is the
 // full-window change (first vs last); used for sparkline color.
-function priceSeriesForAsset(assetKey, windowDays = 30, anchorTs = null) {
+function priceSeriesForAsset(assetKey, windowDays = PRICE_WINDOW_DAYS, anchorTs = null) {
   if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) return { series: [], deltaPct: null };
   let sorted = [...PRICE_HISTORY].sort((a, b) => new Date(a.ts) - new Date(b.ts));
   if (anchorTs != null) {
@@ -319,7 +339,8 @@ let _lastRenderTotal = 0;
 let _lastDonutAssetTotal = 0;
 let _lastDonutBrokerTotal = 0;
 
-function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
+// Derive all portfolio values from raw prices + assets. Pure — no DOM.
+function _computePortfolio(p, a) {
   const EUR_CZK = p.rates.EUR_CZK;
   const USD_CZK = p.rates.USD_CZK;
   const FWRA_PX = (p.prices.FWRA_EUR || 0) * EUR_CZK;
@@ -337,113 +358,89 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
   const vS     = s_total    * S_PX    / 1000;
   const vAlpha = a.alpha.fixedCzk;
   const totalTis = vFWRA + vSPYY + vS + vAlpha;
-  const totalCzk = totalTis * 1000;
 
   const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + vSPYY + vAlpha;
   const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + s_ibkr * S_PX / 1000;
   const bRev    = (a.fwra.holdings.rev  || 0) * FWRA_PX / 1000;
   const bEtrade = s_etrade * S_PX / 1000;
 
-  document.title = 'Wealth Lens';
+  return {
+    EUR_CZK, USD_CZK, FWRA_PX, SPYY_PX, S_PX,
+    fwra_total, spyy_total, s_total,
+    vFWRA, vSPYY, vS, vAlpha,
+    totalTis, totalCzk: totalTis * 1000,
+    bT212, bIBKR, bRev, bEtrade,
+  };
+}
 
-  // ── Header total ──────────────────────────────────────────────────────────
+function _renderHeaderTotal(totalCzk, animate) {
   const totalEl = document.getElementById('total-value');
   if (animate) {
-    animateNumber(totalEl, _lastRenderTotal, totalCzk, 1200, (v) => fmtCzk(v));
+    animateNumber(totalEl, _lastRenderTotal, totalCzk, DURATIONS.TOTAL, (v) => fmtCzk(v));
   } else {
     totalEl.textContent = fmtCzk(totalCzk);
   }
   _lastRenderTotal = totalCzk;
+}
 
-  // Header delta tag
-  renderDelta(isLive, totalTis, anchorTs);
+function _buildAllocRow(item, totalTis, includeShares) {
+  const row = document.createElement('div');
+  row.className = 'alloc-row';
+  const pct = (item.value / totalTis * 100).toFixed(1);
+  const pcs = includeShares && item.shares != null ? fmtShares(item.shares) : '';
+  // Safe DOM — no innerHTML with external values.
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  dot.style.background = item.color;
+  dot.style.boxShadow = `0 0 8px ${item.color}`;
+  const name = document.createElement('span');
+  name.className = 'name';
+  name.textContent = item.label;
+  const pctEl = document.createElement('span');
+  pctEl.className = 'pct';
+  pctEl.textContent = fmtPct(parseFloat(pct), 1);
+  const pcsEl = document.createElement('span');
+  pcsEl.className = 'pcs';
+  pcsEl.textContent = pcs;
+  const val = document.createElement('span');
+  val.className = 'val';
+  val.textContent = fmtCzk(Math.round(item.value));
+  row.append(dot, name, pctEl, pcsEl, val);
+  return row;
+}
 
-  // ── Donut: assets ─────────────────────────────────────────────────────────
-  const assetItems = [
-    { key: 'fwra',  value: vFWRA,  color: 'var(--fwra)',  label: 'FWRA',  shares: fwra_total },
-    { key: 'spyy',  value: vSPYY,  color: 'var(--spyy)',  label: 'SPYY',  shares: spyy_total },
-    { key: 'alpha', value: vAlpha, color: 'var(--alpha)', label: 'Alpha', shares: null },
-    { key: 's',     value: vS,     color: 'var(--s)',     label: 'S',     shares: s_total },
-  ].sort((x, y) => y.value - x.value);
+function _animateDonutCenter(centerEl, fromM, toM, animate) {
+  const format = (v) => {
+    const s = v.toLocaleString(_loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    return `${s}<span class="donut-suffix">${LANG.million}</span>`;
+  };
+  if (animate) {
+    animateNumber(centerEl, fromM, toM, DURATIONS.DONUT, format, { html: true });
+  } else {
+    centerEl.innerHTML = format(toM);
+  }
+}
 
-  const donutAssets = document.getElementById('donut-assets');
-  const assetPaths = drawDonut(donutAssets, assetItems, { animate });
+function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares, lastTotalM, animate }) {
+  const svg = document.getElementById(svgId);
+  const paths = drawDonut(svg, items, { animate });
 
-  const listAssets = document.getElementById('list-assets');
-  listAssets.innerHTML = '';
-  const assetRows = assetItems.map((i) => {
-    const row = document.createElement('div');
-    row.className = 'alloc-row';
-    const pct = (i.value / totalTis * 100).toFixed(1);
-    const pcs = i.shares != null ? fmtShares(i.shares) : '—';
-    row.innerHTML = `
-      <span class="dot" style="background:${i.color}; box-shadow: 0 0 8px ${i.color}"></span>
-      <span class="name">${i.label}</span>
-      <span class="pct">${fmtPct(parseFloat(pct), 1)}</span>
-      <span class="pcs">${pcs}</span>
-      <span class="val">${fmtCzk(Math.round(i.value))}</span>
-    `;
-    listAssets.appendChild(row);
+  const list = document.getElementById(listId);
+  list.innerHTML = '';
+  const rows = items.map((item) => {
+    const row = _buildAllocRow(item, totalTis, includeShares);
+    list.appendChild(row);
     return row;
   });
-  linkDonutLegend(assetPaths, assetRows);
+  linkDonutLegend(paths, rows);
 
-  // Donut center (assets) — animate to M value
-  const centerAssets = document.getElementById('center-assets');
   const targetM = totalTis / 1000;
-  if (animate) {
-    animateNumber(centerAssets, _lastDonutAssetTotal, targetM, 1100, (v) => {
-      const s = v.toLocaleString(_loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      return `${s}<span class="donut-suffix">${LANG.million}</span>`;
-    }, { html: true });
-  } else {
-    const s = targetM.toLocaleString(_loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    centerAssets.innerHTML = `${s}<span class="donut-suffix">${LANG.million}</span>`;
-  }
-  _lastDonutAssetTotal = targetM;
+  _animateDonutCenter(document.getElementById(centerId), lastTotalM, targetM, animate);
+  return targetM;
+}
 
-  // ── Donut: brokers ────────────────────────────────────────────────────────
-  const brokerItems = [
-    { value: bT212,   color: 'var(--t212)',   label: 'T212' },
-    { value: bIBKR,   color: 'var(--ibkr)',   label: 'IBKR' },
-    { value: bRev,    color: 'var(--rev)',    label: 'Revolut' },
-    { value: bEtrade, color: 'var(--etrade)', label: 'Etrade' },
-  ].sort((x, y) => y.value - x.value);
-
-  const donutBrokers = document.getElementById('donut-brokers');
-  const brokerPaths = drawDonut(donutBrokers, brokerItems, { animate });
-
-  const listBrokers = document.getElementById('list-brokers');
-  listBrokers.innerHTML = '';
-  const brokerRows = brokerItems.map((i) => {
-    const row = document.createElement('div');
-    row.className = 'alloc-row';
-    const pct = (i.value / totalTis * 100).toFixed(1);
-    row.innerHTML = `
-      <span class="dot" style="background:${i.color}; box-shadow: 0 0 8px ${i.color}"></span>
-      <span class="name">${i.label}</span>
-      <span class="pct">${fmtPct(parseFloat(pct), 1)}</span>
-      <span class="pcs"></span>
-      <span class="val">${fmtCzk(Math.round(i.value))}</span>
-    `;
-    listBrokers.appendChild(row);
-    return row;
-  });
-  linkDonutLegend(brokerPaths, brokerRows);
-
-  const centerBrokers = document.getElementById('center-brokers');
-  if (animate) {
-    animateNumber(centerBrokers, _lastDonutBrokerTotal, targetM, 1100, (v) => {
-      const s = v.toLocaleString(_loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      return `${s}<span class="donut-suffix">${LANG.million}</span>`;
-    }, { html: true });
-  } else {
-    const s = targetM.toLocaleString(_loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    centerBrokers.innerHTML = `${s}<span class="donut-suffix">${LANG.million}</span>`;
-  }
-  _lastDonutBrokerTotal = targetM;
-
-  // ── Assets table ──────────────────────────────────────────────────────────
+function _renderPriceTable(p, a, ctx, anchorTs) {
+  const { vFWRA, vSPYY, vS, vAlpha, fwra_total, spyy_total, s_total } = ctx;
   const priceRows = [
     { _v: vFWRA,  key: 'fwra',  color: 'var(--fwra)',
       ticker: a.fwra.ticker, name: a.fwra.name, url: a.fwra.yahooUrl,
@@ -471,17 +468,38 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
   const POS = 'oklch(0.82 0.18 150)';
   const NEG = 'oklch(0.72 0.2 25)';
   const NEUTRAL = 'oklch(0.55 0.01 260)';
+
   priceRows.forEach((r) => {
     const row = document.createElement('div');
     row.className = 'trow';
-    const tickerContent = r.url
-      ? `<a href="${r.url}" target="_blank" rel="noopener"><span class="tick">${r.ticker}</span></a>`
-      : `<span class="tick">${r.ticker}</span>`;
-    const nameContent = r.name ? `<span class="asset-name">${r.name}</span>` : '';
 
+    // Ticker cell — build with DOM APIs so url/ticker/name can never break out.
     const tickCell = document.createElement('div');
     tickCell.className = 'tick-cell';
-    tickCell.innerHTML = `<span class="dot" style="background:${r.color}; box-shadow: 0 0 8px ${r.color}"></span>${tickerContent}${nameContent}`;
+    const dot = document.createElement('span');
+    dot.className = 'dot';
+    dot.style.background = r.color;
+    dot.style.boxShadow = `0 0 8px ${r.color}`;
+    tickCell.appendChild(dot);
+    const tickSpan = document.createElement('span');
+    tickSpan.className = 'tick';
+    tickSpan.textContent = r.ticker;
+    if (r.url) {
+      const link = document.createElement('a');
+      link.href = r.url;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.appendChild(tickSpan);
+      tickCell.appendChild(link);
+    } else {
+      tickCell.appendChild(tickSpan);
+    }
+    if (r.name) {
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'asset-name';
+      nameSpan.textContent = r.name;
+      tickCell.appendChild(nameSpan);
+    }
     row.appendChild(tickCell);
 
     const priceCell = document.createElement('div');
@@ -496,7 +514,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
 
     const sparkCell = document.createElement('div');
     sparkCell.className = 'num spark-cell';
-    const series = priceSeriesForAsset(r.key, 30, anchorTs);
+    const series = priceSeriesForAsset(r.key, PRICE_WINDOW_DAYS, anchorTs);
     const color = series.deltaPct == null
       ? NEUTRAL
       : (series.deltaPct >= 0 ? POS : NEG);
@@ -505,36 +523,84 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
 
     const valCell = document.createElement('div');
     valCell.className = 'num';
-    valCell.innerHTML =
-      `<span class="val-full">${fmtCzk(r.valCzk)} ${LANG.currency}</span>` +
-      `<span class="val-tis">${fmtCzk(Math.round(r.valCzk / 1000))}</span>`;
+    const valFull = document.createElement('span');
+    valFull.className = 'val-full';
+    valFull.textContent = `${fmtCzk(r.valCzk)} ${LANG.currency}`;
+    const valTis = document.createElement('span');
+    valTis.className = 'val-tis';
+    valTis.textContent = fmtCzk(Math.round(r.valCzk / 1000));
+    valCell.append(valFull, valTis);
     row.appendChild(valCell);
 
     tb.appendChild(row);
   });
+}
 
-  // ── Footer ────────────────────────────────────────────────────────────────
+function _renderFooter(p, ctx) {
   const footer = document.getElementById('footer-info');
-  if (footer) {
-    const eur = fmtNum(EUR_CZK, 2);
-    const usd = fmtNum(USD_CZK, 2);
-    let updatedStr = '—';
-    if (p._rawTs) {
-      const d = new Date(p._rawTs);
-      const loc = _dateLoc();
-      const tz = { timeZone: 'Europe/Prague' };
-      const date = d.toLocaleDateString(loc, { ...tz, day: 'numeric', month: 'numeric', year: 'numeric' });
-      const time = d.toLocaleTimeString(loc, { ...tz, hour: '2-digit', minute: '2-digit' });
-      updatedStr = `${date} ${time}`;
-    }
-    footer.innerHTML = `
-      <span>${LANG.updated} · ${updatedStr}</span>
-      <span class="sep">·</span>
-      <span class="rate">EUR/CZK ${eur}</span>
-      <span class="sep">·</span>
-      <span class="rate">USD/CZK ${usd}</span>
-    `;
+  if (!footer) return;
+  const eur = fmtNum(ctx.EUR_CZK, 2);
+  const usd = fmtNum(ctx.USD_CZK, 2);
+  let updatedStr = '—';
+  if (p._rawTs) {
+    const d = new Date(p._rawTs);
+    const loc = _dateLoc();
+    const tz = { timeZone: 'Europe/Prague' };
+    const date = d.toLocaleDateString(loc, { ...tz, day: 'numeric', month: 'numeric', year: 'numeric' });
+    const time = d.toLocaleTimeString(loc, { ...tz, hour: '2-digit', minute: '2-digit' });
+    updatedStr = `${date} ${time}`;
   }
+  footer.innerHTML = '';
+  const mkSpan = (text, cls) => {
+    const el = document.createElement('span');
+    if (cls) el.className = cls;
+    el.textContent = text;
+    return el;
+  };
+  footer.append(
+    mkSpan(`${LANG.updated} · ${updatedStr}`),
+    mkSpan('·', 'sep'),
+    mkSpan(`EUR/CZK ${eur}`, 'rate'),
+    mkSpan('·', 'sep'),
+    mkSpan(`USD/CZK ${usd}`, 'rate'),
+  );
+}
+
+function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
+  document.title = 'Wealth Lens';
+  const ctx = _computePortfolio(p, a);
+
+  _renderHeaderTotal(ctx.totalCzk, animate);
+  renderDelta(isLive, ctx.totalTis, anchorTs);
+
+  const assetItems = [
+    { key: 'fwra',  value: ctx.vFWRA,  color: 'var(--fwra)',  label: 'FWRA',  shares: ctx.fwra_total },
+    { key: 'spyy',  value: ctx.vSPYY,  color: 'var(--spyy)',  label: 'SPYY',  shares: ctx.spyy_total },
+    { key: 'alpha', value: ctx.vAlpha, color: 'var(--alpha)', label: 'Alpha', shares: null },
+    { key: 's',     value: ctx.vS,     color: 'var(--s)',     label: 'S',     shares: ctx.s_total },
+  ].sort((x, y) => y.value - x.value);
+
+  _lastDonutAssetTotal = _renderDonut({
+    svgId: 'donut-assets', listId: 'list-assets', centerId: 'center-assets',
+    items: assetItems, totalTis: ctx.totalTis, includeShares: true,
+    lastTotalM: _lastDonutAssetTotal, animate,
+  });
+
+  const brokerItems = [
+    { value: ctx.bT212,   color: 'var(--t212)',   label: 'T212' },
+    { value: ctx.bIBKR,   color: 'var(--ibkr)',   label: 'IBKR' },
+    { value: ctx.bRev,    color: 'var(--rev)',    label: 'Revolut' },
+    { value: ctx.bEtrade, color: 'var(--etrade)', label: 'Etrade' },
+  ].sort((x, y) => y.value - x.value);
+
+  _lastDonutBrokerTotal = _renderDonut({
+    svgId: 'donut-brokers', listId: 'list-brokers', centerId: 'center-brokers',
+    items: brokerItems, totalTis: ctx.totalTis, includeShares: false,
+    lastTotalM: _lastDonutBrokerTotal, animate,
+  });
+
+  _renderPriceTable(p, a, ctx, anchorTs);
+  _renderFooter(p, ctx);
 }
 
 // ── History entries helpers (used by calendar.js) ───────────────────────────
@@ -613,17 +679,22 @@ function _businessDaysList(minTs, maxTs) {
 function initHistoryChart() {
   const btnsEl = document.getElementById('timeframe-btns');
   btnsEl.innerHTML = '';
-  _TF_LIST.forEach(tf => {
+  const buttons = _TF_LIST.map(tf => {
     const btn = document.createElement('button');
     btn.className = (tf === _currentTf ? 'active' : '');
     btn.textContent = tf;
     btn.dataset.tf = tf;
-    btn.addEventListener('click', () => {
-      _currentTf = tf;
-      document.querySelectorAll('#timeframe-btns button').forEach(b => b.classList.toggle('active', b.dataset.tf === tf));
-      drawHistoryChart(tf, { animate: true });
-    });
+    btn.setAttribute('aria-label', `Timeframe: ${tf}`);
     btnsEl.appendChild(btn);
+    return btn;
+  });
+  // Event delegation + cached button list — no per-click query.
+  btnsEl.addEventListener('click', (e) => {
+    const target = e.target.closest('button[data-tf]');
+    if (!target) return;
+    _currentTf = target.dataset.tf;
+    buttons.forEach(b => b.classList.toggle('active', b.dataset.tf === _currentTf));
+    drawHistoryChart(_currentTf, { animate: true });
   });
   drawHistoryChart(_currentTf, { animate: true });
 
@@ -789,10 +860,9 @@ function drawHistoryChart(tf, { animate = true } = {}) {
 
   // Animate
   if (_chartAnimRaf) cancelAnimationFrame(_chartAnimRaf);
-  const duration = 1300;
   const startT = performance.now();
   const drawTick = (t) => {
-    const p = animate ? Math.min(1, (t - startT) / duration) : 1;
+    const p = animate ? Math.min(1, (t - startT) / DURATIONS.CHART) : 1;
     const e = 1 - Math.pow(1 - p, 3);
     lineEl.setAttribute('stroke-dashoffset', String(pathLen * (1 - e)));
     area.style.opacity = e;
@@ -910,6 +980,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     tooltip.style.left = leftPx + 'px';
     tooltip.style.top = ((closest.y / H) * rect.height - 12) + 'px';
     tooltip.classList.add('visible');
+    tooltip.setAttribute('aria-hidden', 'false');
   });
 
   overlay.addEventListener('mouseleave', () => {
@@ -917,5 +988,6 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     hDot.style.display = 'none';
     hDotInner.style.display = 'none';
     tooltip.classList.remove('visible');
+    tooltip.setAttribute('aria-hidden', 'true');
   });
 }

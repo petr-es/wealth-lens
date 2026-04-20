@@ -27,12 +27,14 @@ const LANG_EN = {
   updated:          'Updated',
 
   // Update button
-  btnUpdate:    'Update',
-  btnUpdating:  'Updating…',
-  btnDone:      'Done',
+  btnUpdate:      'Update',
+  btnUpdateTitle: 'Update prices',
+  btnUpdating:    'Updating…',
+  btnDone:        'Done',
 
   // Toaster and errors
   toastRetry:        'Try again',
+  toastClose:        'Close',
   toastUpdateFailed: 'Update failed — could not fetch all prices.',
   overlayError:      'Could not fetch prices.',
 

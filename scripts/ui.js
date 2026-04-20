@@ -11,12 +11,12 @@ function applyTheme(theme) {
 
 function setTheme(theme, { persist = true } = {}) {
   applyTheme(theme);
-  if (persist) localStorage.setItem(THEME_KEY, theme);
+  if (persist) safeStorage.set(THEME_KEY, theme);
 }
 
 // Initialize: saved > OS preference > dark
 (function initTheme() {
-  const saved = localStorage.getItem(THEME_KEY);
+  const saved = safeStorage.get(THEME_KEY);
   if (saved === 'dark' || saved === 'light') {
     applyTheme(saved);
   } else {
@@ -28,7 +28,7 @@ function setTheme(theme, { persist = true } = {}) {
 if (window.matchMedia) {
   const mq = window.matchMedia('(prefers-color-scheme: light)');
   const handler = (e) => {
-    if (!localStorage.getItem(THEME_KEY)) applyTheme(e.matches ? 'light' : 'dark');
+    if (!safeStorage.get(THEME_KEY)) applyTheme(e.matches ? 'light' : 'dark');
   };
   if (mq.addEventListener) mq.addEventListener('change', handler);
   else if (mq.addListener) mq.addListener(handler);
@@ -61,8 +61,9 @@ function applyLang() {
 
 function setLang(val) {
   LANG = LANGS[val];
-  localStorage.setItem('lang', val);
+  safeStorage.set('lang', val);
   applyLang();
+  document.dispatchEvent(new CustomEvent('wl:locale-change', { detail: { locale: val } }));
   if (window.CalendarPicker) {
     window.CalendarPicker.refresh();
     window.CalendarPicker.rerender({ animate: false });
@@ -74,7 +75,7 @@ function setLang(val) {
 
 // Restore saved locale
 (function initLang() {
-  const saved = localStorage.getItem('lang');
+  const saved = safeStorage.get('lang');
   if (saved && LANGS[saved]) LANG = LANGS[saved];
   applyLang();
 })();
