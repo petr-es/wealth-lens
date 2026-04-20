@@ -190,10 +190,6 @@ body {
 .header > .scope-wrap    { grid-area: scope; }
 .header > .header-actions { grid-area: actions; }
 
-@container (max-width: 385px) {
-  .brand-name { display: none; }
-}
-
 .brand-mark {
   display: inline-flex; align-items: center; gap: 10px;
   white-space: nowrap;
