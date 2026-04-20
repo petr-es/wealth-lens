@@ -833,15 +833,8 @@ body {
   .alloc { grid-template-columns: 1fr; gap: 20px; }
   .donut-wrap { margin: 0 auto; }
 
-  /* Header: brand + scope + actions on row 1; value + delta on row 2 */
-  .header {
-    grid-template-columns: auto auto 1fr auto;
-    grid-template-areas:
-      "brand scope . actions"
-      "hero  hero  hero  hero";
-    row-gap: 14px;
-  }
-  .hero { justify-content: flex-start; flex-wrap: wrap; }
+  /* Header: hide brand name, keep logo tile; value+delta stay next to logo */
+  .brand-name { display: none; }
   .brand-divider { display: none; }
 }
 
@@ -869,6 +862,16 @@ body {
   .thead > div:nth-child(3) { display: none; }
   .chart-wrap { height: 150px; }
   .tick-cell .asset-name { display: none; }
+
+  /* Header: scope selector wraps to row 2 */
+  .header {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "brand hero actions"
+      "scope scope scope";
+    row-gap: 14px;
+  }
+  .hero { justify-content: flex-start; }
 
   /* Update button: FAB — fixed bottom-right, icon only */
   #update-label { display: none; }
