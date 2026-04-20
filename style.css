@@ -150,7 +150,7 @@ body {
 /* ── App shell ─────────────────────────────────────────────────────────── */
 .app {
   position: relative; z-index: 1;
-  max-width: 1120px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 28px 24px;
 }
@@ -206,6 +206,7 @@ body {
 .scope-dropdown {
   display: inline-flex; align-items: center; gap: 6px;
   height: var(--control-height); padding: 0 11px;
+  white-space: nowrap;
   background: transparent;
   border: 1px solid var(--stroke);
   border-radius: var(--radius-sm);
@@ -793,20 +794,21 @@ body {
 /* ── Responsive ────────────────────────────────────────────────────────── */
 
 /*
- * Alloc "dance": side-by-side at wide → stack inside narrow 2-col grid
- * → side-by-side again when grid-top collapses to 1-col (full-width cards)
- * → small donut side-by-side on phones (avoids stacking and excessive scroll).
- * Header also moves to 2-row at 760px so value/delta/scope never partial-wrap.
+ * Three breakpoints: lg ≤1024px | md ≤768px | sm ≤480px
+ *
+ * lg: header moves to 2-row (brand/actions top, hero bottom); alloc stacks
+ *     inside the still-2-col card grid (cards too narrow for donut+legend).
+ * md: card grid collapses to 1-col → alloc can go side-by-side again;
+ *     footer wraps; table loses qty column.
+ * sm: phone-size tweaks — smaller donuts, icon-only refresh button, etc.
  */
 
-@media (max-width: 1060px) {
-  /* Cards in 2-col grid are too narrow for side-by-side → stack */
+@media (max-width: 1024px) {
+  /* Alloc: cards too narrow for side-by-side donut+legend → stack */
   .alloc { grid-template-columns: 1fr; gap: 20px; }
   .donut-wrap { margin: 0 auto; }
-}
 
-@media (max-width: 760px) {
-  /* Header: brand + actions stay on row 1; entire hero block goes to row 2 */
+  /* Header: brand + actions on row 1; hero (value/delta/scope) on row 2 */
   .header {
     grid-template-columns: auto 1fr auto;
     grid-template-areas:
@@ -820,8 +822,13 @@ body {
   .brand-divider { display: none; }
 }
 
-@media (max-width: 820px) {
-  /* Footer: info (rates/pairs) wraps to row 2; copy + locale stay on row 1 */
+@media (max-width: 768px) {
+  /* Card grid: 1-col → full-width cards → alloc can go side-by-side again */
+  .grid-top { grid-template-columns: 1fr; }
+  .alloc { grid-template-columns: 154px 1fr; gap: 24px; }
+  .donut-wrap { margin: 0; }
+
+  /* Footer: rates row wraps below copy + locale */
   .footer {
     grid-template-columns: auto 1fr auto;
     grid-template-areas:
@@ -830,30 +837,18 @@ body {
     row-gap: 10px;
   }
   .footer-copy { grid-area: copy; }
-  .footer-info { grid-area: info; justify-self: start; }
+  .footer-info { grid-area: info; justify-self: start; gap: 10px; }
   .locale-toggle { grid-area: locale; }
-}
 
-@media (max-width: 720px) {
   /* Table: hide qty column; keep asset / price / 30D / value */
   .table { grid-template-columns: 2fr 1fr 1fr 1.2fr; font-size: 11px; }
   .trow > div:nth-child(3),
   .thead > div:nth-child(3) { display: none; }
   .chart-wrap { height: 150px; }
-  .footer-info { gap: 10px; }
-
-  /* Asset names truncate too early — hide them here */
   .tick-cell .asset-name { display: none; }
 }
 
-@media (max-width: 680px) {
-  /* grid-top stacks → full-width cards → alloc can go side-by-side again */
-  .grid-top { grid-template-columns: 1fr; }
-  .alloc { grid-template-columns: 154px 1fr; gap: 24px; }
-  .donut-wrap { margin: 0; }
-}
-
-@media (max-width: 520px) {
+@media (max-width: 480px) {
   /* Smaller donuts */
   .alloc { grid-template-columns: 124px 1fr; gap: 16px; }
   .donut-wrap { width: 124px; height: 124px; }
@@ -865,7 +860,7 @@ body {
   .alloc-list { gap: 2px; }
   .alloc-head { gap: 6px; padding: 0 6px 4px; }
 
-  /* Hide qty column in asset widget; tighter name col so pct/val have room */
+  /* Hide qty column in asset widget */
   #head-assets { grid-template-columns: 8px 1fr 1.2fr 1.1fr; }
   #head-assets > div:nth-child(3) { display: none; }
   #list-assets .alloc-row { grid-template-columns: 8px 1fr 1.2fr 1.1fr; }
@@ -876,23 +871,20 @@ body {
   /* Table value: show tis. only, squeeze sparkline */
   .val-full { display: none; }
   .val-tis { display: inline; }
-  .spark-cell { padding-right: 4px !important; }
-  .spark-cell svg { width: 56px !important; }
+  .spark-cell { padding-right: 4px; }
+  .spark-cell svg { width: 56px; }
 
   /* Full-width timeframe selector */
   .chart-header { flex-direction: column; align-items: stretch; gap: 16px; }
   .chart-controls { display: flex; width: 100%; }
   .chart-controls button { flex: 1; padding: 4px 0; }
 
-  /* Update button: icon-only on mobile */
+  /* Update button: icon-only */
   #update-label { display: none; }
   .refresh-btn { padding: 0 9px; }
 
-  /* Mobile cal picker: scrollable */
-  .cal-popover {
-    max-height: 70vh;
-    overflow-y: auto;
-  }
+  /* Cal picker: scrollable on small screens */
+  .cal-popover { max-height: 70vh; overflow-y: auto; }
   #cal-backdrop {
     position: fixed;
     inset: 0;
