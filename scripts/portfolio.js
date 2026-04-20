@@ -23,6 +23,19 @@ const PRICE_WINDOW_DAYS = 30; // sparkline history window
 const NBSP = '\u00a0';
 const _loc     = () => LANG.locale === 'cs' ? 'cs-CZ' : 'en-US';
 const _dateLoc = () => LANG.locale === 'cs' ? 'cs-CZ' : 'en-GB';
+function fmtDate(d) {
+  const tz = { timeZone: 'Europe/Prague' };
+  const raw = d.toLocaleDateString('cs-CZ', { ...tz, day: 'numeric', month: 'numeric', year: 'numeric' });
+  const [dd, mm, yyyy] = raw.replace(/\s/g, '').split('.').filter(Boolean);
+  return LANG.locale === 'cs' ? `${dd}.${mm}.${yyyy}` : `${parseInt(mm)}/${parseInt(dd)}/${yyyy}`;
+}
+function fmtDateTime(d) {
+  const tz = { timeZone: 'Europe/Prague' };
+  const time = LANG.locale === 'cs'
+    ? d.toLocaleTimeString('cs-CZ', { ...tz, hour: '2-digit', minute: '2-digit' })
+    : d.toLocaleTimeString('en-US', { ...tz, hour: 'numeric', minute: '2-digit', hour12: true });
+  return `${fmtDate(d)} ${time}`;
+}
 
 function fmtCzk(n) {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
@@ -544,11 +557,7 @@ function _renderFooter(p, ctx) {
   let updatedStr = '—';
   if (p._rawTs) {
     const d = new Date(p._rawTs);
-    const loc = _dateLoc();
-    const tz = { timeZone: 'Europe/Prague' };
-    const date = d.toLocaleDateString(loc, { ...tz, day: 'numeric', month: 'numeric', year: 'numeric' });
-    const time = d.toLocaleTimeString(loc, { ...tz, hour: '2-digit', minute: '2-digit' });
-    updatedStr = `${date} ${time}`;
+    updatedStr = fmtDateTime(d);
   }
   footer.innerHTML = '';
   const mkSpan = (text, cls) => {

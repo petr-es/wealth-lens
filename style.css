@@ -19,7 +19,6 @@
 
   /* Dark theme (default) */
   --bg-0: oklch(0.13 0.015 260);
-  --bg-1: oklch(0.17 0.018 260);
   --bg-card: oklch(0.18 0.02 260 / 0.55);
   --stroke: oklch(1 0 0 / 0.08);
   --stroke-strong: oklch(1 0 0 / 0.14);
@@ -93,7 +92,6 @@
 
 [data-theme="light"] {
   --bg-0: oklch(0.97 0.005 260);
-  --bg-1: oklch(0.99 0.002 260);
   --bg-card: oklch(1 0 0 / 0.7);
   --stroke: oklch(0 0 0 / 0.08);
   --stroke-strong: oklch(0 0 0 / 0.14);
@@ -893,6 +891,8 @@ body {
 }
 
 @media (max-width: 480px) {
+  .brand-full { display: none; }
+
   /* Smaller donuts */
   .alloc { grid-template-columns: 124px 1fr; gap: 16px; }
   .donut-wrap { width: 124px; height: 124px; }
