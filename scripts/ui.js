@@ -34,17 +34,16 @@ if (window.matchMedia) {
   else if (mq.addListener) mq.addListener(handler);
 }
 
-const themeToggleEl = document.getElementById('theme-toggle');
-if (themeToggleEl) {
+document.querySelectorAll('.theme-toggle').forEach(el => {
   const toggle = () => {
     const cur = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
     setTheme(cur === 'light' ? 'dark' : 'light');
   };
-  themeToggleEl.addEventListener('click', toggle);
-  themeToggleEl.addEventListener('keydown', (e) => {
+  el.addEventListener('click', toggle);
+  el.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
   });
-}
+});
 
 // ── Locale ──────────────────────────────────────────────────────────────────
 function applyLang() {

@@ -154,9 +154,29 @@
   <footer class="footer">
     <span class="footer-copy">2026 WealthLens · v<span id="footer-version"></span></span>
     <div class="footer-info" id="footer-info"></div>
-    <div class="locale-toggle" id="locale-toggle" role="group" aria-label="Language">
-      <button type="button" data-locale="cs" aria-label="Čeština">CZ</button>
-      <button type="button" data-locale="en" aria-label="English">EN</button>
+    <div class="footer-end">
+      <div class="theme-toggle" tabindex="0" aria-label="Toggle light/dark theme">
+        <svg aria-hidden="true" class="bg-icon bg-moon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z"/>
+        </svg>
+        <svg aria-hidden="true" class="bg-icon bg-sun" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <circle cx="8" cy="8" r="3"/>
+          <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M13 3l-1 1M4 12l-1 1"/>
+        </svg>
+        <div class="theme-toggle-dot" aria-hidden="true">
+          <svg class="dot-moon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13 9.5A5.5 5.5 0 0 1 6.5 3a5.5 5.5 0 1 0 6.5 6.5z"/>
+          </svg>
+          <svg class="dot-sun" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="8" cy="8" r="3"/>
+            <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3 3l1 1M12 12l1 1M13 3l-1 1M4 12l-1 1"/>
+          </svg>
+        </div>
+      </div>
+      <div class="locale-toggle" id="locale-toggle" role="group" aria-label="Language">
+        <button type="button" data-locale="cs" aria-label="Čeština">CZ</button>
+        <button type="button" data-locale="en" aria-label="English">EN</button>
+      </div>
     </div>
   </footer>
 

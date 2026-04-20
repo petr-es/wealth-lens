@@ -602,6 +602,13 @@ body {
 .footer-info .sep { color: var(--text-3); opacity: 0.5; }
 .footer-info .rate { color: var(--text-3); }
 
+.footer-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.footer-end .theme-toggle { display: none; }
+
 .locale-toggle {
   display: inline-flex; align-items: center;
   gap: 2px;
@@ -854,7 +861,7 @@ body {
   }
   .footer-copy { grid-area: copy; }
   .footer-info { grid-area: info; justify-self: start; gap: 10px; }
-  .locale-toggle { grid-area: locale; }
+  .footer-end { grid-area: locale; }
 
   /* Table: hide qty column; keep asset / price / 30D / value */
   .table { grid-template-columns: 2fr 1fr 1fr 1.2fr; font-size: 11px; }
@@ -863,15 +870,16 @@ body {
   .chart-wrap { height: 150px; }
   .tick-cell .asset-name { display: none; }
 
-  /* Header: scope selector wraps to row 2 */
+  /* Header: single row — logo, value, scope right; theme moves to footer */
   .header {
     grid-template-columns: auto 1fr auto;
-    grid-template-areas:
-      "brand hero actions"
-      "scope scope scope";
-    row-gap: 14px;
+    grid-template-areas: "brand hero scope";
   }
   .hero { justify-content: flex-start; }
+  .header-actions { display: none; }
+
+  /* Footer: show theme toggle alongside locale */
+  .footer-end .theme-toggle { display: flex; }
 
   /* Update button: FAB — fixed bottom-right, icon only */
   #update-label { display: none; }
@@ -894,6 +902,15 @@ body {
 }
 
 @media (max-width: 480px) {
+  /* Header: scope wraps to row 2 */
+  .header {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "brand hero"
+      "scope scope";
+    row-gap: 12px;
+  }
+
   /* Smaller donuts */
   .alloc { grid-template-columns: 124px 1fr; gap: 16px; }
   .donut-wrap { width: 124px; height: 124px; }
