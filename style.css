@@ -840,9 +840,15 @@ body {
   .alloc { grid-template-columns: 1fr; gap: 20px; }
   .donut-wrap { margin: 0 auto; }
 
-  /* Header: hide brand name, keep logo tile; value+delta stay next to logo */
+  /* Header: 4 cols — actions absorbs remaining space and aligns right (one gap only) */
+  .header {
+    grid-template-columns: auto auto auto 1fr;
+    grid-template-areas: "brand hero scope actions";
+  }
+  .header-actions { justify-self: end; }
   .brand-name { display: none; }
   .brand-divider { display: none; }
+  .hero { justify-content: flex-start; }
 }
 
 @media (max-width: 768px) {
@@ -870,13 +876,28 @@ body {
   .chart-wrap { height: 150px; }
   .tick-cell .asset-name { display: none; }
 
-  /* Header: single row — logo, value, scope right; theme moves to footer */
+  /* Header: hero fills middle, scope right */
   .header {
     grid-template-columns: auto 1fr auto;
     grid-template-areas: "brand hero scope";
   }
-  .hero { justify-content: flex-start; }
-  .header-actions { display: none; }
+  /* Remove header-actions from grid flow. position:fixed #update-btn escapes
+     both the absolute positioning and overflow:hidden, so FAB stays visible. */
+  .header-actions {
+    position: absolute;
+    width: 0; height: 0;
+    overflow: hidden;
+  }
+  .header-actions .theme-toggle { display: none; }
+
+  /* Scope overflow: JS adds .scope-overflow when scope won't fit row 1 */
+  .header.scope-overflow {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "brand hero"
+      "scope scope";
+    row-gap: 12px;
+  }
 
   /* Footer: show theme toggle alongside locale */
   .footer-end .theme-toggle { display: flex; }
@@ -902,15 +923,6 @@ body {
 }
 
 @media (max-width: 480px) {
-  /* Header: scope wraps to row 2 */
-  .header {
-    grid-template-columns: auto 1fr;
-    grid-template-areas:
-      "brand hero"
-      "scope scope";
-    row-gap: 12px;
-  }
-
   /* Smaller donuts */
   .alloc { grid-template-columns: 124px 1fr; gap: 16px; }
   .donut-wrap { width: 124px; height: 124px; }
