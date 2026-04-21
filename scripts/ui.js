@@ -34,17 +34,16 @@ if (window.matchMedia) {
   else if (mq.addListener) mq.addListener(handler);
 }
 
-const themeToggleEl = document.getElementById('theme-toggle');
-if (themeToggleEl) {
+document.querySelectorAll('.theme-toggle').forEach(el => {
   const toggle = () => {
     const cur = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
     setTheme(cur === 'light' ? 'dark' : 'light');
   };
-  themeToggleEl.addEventListener('click', toggle);
-  themeToggleEl.addEventListener('keydown', (e) => {
+  el.addEventListener('click', toggle);
+  el.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
   });
-}
+});
 
 // ── Locale ──────────────────────────────────────────────────────────────────
 function applyLang() {
@@ -84,3 +83,48 @@ function setLang(val) {
 document.querySelectorAll('#locale-toggle button').forEach(b => {
   b.addEventListener('click', () => setLang(b.dataset.locale));
 });
+
+// ── Scope-wrap overflow detection ────────────────────────────────────────────
+// Wraps the scope selector to row 2 when brand + hero-min-content + scope
+// would exceed the header width. Measured from intrinsic element widths so
+// it adapts to any label length ("NYNÍ" vs a full date+time string).
+(function initScopeWrap() {
+  const header    = document.querySelector('.header');
+  const scopeWrap = document.querySelector('.scope-wrap');
+  const brandMark = document.querySelector('.brand-mark');
+  const heroEl    = document.querySelector('.hero');
+  if (!header || !scopeWrap || !brandMark || !heroEl) return;
+
+  function check() {
+    const gap     = parseFloat(getComputedStyle(header).columnGap) || 16;
+    const headerW = header.getBoundingClientRect().width;
+    const brandW  = brandMark.getBoundingClientRect().width;
+    // Use the button itself — scopeWrap may span full width when on row 2
+    const scopeBtnEl = scopeWrap.querySelector('.scope-dropdown');
+    const scopeW  = (scopeBtnEl || scopeWrap).getBoundingClientRect().width;
+
+    // Hero min-content = sum of visible children's natural widths + gaps between them.
+    // scrollWidth gives intrinsic size regardless of how much space the flex item got.
+    const heroKids = Array.from(heroEl.children)
+      .filter(c => getComputedStyle(c).display !== 'none');
+    const heroMinW = heroKids.reduce((s, c) => s + c.scrollWidth, 0)
+      + gap * Math.max(0, heroKids.length - 1);
+
+    // 3 row-1 items → 2 inter-item gaps
+    const required = brandW + heroMinW + scopeW + gap * 2;
+    header.classList.toggle('scope-overflow', required > headerW - 8);
+  }
+
+  // Fire on viewport resize
+  const ro = new ResizeObserver(check);
+  ro.observe(document.documentElement);
+
+  // Fire when scope label text changes (e.g. "NYNÍ" ↔ date) — scopeWrap stays
+  // full-width on row 2 so ResizeObserver wouldn't catch the content change
+  const scopeBtn = scopeWrap.querySelector('.scope-dropdown');
+  if (scopeBtn) {
+    new MutationObserver(check).observe(scopeBtn, { childList: true, subtree: true, characterData: true });
+  }
+
+  requestAnimationFrame(check); // initial layout pass
+})();

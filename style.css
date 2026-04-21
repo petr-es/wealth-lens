@@ -602,6 +602,13 @@ body {
 .footer-info .sep { color: var(--text-3); opacity: 0.5; }
 .footer-info .rate { color: var(--text-3); }
 
+.footer-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.footer-end .theme-toggle { display: none; }
+
 .locale-toggle {
   display: inline-flex; align-items: center;
   gap: 2px;
@@ -833,16 +840,15 @@ body {
   .alloc { grid-template-columns: 1fr; gap: 20px; }
   .donut-wrap { margin: 0 auto; }
 
-  /* Header: brand + scope + actions on row 1; value + delta on row 2 */
+  /* Header: 4 cols — actions absorbs remaining space and aligns right (one gap only) */
   .header {
-    grid-template-columns: auto auto 1fr auto;
-    grid-template-areas:
-      "brand scope . actions"
-      "hero  hero  hero  hero";
-    row-gap: 14px;
+    grid-template-columns: auto auto auto 1fr;
+    grid-template-areas: "brand hero scope actions";
   }
-  .hero { justify-content: flex-start; flex-wrap: wrap; }
+  .header-actions { justify-self: end; }
+  .brand-name { display: none; }
   .brand-divider { display: none; }
+  .hero { justify-content: flex-start; }
 }
 
 @media (max-width: 768px) {
@@ -861,7 +867,7 @@ body {
   }
   .footer-copy { grid-area: copy; }
   .footer-info { grid-area: info; justify-self: start; gap: 10px; }
-  .locale-toggle { grid-area: locale; }
+  .footer-end { grid-area: locale; }
 
   /* Table: hide qty column; keep asset / price / 30D / value */
   .table { grid-template-columns: 2fr 1fr 1fr 1.2fr; font-size: 11px; }
@@ -869,6 +875,32 @@ body {
   .thead > div:nth-child(3) { display: none; }
   .chart-wrap { height: 150px; }
   .tick-cell .asset-name { display: none; }
+
+  /* Header: hero fills middle, scope right */
+  .header {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "brand hero scope";
+  }
+  /* Remove header-actions from grid flow. position:fixed #update-btn escapes
+     both the absolute positioning and overflow:hidden, so FAB stays visible. */
+  .header-actions {
+    position: absolute;
+    width: 0; height: 0;
+    overflow: hidden;
+  }
+  .header-actions .theme-toggle { display: none; }
+
+  /* Scope overflow: JS adds .scope-overflow when scope won't fit row 1 */
+  .header.scope-overflow {
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "brand hero"
+      "scope scope";
+    row-gap: 12px;
+  }
+
+  /* Footer: show theme toggle alongside locale */
+  .footer-end .theme-toggle { display: flex; }
 
   /* Update button: FAB — fixed bottom-right, icon only */
   #update-label { display: none; }
