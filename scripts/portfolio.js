@@ -314,7 +314,7 @@ function computeDelta(vNowTis) {
   return { pct, abs };
 }
 
-function renderDelta(isLive, vNowTis, anchorTs) {
+function renderDelta(isLive, vNowTis, anchorTs, animate) {
   const el = document.getElementById('delta-tag');
   if (!el) return;
   let d;
@@ -340,11 +340,23 @@ function renderDelta(isLive, vNowTis, anchorTs) {
   const arrow = pos
     ? `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 10V2M6 2L2.5 5.5M6 2l3.5 3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
     : `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2V10M6 10L2.5 6.5M6 10l3.5-3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-  const pctStr = (pos ? '+' : '') + fmtPct(d.pct, 2);
-  const absStr = (pos ? '+' : '') + fmtCzk(d.abs) + ' ' + LANG.currency;
-  el.innerHTML = `${arrow}<span>${pctStr}</span><span class="delta-abs">· ${absStr}</span>`;
+
+  el.innerHTML = arrow;
+  const pctEl = document.createElement('span');
+  const absEl = document.createElement('span');
+  absEl.className = 'delta-abs';
+  el.append(pctEl, absEl);
   el.className = 'delta ' + (pos ? 'pos' : 'neg');
   el.hidden = false;
+
+  const sign = pos ? '+' : '-';
+  if (animate) {
+    animateNumber(pctEl, 0, Math.abs(d.pct), DURATIONS.TOTAL, v => sign + fmtPct(v, 2));
+    animateNumber(absEl, 0, Math.abs(d.abs), DURATIONS.TOTAL, v => '· ' + sign + fmtCzk(v) + ' ' + LANG.currency);
+  } else {
+    pctEl.textContent = sign + fmtPct(Math.abs(d.pct), 2);
+    absEl.textContent = '· ' + sign + fmtCzk(Math.abs(d.abs)) + ' ' + LANG.currency;
+  }
 }
 
 // ── Render ──────────────────────────────────────────────────────────────────
@@ -585,7 +597,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
   const ctx = _computePortfolio(p, a);
 
   _renderHeaderTotal(ctx.totalCzk, animate);
-  renderDelta(isLive, ctx.totalTis, anchorTs);
+  renderDelta(isLive, ctx.totalTis, anchorTs, animate);
 
   const assetItems = [
     { key: 'fwra',  value: ctx.vFWRA,  color: 'var(--fwra)',  label: 'FWRA',  shares: ctx.fwra_total },
