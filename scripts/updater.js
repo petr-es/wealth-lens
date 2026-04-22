@@ -146,6 +146,13 @@ function _syncBtnTitle() {
 _syncBtnTitle();
 document.addEventListener('wl:locale-change', _syncBtnTitle);
 
+function _hidePageLoader() {
+  const loader = document.getElementById('page-loader');
+  if (!loader) return;
+  loader.classList.add('is-hidden');
+  loader.addEventListener('transitionend', () => loader.remove(), { once: true });
+}
+
 // Fetch live prices on page load
 setLoadingState();
 fetchPrices().then(prices => {
@@ -153,7 +160,9 @@ fetchPrices().then(prices => {
   showOverlay(null);
   render(window.PRICES, ASSETS, { animate: true, isLive: true });
   initHistoryChart();
+  _hidePageLoader();
 }).catch(() => {
+  _hidePageLoader();
   showOverlay('error', LANG.overlayError);
   showToast(LANG.toastUpdateFailed);
 });

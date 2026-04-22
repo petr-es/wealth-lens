@@ -966,3 +966,40 @@ body {
 }
 
 .num-anim { font-variant-numeric: tabular-nums; }
+
+/* ── Page loader ────────────────────────────────────────────────────────── */
+#page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease;
+}
+#page-loader.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+.loader-w-svg {
+  width: 100px;
+  height: 72px;
+  filter: drop-shadow(0 0 18px oklch(0.88 0.22 150 / 0.55));
+  animation: loader-glow 1.6s ease-in-out infinite;
+}
+.loader-w-path {
+  stroke-dasharray: 200;
+  stroke-dashoffset: 200;
+  animation: loader-draw 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes loader-draw {
+  0%   { stroke-dashoffset: 200; opacity: 0.2; }
+  55%  { stroke-dashoffset: 0;   opacity: 1;   }
+  78%  { stroke-dashoffset: 0;   opacity: 1;   }
+  100% { stroke-dashoffset: 0;   opacity: 0;   }
+}
+@keyframes loader-glow {
+  0%, 100% { filter: drop-shadow(0 0 10px oklch(0.88 0.22 150 / 0.35)); }
+  55%       { filter: drop-shadow(0 0 26px oklch(0.88 0.22 150 / 0.75)); }
+}
