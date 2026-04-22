@@ -115,6 +115,7 @@ async function triggerUpdate() {
   dismissToast();
   setBtnState('loading');
   setLoadingState();
+  _showPageLoader();
   try {
     const prices = await fetchPrices();
     window.PRICES = decorateLivePrices(prices);
@@ -128,8 +129,10 @@ async function triggerUpdate() {
     _lastDonutBrokerTotal = 0;
     render(window.PRICES, ASSETS, { animate: true, isLive: true });
     drawHistoryChart(_currentTf, { animate: true });
+    _hidePageLoader();
     setBtnState('success');
   } catch (e) {
+    _hidePageLoader();
     setBtnState(null);
     showOverlay('error', LANG.overlayError);
     showToast(LANG.toastUpdateFailed);
@@ -146,11 +149,16 @@ function _syncBtnTitle() {
 _syncBtnTitle();
 document.addEventListener('wl:locale-change', _syncBtnTitle);
 
+function _showPageLoader() {
+  const loader = document.getElementById('page-loader');
+  if (!loader) return;
+  loader.classList.remove('is-hidden');
+}
+
 function _hidePageLoader() {
   const loader = document.getElementById('page-loader');
   if (!loader) return;
   loader.classList.add('is-hidden');
-  loader.addEventListener('transitionend', () => loader.remove(), { once: true });
 }
 
 // Fetch live prices on page load
