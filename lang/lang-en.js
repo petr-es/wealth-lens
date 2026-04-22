@@ -17,6 +17,7 @@ const LANG_EN = {
 
   // Currency and units
   currency:       'CZK',
+  brokers:        'Brokers',
   million:        'M',
   fixed:          'fixed',
   locale:         'en',

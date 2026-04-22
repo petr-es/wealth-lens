@@ -17,6 +17,7 @@ const LANG_CS = {
 
   // Měna a jednotky
   currency:       'Kč',
+  brokers:        'brokeři',
   million:        'M',
   fixed:          'fixní',
   locale:         'cs',

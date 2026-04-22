@@ -434,7 +434,7 @@ function _animateDonutCenter(centerEl, fromM, toM, animate) {
   }
 }
 
-function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares, lastTotalM, animate }) {
+function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares, lastTotalM, animate, staticCount }) {
   const svg = document.getElementById(svgId);
   const paths = drawDonut(svg, items, { animate });
 
@@ -446,6 +446,11 @@ function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares,
     return row;
   });
   linkDonutLegend(paths, rows);
+
+  if (staticCount != null) {
+    document.getElementById(centerId).textContent = staticCount;
+    return 0;
+  }
 
   const targetM = totalTis / 1000;
   _animateDonutCenter(document.getElementById(centerId), lastTotalM, targetM, animate);
@@ -606,6 +611,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
     svgId: 'donut-brokers', listId: 'list-brokers', centerId: 'center-brokers',
     items: brokerItems, totalTis: ctx.totalTis, includeShares: false,
     lastTotalM: _lastDonutBrokerTotal, animate,
+    staticCount: brokerItems.filter(b => b.value > 0).length,
   });
 
   _renderPriceTable(p, a, ctx, anchorTs);
