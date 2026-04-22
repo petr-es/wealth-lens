@@ -73,6 +73,7 @@
       if (!entry) return;
       render(buildPricesFromEntry(entry), buildAssetsFromEntry(entry), { animate: true, isLive: false, anchorTs: entry.ts });
     }
+    if (typeof drawHistoryChart === 'function') drawHistoryChart(_currentTf, { animate: true });
   }
 
   function _monthTitle(year, month) {
