@@ -1,6 +1,6 @@
 {
   "name": "wealth-lens",
-  "version": "1.25",
+  "version": "1.26",
   "private": true,
   "scripts": {
     "dev": "python3 scripts/dev-server.py"
