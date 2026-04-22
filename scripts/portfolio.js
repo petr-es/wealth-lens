@@ -665,6 +665,7 @@ const _TF_LIST = ['1W', '1M', '3M', '6M', 'YTD', '1Y', 'MAX'];
 let _currentTf = 'MAX';
 let _chartDrawProgress = 1;
 let _chartAnimRaf = null;
+let _lastChartDrawTs = 0;
 
 function _niceYTicks(min, max) {
   const range = max - min || 1;
@@ -726,15 +727,15 @@ function initHistoryChart() {
   drawHistoryChart(_currentTf, { animate: true });
 
   if (window.ResizeObserver) {
-    let firstObservation = true;
     new ResizeObserver(() => {
-      if (firstObservation) { firstObservation = false; return; }
+      if (Date.now() - _lastChartDrawTs < 100) return;
       drawHistoryChart(_currentTf, { animate: false });
     }).observe(document.getElementById('chart-wrap'));
   }
 }
 
 function drawHistoryChart(tf, { animate = true } = {}) {
+  _lastChartDrawTs = Date.now();
   const svgEl = document.getElementById('chart-history');
   if (!svgEl) return;
   svgEl.innerHTML = '';
