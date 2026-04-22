@@ -714,8 +714,11 @@ function initHistoryChart() {
   drawHistoryChart(_currentTf, { animate: true });
 
   if (window.ResizeObserver) {
-    new ResizeObserver(() => drawHistoryChart(_currentTf, { animate: false }))
-      .observe(document.getElementById('chart-wrap'));
+    let firstObservation = true;
+    new ResizeObserver(() => {
+      if (firstObservation) { firstObservation = false; return; }
+      drawHistoryChart(_currentTf, { animate: false });
+    }).observe(document.getElementById('chart-wrap'));
   }
 }
 
