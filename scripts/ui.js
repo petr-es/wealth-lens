@@ -96,8 +96,10 @@ document.querySelectorAll('#locale-toggle button').forEach(b => {
   if (!header || !scopeWrap || !brandMark || !heroEl) return;
 
   function check() {
-    const gap     = parseFloat(getComputedStyle(header).columnGap) || 16;
-    const headerW = header.getBoundingClientRect().width;
+    const style   = getComputedStyle(header);
+    const gap     = parseFloat(style.columnGap) || 16;
+    const headerW = header.getBoundingClientRect().width
+                  - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     const brandW  = brandMark.getBoundingClientRect().width;
     // Use the button itself — scopeWrap may span full width when on row 2
     const scopeBtnEl = scopeWrap.querySelector('.scope-dropdown');
@@ -127,4 +129,13 @@ document.querySelectorAll('#locale-toggle button').forEach(b => {
   }
 
   requestAnimationFrame(check); // initial layout pass
+})();
+
+// ── Sticky header: toggle glass background on scroll ───────────────────────
+(function stickyHeaderGlass() {
+  const header = document.querySelector('.header');
+  if (!header) return;
+  const update = () => header.classList.toggle('scrolled', window.scrollY > 0);
+  window.addEventListener('scroll', update, { passive: true });
+  update();
 })();
