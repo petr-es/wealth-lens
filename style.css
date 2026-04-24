@@ -88,9 +88,6 @@
 
   /* Aurora */
   --blur-aurora: 90px;
-
-  /* Sticky header */
-  --bg-header: oklch(0.13 0.015 260 / 0.55);
 }
 
 [data-theme="light"] {
@@ -120,7 +117,6 @@
   --pos-border: oklch(0.65 0.18 150 / 0.32);
   --neg-soft: oklch(0.78 0.2 25 / 0.12);
   --neg-border: oklch(0.65 0.2 25 / 0.32);
-  --bg-header: oklch(0.97 0.005 260 / 0.7);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -174,7 +170,7 @@ body {
   position: relative; z-index: 1;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 24px var(--card-pad);
+  padding: var(--card-pad) 24px;
 }
 
 /* ── Header ────────────────────────────────────────────────────────────── */
@@ -182,25 +178,10 @@ body {
   display: grid;
   grid-template-columns: auto auto auto 1fr auto;
   grid-template-areas: "brand hero scope . actions";
+  container-type: inline-size;
   align-items: center;
-  gap: 16px;
-  /* mirrors .app centering: 24px min + auto margin on wide viewports */
-  padding: var(--card-pad) max(24px, calc((100vw - 1280px) / 2 + 24px)) var(--card-pad);
-  position: sticky; top: 0; z-index: 100;
-  background: transparent;
-}
-.header::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: var(--bg-header);
-  backdrop-filter: blur(var(--blur-md)); -webkit-backdrop-filter: blur(var(--blur-md));
-  z-index: -1;
-  opacity: 0;
-  transition: opacity var(--duration) ease;
-}
-.header.scrolled::before {
-  opacity: 1;
+  gap: 16px; margin-bottom: var(--card-pad);
+  padding: 0 4px;
 }
 .header > .brand-mark    { grid-area: brand; }
 .header > .hero          { grid-area: hero; }
