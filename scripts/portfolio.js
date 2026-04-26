@@ -107,7 +107,7 @@ function drawDonut(svgEl, segments, { animate = true } = {}) {
     ring.setAttribute('stroke-width', thickness);
     ring.setAttribute('stroke-linecap', 'butt');
     ring.classList.add('donut-seg');
-    ring.style.filter = `drop-shadow(0 0 8px ${seg.color}70)`;
+    ring.style.filter = `drop-shadow(0 0 8px color-mix(in srgb, ${seg.color} 35%, transparent))`;
     ring.setAttribute('stroke-dasharray', `0 ${circ}`);
     ring.setAttribute('stroke-dashoffset', '0');
     ring.dataset.segStart = offset;

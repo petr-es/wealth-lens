@@ -384,7 +384,7 @@ body {
 .donut-wrap {
   position: relative; width: 154px; height: 154px;
 }
-.donut-wrap svg { display: block; width: 154px; height: 154px; filter: drop-shadow(0 0 10px var(--accent-glow)); }
+.donut-wrap svg { display: block; width: 154px; height: 154px; overflow: visible; }
 .donut-center {
   position: absolute; inset: 0;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
