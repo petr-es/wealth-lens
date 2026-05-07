@@ -520,5 +520,237 @@ var PRICE_HISTORY=[
         "fixedCzk": 215.0
       }
     }
+  },
+  {
+    "ts": "2026-04-27T17:11:20Z",
+    "rates": {
+      "EUR_CZK": 24.34,
+      "USD_CZK": 20.77
+    },
+    "prices": {
+      "FWRA_EUR": 7.56,
+      "SPYY_EUR": 261.3,
+      "S_USD": 14.73
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 215.0
+      }
+    }
+  },
+  {
+    "ts": "2026-04-28T17:58:49Z",
+    "rates": {
+      "EUR_CZK": 24.36,
+      "USD_CZK": 20.79
+    },
+    "prices": {
+      "FWRA_EUR": 7.53,
+      "SPYY_EUR": 260.15,
+      "S_USD": 14.84
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 215.0
+      }
+    }
+  },
+  {
+    "ts": "2026-04-29T17:10:33Z",
+    "rates": {
+      "EUR_CZK": 24.38,
+      "USD_CZK": 20.87
+    },
+    "prices": {
+      "FWRA_EUR": 7.54,
+      "SPYY_EUR": 260.45,
+      "S_USD": 14.59
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 215.0
+      }
+    }
+  },
+  {
+    "ts": "2026-04-30T14:04:40Z",
+    "rates": {
+      "EUR_CZK": 24.35,
+      "USD_CZK": 20.83
+    },
+    "prices": {
+      "FWRA_EUR": 7.58,
+      "SPYY_EUR": 261.65,
+      "S_USD": 14.05
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 215.0
+      }
+    }
+  },
+  {
+    "ts": "2026-05-01T13:25:17Z",
+    "rates": {
+      "EUR_CZK": 24.37,
+      "USD_CZK": 20.73
+    },
+    "prices": {
+      "FWRA_EUR": 7.58,
+      "SPYY_EUR": 261.9,
+      "S_USD": 14.16
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 215.0
+      }
+    }
+  },
+  {
+    "ts": "2026-05-04T14:09:14Z",
+    "rates": {
+      "EUR_CZK": 24.38,
+      "USD_CZK": 20.82
+    },
+    "prices": {
+      "FWRA_EUR": 7.64,
+      "SPYY_EUR": 263.95,
+      "S_USD": 15.19
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 215.0
+      }
+    }
+  },
+  {
+    "ts": "2026-05-05T14:39:12Z",
+    "rates": {
+      "EUR_CZK": 24.38,
+      "USD_CZK": 20.83
+    },
+    "prices": {
+      "FWRA_EUR": 7.68,
+      "SPYY_EUR": 264.75,
+      "S_USD": 15.78
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 215.0
+      }
+    }
+  },
+  {
+    "ts": "2026-05-06T14:25:49Z",
+    "rates": {
+      "EUR_CZK": 24.34,
+      "USD_CZK": 20.7
+    },
+    "prices": {
+      "FWRA_EUR": 7.75,
+      "SPYY_EUR": 267.8,
+      "S_USD": 15.15
+    },
+    "assets": {
+      "fwra": {
+        "t212": 3124.0,
+        "ibkr": 2203.0,
+        "rev": 1416.0
+      },
+      "spyy": {
+        "t212": 81.5
+      },
+      "s": {
+        "ibkr": 1257.0,
+        "etrade": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 215.0
+      }
+    }
   }
 ];
