@@ -19,14 +19,14 @@ const ASSETS = {
     name:     'SentinelOne',
     yahooUrl: 'https://finance.yahoo.com/quote/S',
     currency: 'USD',
-    holdings: { ibkr: 1257, etrade: 0 },
+    holdings: { ibkr: 1257, etrade: 122 },
   },
   alpha: {
     ticker:   'ALPHA',
     name:     'Seeking Alpha Picks',
     yahooUrl: null,
     currency: 'CZK',
-    fixedCzk: 215,   // fixní odhad v tis. Kč
+    fixedCzk: 230,   // fixní odhad v tis. Kč
     holdings: {},
   },
 };
