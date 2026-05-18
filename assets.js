@@ -26,7 +26,7 @@ const ASSETS = {
     name:     'Seeking Alpha Picks',
     yahooUrl: null,
     currency: 'CZK',
-    fixedCzk: 260,   // fixní odhad v tis. Kč
+    fixedCzk: 210,   // fixní odhad v tis. Kč
     holdings: {},
   },
 };
