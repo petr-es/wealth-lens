@@ -5,7 +5,7 @@ const ASSETS = {
     name:     'Invesco FTSE All-World',
     yahooUrl: 'https://finance.yahoo.com/quote/FWRA.MI',
     currency: 'EUR',
-    holdings: { t212: 3124, ibkr: 2203, rev: 1416 },
+    holdings: { t212: 3124, ibkr: 2930, rev: 1416 },
   },
   spyy: {
     ticker:   'SPYY.DE',
