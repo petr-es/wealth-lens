@@ -3,6 +3,8 @@ name: Bump version
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'assets.js'
 
 jobs:
   bump:
