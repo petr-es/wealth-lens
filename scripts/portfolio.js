@@ -248,9 +248,7 @@ function _pricePerUnit(entry, assetKey) {
     return a ? (a.fixedCzk || 0) : 0;
   }
   if (assetKey === 'cash') {
-    const ch = (entry.assets && entry.assets.cash)
-      || (window.ASSETS && ASSETS.cash && ASSETS.cash.holdings)
-      || {};
+    const ch = (entry.assets && entry.assets.cash) || {};
     const czk = (ch.ibkr_czk||0) + (ch.t212_czk||0) + (ch.rev_czk||0);
     const eur_ = (ch.ibkr_eur||0) + (ch.t212_eur||0) + (ch.rev_eur||0);
     const usd_ = (ch.ibkr_usd||0) + (ch.t212_usd||0) + (ch.rev_usd||0);
@@ -288,9 +286,7 @@ function _calcPortfolioValue(entry) {
   const a = entry.assets || {};
   const fh = a.fwra || {}, ph = a.spyy || {}, sh = a.s || {}, bh = a.ib1t || {};
   const alpha = a.alpha ? (a.alpha.fixedCzk || 0) : 0;
-  // For cash: fall back to current holdings so the history chart doesn't jump
-  // when cash was first added to tracking.
-  const ch = a.cash || (window.ASSETS && ASSETS.cash && ASSETS.cash.holdings) || {};
+  const ch = a.cash || {};
   const cashTis = (
     ((ch.ibkr_czk||0) + (ch.t212_czk||0) + (ch.rev_czk||0)) +
     ((ch.ibkr_eur||0) + (ch.t212_eur||0) + (ch.rev_eur||0)) * EUR +
@@ -715,6 +711,10 @@ function buildAssetsFromEntry(entry) {
       } else {
         result[key].holdings = entry.assets[key];
       }
+    } else if (key === 'cash') {
+      // Cash wasn't tracked in old entries — use empty holdings so past snapshots
+      // don't inherit today's balances.
+      result[key] = { ...ASSETS[key], holdings: {} };
     }
   }
   return result;
