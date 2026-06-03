@@ -8,7 +8,7 @@ const DURATIONS = {
 const DONUT = {
   SIZE:      160,
   THICKNESS: 26,
-  GAP:       3,   // px gap between segments
+  GAP:       2,   // px gap between segments
 };
 
 const SPARK = {
@@ -242,6 +242,7 @@ function _pricePerUnit(entry, assetKey) {
   if (assetKey === 'fwra') return (entry.prices.FWRA_EUR || 0) * eur;
   if (assetKey === 'spyy') return (entry.prices.SPYY_EUR || 0) * eur;
   if (assetKey === 's')    return (entry.prices.S_USD    || 0) * usd;
+  if (assetKey === 'ib1t') return (entry.prices.IB1T_EUR || 0) * eur;
   if (assetKey === 'alpha') {
     const a = entry.assets && entry.assets.alpha;
     return a ? (a.fixedCzk || 0) : 0;
@@ -280,11 +281,12 @@ function priceSeriesForAsset(assetKey, windowDays = PRICE_WINDOW_DAYS, anchorTs 
 function _calcPortfolioValue(entry) {
   const EUR = entry.rates.EUR_CZK || 0;
   const USD = entry.rates.USD_CZK || 0;
-  const F = (entry.prices.FWRA_EUR || 0) * EUR;
-  const P = (entry.prices.SPYY_EUR || 0) * EUR;
-  const S = (entry.prices.S_USD    || 0) * USD;
+  const F    = (entry.prices.FWRA_EUR  || 0) * EUR;
+  const P    = (entry.prices.SPYY_EUR  || 0) * EUR;
+  const S    = (entry.prices.S_USD     || 0) * USD;
+  const IB1T = (entry.prices.IB1T_EUR  || 0) * EUR;
   const a = entry.assets || {};
-  const fh = a.fwra || {}, ph = a.spyy || {}, sh = a.s || {};
+  const fh = a.fwra || {}, ph = a.spyy || {}, sh = a.s || {}, bh = a.ib1t || {};
   const alpha = a.alpha ? (a.alpha.fixedCzk || 0) : 0;
   // For cash: fall back to current holdings so the history chart doesn't jump
   // when cash was first added to tracking.
@@ -297,6 +299,7 @@ function _calcPortfolioValue(entry) {
   return ((fh.t212||0)+(fh.ibkr||0)+(fh.rev||0)) * F / 1000
        + (ph.t212||0) * P / 1000
        + ((sh.ibkr||0)+(sh.etrade||0)) * S / 1000
+       + (bh.ibkr||0) * IB1T / 1000
        + alpha
        + cashTis;
 }
@@ -397,37 +400,40 @@ let _lastDonutBrokerTotal = 0;
 function _computePortfolio(p, a) {
   const EUR_CZK = p.rates.EUR_CZK;
   const USD_CZK = p.rates.USD_CZK;
-  const FWRA_PX = (p.prices.FWRA_EUR || 0) * EUR_CZK;
-  const SPYY_PX = (p.prices.SPYY_EUR || 0) * EUR_CZK;
-  const S_PX    = (p.prices.S_USD    || 0) * USD_CZK;
+  const FWRA_PX  = (p.prices.FWRA_EUR  || 0) * EUR_CZK;
+  const SPYY_PX  = (p.prices.SPYY_EUR  || 0) * EUR_CZK;
+  const S_PX     = (p.prices.S_USD     || 0) * USD_CZK;
+  const IB1T_PX  = (p.prices.IB1T_EUR  || 0) * EUR_CZK;
 
-  const fwra_total = (a.fwra.holdings.t212 || 0) + (a.fwra.holdings.ibkr || 0) + (a.fwra.holdings.rev || 0);
-  const spyy_total =  a.spyy.holdings.t212 || 0;
-  const s_ibkr     =  a.s.holdings.ibkr    || 0;
-  const s_etrade   =  a.s.holdings.etrade  || 0;
-  const s_total    =  s_ibkr + s_etrade;
+  const fwra_total  = (a.fwra.holdings.t212 || 0) + (a.fwra.holdings.ibkr || 0) + (a.fwra.holdings.rev || 0);
+  const spyy_total  =  a.spyy.holdings.t212 || 0;
+  const s_ibkr      =  a.s.holdings.ibkr    || 0;
+  const s_etrade    =  a.s.holdings.etrade  || 0;
+  const s_total     =  s_ibkr + s_etrade;
+  const ib1t_total  =  a.ib1t.holdings.ibkr || 0;
 
   const ch = a.cash.holdings;
   const cashIBKR = ((ch.ibkr_czk||0) + (ch.ibkr_eur||0) * EUR_CZK + (ch.ibkr_usd||0) * USD_CZK) / 1000;
   const cashT212 = ((ch.t212_czk||0) + (ch.t212_eur||0) * EUR_CZK + (ch.t212_usd||0) * USD_CZK) / 1000;
   const cashRev  = ((ch.rev_czk||0)  + (ch.rev_eur||0)  * EUR_CZK + (ch.rev_usd||0)  * USD_CZK) / 1000;
 
-  const vFWRA  = fwra_total * FWRA_PX / 1000;
-  const vSPYY  = spyy_total * SPYY_PX / 1000;
-  const vS     = s_total    * S_PX    / 1000;
+  const vFWRA  = fwra_total  * FWRA_PX  / 1000;
+  const vSPYY  = spyy_total  * SPYY_PX  / 1000;
+  const vS     = s_total     * S_PX     / 1000;
+  const vIB1T  = ib1t_total  * IB1T_PX  / 1000;
   const vAlpha = a.alpha.fixedCzk;
   const vCash  = cashIBKR + cashT212 + cashRev;
-  const totalTis = vFWRA + vSPYY + vS + vAlpha + vCash;
+  const totalTis = vFWRA + vSPYY + vS + vIB1T + vAlpha + vCash;
 
   const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + vSPYY + vAlpha + cashT212;
-  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + s_ibkr * S_PX / 1000 + cashIBKR;
+  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + s_ibkr * S_PX / 1000 + vIB1T + cashIBKR;
   const bRev    = (a.fwra.holdings.rev  || 0) * FWRA_PX / 1000 + cashRev;
   const bEtrade = s_etrade * S_PX / 1000;
 
   return {
-    EUR_CZK, USD_CZK, FWRA_PX, SPYY_PX, S_PX,
-    fwra_total, spyy_total, s_total,
-    vFWRA, vSPYY, vS, vAlpha, vCash,
+    EUR_CZK, USD_CZK, FWRA_PX, SPYY_PX, S_PX, IB1T_PX,
+    fwra_total, spyy_total, s_total, ib1t_total,
+    vFWRA, vSPYY, vS, vIB1T, vAlpha, vCash,
     totalTis, totalCzk: totalTis * 1000,
     bT212, bIBKR, bRev, bEtrade,
   };
@@ -505,7 +511,7 @@ function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares,
 }
 
 function _renderPriceTable(p, a, ctx, anchorTs) {
-  const { vFWRA, vSPYY, vS, vAlpha, vCash, fwra_total, spyy_total, s_total } = ctx;
+  const { vFWRA, vSPYY, vS, vIB1T, vAlpha, vCash, fwra_total, spyy_total, s_total, ib1t_total } = ctx;
   const ch = a.cash.holdings;
   const totalCashCzk = (ch.ibkr_czk||0) + (ch.t212_czk||0) + (ch.rev_czk||0);
   const totalCashEur = (ch.ibkr_eur||0) + (ch.t212_eur||0) + (ch.rev_eur||0);
@@ -531,6 +537,11 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
       price: p.prices.S_USD ? `$${fmtNum(p.prices.S_USD, 2)}` : '—',
       qty: fmtShares(s_total),
       valCzk: vS * 1000 },
+    { _v: vIB1T,  key: 'ib1t',  color: 'var(--ib1t)',
+      ticker: a.ib1t.ticker, name: a.ib1t.name, url: a.ib1t.yahooUrl,
+      price: p.prices.IB1T_EUR ? `€${fmtNum(p.prices.IB1T_EUR, 2)}` : '—',
+      qty: fmtShares(ib1t_total),
+      valCzk: vIB1T * 1000 },
     { _v: vAlpha, key: 'alpha', color: 'var(--alpha)',
       ticker: a.alpha.ticker, name: a.alpha.name, url: a.alpha.yahooUrl,
       price: LANG.fixed, qty: '—',
@@ -539,7 +550,11 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
       ticker: a.cash.ticker, name: a.cash.name, url: null,
       price: '—', qty: cashQty,
       valCzk: vCash * 1000 }] : []),
-  ].sort((x, y) => y._v - x._v);
+  ].filter(r => r._v > 0).sort((x, y) => {
+    if (x.key === 'cash') return 1;
+    if (y.key === 'cash') return -1;
+    return y._v - x._v;
+  });
 
   const tb = document.getElementById('tbl-prices');
   tb.innerHTML = '';
@@ -652,8 +667,13 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
     { key: 'spyy',  value: ctx.vSPYY,  color: 'var(--spyy)',  label: 'SPYY',  shares: ctx.spyy_total },
     { key: 'alpha', value: ctx.vAlpha, color: 'var(--alpha)', label: 'Alpha', shares: null },
     { key: 's',     value: ctx.vS,     color: 'var(--s)',     label: 'S',     shares: ctx.s_total },
+    { key: 'ib1t',  value: ctx.vIB1T,  color: 'var(--ib1t)',  label: 'IB1T',  shares: ctx.ib1t_total },
     ...(ctx.vCash > 0 ? [{ key: 'cash', value: ctx.vCash, color: 'var(--cash)', label: 'Cash', shares: null }] : []),
-  ].sort((x, y) => y.value - x.value);
+  ].filter(x => x.value > 0).sort((x, y) => {
+    if (x.key === 'cash') return 1;
+    if (y.key === 'cash') return -1;
+    return y.value - x.value;
+  });
 
   _lastDonutAssetTotal = _renderDonut({
     svgId: 'donut-assets', listId: 'list-assets', centerId: 'center-assets',

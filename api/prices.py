@@ -6,11 +6,12 @@ import pytz
 import yfinance as yf
 
 TICKERS = {
-    'FWRA_EUR': 'FWRA.MI',
-    'SPYY_EUR': 'SPYY.DE',
-    'S_USD':    'S',
-    'EUR_CZK':  'EURCZK=X',
-    'USD_CZK':  'USDCZK=X',
+    'FWRA_EUR':  'FWRA.MI',
+    'SPYY_EUR':  'SPYY.DE',
+    'S_USD':     'S',
+    'IB1T_EUR':  'IB1T.DE',
+    'EUR_CZK':   'EURCZK=X',
+    'USD_CZK':   'USDCZK=X',
 }
 
 def fetch_price(symbol: str):
@@ -47,7 +48,7 @@ class handler(BaseHTTPRequestHandler):
             'date':    date,
             'updated': updated,
             'rates':   {'EUR_CZK': prices['EUR_CZK'], 'USD_CZK': prices['USD_CZK']},
-            'prices':  {'FWRA_EUR': prices['FWRA_EUR'], 'SPYY_EUR': prices['SPYY_EUR'], 'S_USD': prices['S_USD']},
+            'prices':  {'FWRA_EUR': prices['FWRA_EUR'], 'SPYY_EUR': prices['SPYY_EUR'], 'S_USD': prices['S_USD'], 'IB1T_EUR': prices['IB1T_EUR']},
         }).encode()
 
         self.send_response(200)

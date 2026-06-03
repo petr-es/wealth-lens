@@ -10,14 +10,15 @@ import yfinance as yf
 
 
 TICKERS = {
-    'FWRA_EUR': 'FWRA.MI',
-    'SPYY_EUR': 'SPYY.DE',
-    'S_USD':    'S',
-    'EUR_CZK':  'EURCZK=X',
-    'USD_CZK':  'USDCZK=X',
+    'FWRA_EUR':  'FWRA.MI',
+    'SPYY_EUR':  'SPYY.DE',
+    'S_USD':     'S',
+    'IB1T_EUR':  'IB1T.DE',
+    'EUR_CZK':   'EURCZK=X',
+    'USD_CZK':   'USDCZK=X',
 }
 
-REQUIRED = {'FWRA_EUR', 'SPYY_EUR', 'S_USD', 'EUR_CZK', 'USD_CZK'}
+REQUIRED = {'FWRA_EUR', 'SPYY_EUR', 'S_USD', 'IB1T_EUR', 'EUR_CZK', 'USD_CZK'}
 
 HISTORY = 'history.js'
 ASSETS  = 'assets.js'
@@ -37,7 +38,7 @@ def parse_assets() -> dict:
     with open(ASSETS, 'r', encoding='utf-8') as f:
         content = f.read()
     result = {}
-    for name in ('fwra', 'spyy', 's'):
+    for name in ('fwra', 'spyy', 's', 'ib1t'):
         m = re.search(rf'(?m)^\s+{name}:\s*\{{.*?holdings:\s*\{{([^}}]+)\}}', content, re.DOTALL)
         if m:
             result[name] = {
@@ -70,7 +71,7 @@ def main():
     entry = {
         'ts': now.astimezone(pytz.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
         'rates':  {k: prices[k] for k in ['EUR_CZK', 'USD_CZK']},
-        'prices': {k: prices[k] for k in ['FWRA_EUR', 'SPYY_EUR', 'S_USD']},
+        'prices': {k: prices[k] for k in ['FWRA_EUR', 'SPYY_EUR', 'S_USD', 'IB1T_EUR']},
         'assets': parse_assets(),
     }
 

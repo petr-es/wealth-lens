@@ -12,6 +12,7 @@
   --spyy:   #38bdf8;
   --s:      #e879f9;
   --alpha:  #fbbf24;
+  --ib1t:   #e84040;
   --t212:   #38bdf8;
   --ibkr:   #f47274;
   --rev:    #c2c6cc;
@@ -378,9 +379,15 @@ body {
 .grid-bottom { display: grid; grid-template-columns: 1fr; gap: var(--grid-gap); }
 
 /* ── Donut cards ───────────────────────────────────────────────────────── */
+.card:has(> .alloc) {
+  display: flex;
+  flex-direction: column;
+}
 .alloc {
   display: grid; grid-template-columns: 154px 1fr; gap: 24px;
   align-items: center;
+  flex: 1;
+  align-content: center;
 }
 .donut-wrap {
   position: relative; width: 154px; height: 154px;
