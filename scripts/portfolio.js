@@ -58,6 +58,17 @@ function fmtShares(n) {
   return LANG.locale === 'cs' ? s.replace(/\s/g, NBSP) : s;
 }
 
+// Compact thousands formatter for cash holdings (e.g. "Kč 160K", "€1,9K", "$3,6K").
+// Uses 0 decimals for ≥100 K, 1 decimal otherwise, with locale-aware separators.
+function fmtCashK(amount, currency) {
+  const k = amount / 1000;
+  const dec = k >= 100 ? 0 : 1;
+  const num = k.toLocaleString(_loc(), { minimumFractionDigits: dec, maximumFractionDigits: dec });
+  if (currency === 'CZK') return LANG.locale === 'cs' ? `Kč${NBSP}${num}K` : `CZK${NBSP}${num}K`;
+  if (currency === 'EUR') return `€${num}K`;
+  return `$${num}K`;
+}
+
 // ── Number animation ────────────────────────────────────────────────────────
 const _animHandles = new WeakMap();
 
@@ -235,6 +246,15 @@ function _pricePerUnit(entry, assetKey) {
     const a = entry.assets && entry.assets.alpha;
     return a ? (a.fixedCzk || 0) : 0;
   }
+  if (assetKey === 'cash') {
+    const ch = (entry.assets && entry.assets.cash)
+      || (window.ASSETS && ASSETS.cash && ASSETS.cash.holdings)
+      || {};
+    const czk = (ch.ibkr_czk||0) + (ch.t212_czk||0) + (ch.rev_czk||0);
+    const eur_ = (ch.ibkr_eur||0) + (ch.t212_eur||0) + (ch.rev_eur||0);
+    const usd_ = (ch.ibkr_usd||0) + (ch.t212_usd||0) + (ch.rev_usd||0);
+    return czk + eur_ * eur + usd_ * usd;
+  }
   return 0;
 }
 
@@ -266,10 +286,19 @@ function _calcPortfolioValue(entry) {
   const a = entry.assets || {};
   const fh = a.fwra || {}, ph = a.spyy || {}, sh = a.s || {};
   const alpha = a.alpha ? (a.alpha.fixedCzk || 0) : 0;
+  // For cash: fall back to current holdings so the history chart doesn't jump
+  // when cash was first added to tracking.
+  const ch = a.cash || (window.ASSETS && ASSETS.cash && ASSETS.cash.holdings) || {};
+  const cashTis = (
+    ((ch.ibkr_czk||0) + (ch.t212_czk||0) + (ch.rev_czk||0)) +
+    ((ch.ibkr_eur||0) + (ch.t212_eur||0) + (ch.rev_eur||0)) * EUR +
+    ((ch.ibkr_usd||0) + (ch.t212_usd||0) + (ch.rev_usd||0)) * USD
+  ) / 1000;
   return ((fh.t212||0)+(fh.ibkr||0)+(fh.rev||0)) * F / 1000
        + (ph.t212||0) * P / 1000
        + ((sh.ibkr||0)+(sh.etrade||0)) * S / 1000
-       + alpha;
+       + alpha
+       + cashTis;
 }
 
 // ── Delta tag: latest vs most recent entry on a different calendar date ─────
@@ -378,21 +407,27 @@ function _computePortfolio(p, a) {
   const s_etrade   =  a.s.holdings.etrade  || 0;
   const s_total    =  s_ibkr + s_etrade;
 
+  const ch = a.cash.holdings;
+  const cashIBKR = ((ch.ibkr_czk||0) + (ch.ibkr_eur||0) * EUR_CZK + (ch.ibkr_usd||0) * USD_CZK) / 1000;
+  const cashT212 = ((ch.t212_czk||0) + (ch.t212_eur||0) * EUR_CZK + (ch.t212_usd||0) * USD_CZK) / 1000;
+  const cashRev  = ((ch.rev_czk||0)  + (ch.rev_eur||0)  * EUR_CZK + (ch.rev_usd||0)  * USD_CZK) / 1000;
+
   const vFWRA  = fwra_total * FWRA_PX / 1000;
   const vSPYY  = spyy_total * SPYY_PX / 1000;
   const vS     = s_total    * S_PX    / 1000;
   const vAlpha = a.alpha.fixedCzk;
-  const totalTis = vFWRA + vSPYY + vS + vAlpha;
+  const vCash  = cashIBKR + cashT212 + cashRev;
+  const totalTis = vFWRA + vSPYY + vS + vAlpha + vCash;
 
-  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + vSPYY + vAlpha;
-  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + s_ibkr * S_PX / 1000;
-  const bRev    = (a.fwra.holdings.rev  || 0) * FWRA_PX / 1000;
+  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + vSPYY + vAlpha + cashT212;
+  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + s_ibkr * S_PX / 1000 + cashIBKR;
+  const bRev    = (a.fwra.holdings.rev  || 0) * FWRA_PX / 1000 + cashRev;
   const bEtrade = s_etrade * S_PX / 1000;
 
   return {
     EUR_CZK, USD_CZK, FWRA_PX, SPYY_PX, S_PX,
     fwra_total, spyy_total, s_total,
-    vFWRA, vSPYY, vS, vAlpha,
+    vFWRA, vSPYY, vS, vAlpha, vCash,
     totalTis, totalCzk: totalTis * 1000,
     bT212, bIBKR, bRev, bEtrade,
   };
@@ -470,7 +505,16 @@ function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares,
 }
 
 function _renderPriceTable(p, a, ctx, anchorTs) {
-  const { vFWRA, vSPYY, vS, vAlpha, fwra_total, spyy_total, s_total } = ctx;
+  const { vFWRA, vSPYY, vS, vAlpha, vCash, fwra_total, spyy_total, s_total } = ctx;
+  const ch = a.cash.holdings;
+  const totalCashCzk = (ch.ibkr_czk||0) + (ch.t212_czk||0) + (ch.rev_czk||0);
+  const totalCashEur = (ch.ibkr_eur||0) + (ch.t212_eur||0) + (ch.rev_eur||0);
+  const totalCashUsd = (ch.ibkr_usd||0) + (ch.t212_usd||0) + (ch.rev_usd||0);
+  const cashQty = [
+    totalCashCzk ? fmtCashK(totalCashCzk, 'CZK') : null,
+    totalCashEur ? fmtCashK(totalCashEur, 'EUR') : null,
+    totalCashUsd ? fmtCashK(totalCashUsd, 'USD') : null,
+  ].filter(Boolean).join(' · ');
   const priceRows = [
     { _v: vFWRA,  key: 'fwra',  color: 'var(--fwra)',
       ticker: a.fwra.ticker, name: a.fwra.name, url: a.fwra.yahooUrl,
@@ -491,6 +535,10 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
       ticker: a.alpha.ticker, name: a.alpha.name, url: a.alpha.yahooUrl,
       price: LANG.fixed, qty: '—',
       valCzk: vAlpha * 1000 },
+    ...(vCash > 0 ? [{ _v: vCash, key: 'cash', color: 'var(--cash)',
+      ticker: a.cash.ticker, name: a.cash.name, url: null,
+      price: '—', qty: cashQty,
+      valCzk: vCash * 1000 }] : []),
   ].sort((x, y) => y._v - x._v);
 
   const tb = document.getElementById('tbl-prices');
@@ -604,6 +652,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
     { key: 'spyy',  value: ctx.vSPYY,  color: 'var(--spyy)',  label: 'SPYY',  shares: ctx.spyy_total },
     { key: 'alpha', value: ctx.vAlpha, color: 'var(--alpha)', label: 'Alpha', shares: null },
     { key: 's',     value: ctx.vS,     color: 'var(--s)',     label: 'S',     shares: ctx.s_total },
+    ...(ctx.vCash > 0 ? [{ key: 'cash', value: ctx.vCash, color: 'var(--cash)', label: 'Cash', shares: null }] : []),
   ].sort((x, y) => y.value - x.value);
 
   _lastDonutAssetTotal = _renderDonut({
