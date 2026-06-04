@@ -711,10 +711,6 @@ function buildAssetsFromEntry(entry) {
       } else {
         result[key].holdings = entry.assets[key];
       }
-    } else if (key === 'cash') {
-      // Cash wasn't tracked in old entries — use empty holdings so past snapshots
-      // don't inherit today's balances.
-      result[key] = { ...ASSETS[key], holdings: {} };
     }
   }
   return result;

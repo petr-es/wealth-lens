@@ -38,7 +38,7 @@ def parse_assets() -> dict:
     with open(ASSETS, 'r', encoding='utf-8') as f:
         content = f.read()
     result = {}
-    for name in ('fwra', 'spyy', 's', 'ib1t'):
+    for name in ('fwra', 'spyy', 's', 'ib1t', 'cash'):
         m = re.search(rf'(?m)^\s+{name}:\s*\{{.*?holdings:\s*\{{([^}}]+)\}}', content, re.DOTALL)
         if m:
             result[name] = {

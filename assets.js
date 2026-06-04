@@ -5,7 +5,7 @@ const ASSETS = {
     name:     'Invesco FTSE All-World',
     yahooUrl: 'https://finance.yahoo.com/quote/FWRA.MI',
     currency: 'EUR',
-    holdings: { t212: 3124, ibkr: 4330, rev: 0 },
+    holdings: { t212: 3124, ibkr: 4730, rev: 0 },
   },
   spyy: {
     ticker:   'SPYY.DE',
@@ -34,7 +34,7 @@ const ASSETS = {
     name:     'iShares Bitcoin ETP',
     yahooUrl: 'https://finance.yahoo.com/quote/IB1T.DE',
     currency: 'EUR',
-    holdings: { ibkr: 350 },
+    holdings: { ibkr: 0 },
   },
   cash: {
     ticker:   'CASH',
@@ -43,7 +43,7 @@ const ASSETS = {
     currency: null,   // multi-currency: value derived from holdings + FX rates
     // Amounts in each native currency, all held at IBKR.
     holdings: {
-      ibkr_czk: 156224, ibkr_eur: 0, ibkr_usd: 3608,
+      ibkr_czk: 124566, ibkr_eur: 0, ibkr_usd: 3608,
       t212_czk: 0,      t212_eur: 0,    t212_usd: 0,
       rev_czk:  0,      rev_eur:  0,    rev_usd:  0,
     },
