@@ -711,6 +711,14 @@ function buildAssetsFromEntry(entry) {
       } else {
         result[key].holdings = entry.assets[key];
       }
+    } else {
+      // Asset missing from this entry means it wasn't held (or tracked) then — show zero.
+      // Don't fall back to current holdings; that would project today's state onto past dates.
+      if (key === 'alpha') {
+        result[key].fixedCzk = 0;
+      } else {
+        result[key] = { ...ASSETS[key], holdings: {} };
+      }
     }
   }
   return result;
