@@ -12,7 +12,7 @@ const ASSETS = {
     name:     'SPDR MSCI All-Country World',
     yahooUrl: 'https://finance.yahoo.com/quote/SPYY.DE',
     currency: 'EUR',
-    holdings: { t212: 0.48, ibkr: 81 },
+    holdings: { t212: 0, ibkr: 81 },
   },
   s: {
     ticker:   'S.NYSE',
@@ -26,7 +26,7 @@ const ASSETS = {
     name:     'Seeking Alpha Picks',
     yahooUrl: null,
     currency: 'CZK',
-    fixedCzk: 230,   // fixní odhad v tis. Kč
+    fixedCzk: 235,   // fixní odhad v tis. Kč
     holdings: {},
   },
   ib1t: {
