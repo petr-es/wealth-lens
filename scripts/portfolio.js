@@ -293,7 +293,7 @@ function _calcPortfolioValue(entry) {
     ((ch.ibkr_usd||0) + (ch.t212_usd||0) + (ch.rev_usd||0)) * USD
   ) / 1000;
   return ((fh.t212||0)+(fh.ibkr||0)+(fh.rev||0)) * F / 1000
-       + (ph.t212||0) * P / 1000
+       + ((ph.t212||0)+(ph.ibkr||0)) * P / 1000
        + ((sh.ibkr||0)+(sh.etrade||0)) * S / 1000
        + (bh.ibkr||0) * IB1T / 1000
        + alpha
@@ -402,7 +402,7 @@ function _computePortfolio(p, a) {
   const IB1T_PX  = (p.prices.IB1T_EUR  || 0) * EUR_CZK;
 
   const fwra_total  = (a.fwra.holdings.t212 || 0) + (a.fwra.holdings.ibkr || 0) + (a.fwra.holdings.rev || 0);
-  const spyy_total  =  a.spyy.holdings.t212 || 0;
+  const spyy_total  = (a.spyy.holdings.t212 || 0) + (a.spyy.holdings.ibkr || 0);
   const s_ibkr      =  a.s.holdings.ibkr    || 0;
   const s_etrade    =  a.s.holdings.etrade  || 0;
   const s_total     =  s_ibkr + s_etrade;
@@ -421,8 +421,10 @@ function _computePortfolio(p, a) {
   const vCash  = cashIBKR + cashT212 + cashRev;
   const totalTis = vFWRA + vSPYY + vS + vIB1T + vAlpha + vCash;
 
-  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + vSPYY + vAlpha + cashT212;
-  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + s_ibkr * S_PX / 1000 + vIB1T + cashIBKR;
+  const spyy_t212 = (a.spyy.holdings.t212 || 0) * SPYY_PX / 1000;
+  const spyy_ibkr = (a.spyy.holdings.ibkr || 0) * SPYY_PX / 1000;
+  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + spyy_t212 + vAlpha + cashT212;
+  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + spyy_ibkr + s_ibkr * S_PX / 1000 + vIB1T + cashIBKR;
   const bRev    = (a.fwra.holdings.rev  || 0) * FWRA_PX / 1000 + cashRev;
   const bEtrade = s_etrade * S_PX / 1000;
 
