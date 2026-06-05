@@ -26,7 +26,7 @@ const ASSETS = {
     name:     'Seeking Alpha Picks',
     yahooUrl: null,
     currency: 'CZK',
-    fixedCzk: 240,   // fixní odhad v tis. Kč
+    fixedCzk: 230,   // fixní odhad v tis. Kč
     holdings: {},
   },
   ib1t: {
@@ -43,7 +43,7 @@ const ASSETS = {
     currency: null,   // multi-currency: value derived from holdings + FX rates
     // Amounts in each native currency, all held at IBKR.
     holdings: {
-      ibkr_czk: 0, ibkr_eur: 0, ibkr_usd: 2127,
+      ibkr_czk: 0,      ibkr_eur: 0,    ibkr_usd: 2127,
       t212_czk: 0,      t212_eur: 0,    t212_usd: 0,
       rev_czk:  0,      rev_eur:  0,    rev_usd:  0,
     },
