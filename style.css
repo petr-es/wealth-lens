@@ -581,7 +581,7 @@ body {
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 .chart-header .card-label { margin-bottom: 0; }
 
@@ -855,6 +855,7 @@ body {
 .proj-settings-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
 
 /* Value line */
+#proj-card .card-label { margin-bottom: 20px; }
 .proj-result-wrap { margin-bottom: 6px; }
 .proj-result-row {
   display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
@@ -912,7 +913,7 @@ body {
 
 /* Legend */
 .proj-legend { display: flex; flex-direction: column; gap: 6px; }
-.proj-legend-inline { flex-direction: row; gap: 16px; flex-wrap: wrap; }
+.proj-legend-inline { flex-direction: row; column-gap: 16px; row-gap: 6px; flex-wrap: wrap; }
 .proj-legend-item {
   display: flex; align-items: center; gap: 8px;
   font-family: var(--mono); font-size: 11px;
