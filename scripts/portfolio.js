@@ -695,6 +695,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
 
   _renderPriceTable(p, a, ctx, anchorTs);
   _renderFooter(p, ctx);
+  document.dispatchEvent(new CustomEvent('wl:render', { detail: { totalCzk: ctx.totalCzk } }));
 }
 
 // ── History entries helpers (used by calendar.js) ───────────────────────────
