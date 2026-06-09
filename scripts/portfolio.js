@@ -1,3 +1,11 @@
+// ── Glow helpers (shared across donut segments, alloc dots, projector) ───────
+function glowShadow(color) {
+  return `0 0 8px color-mix(in srgb, ${color} 35%, transparent)`;
+}
+function glowFilter(color) {
+  return `drop-shadow(${glowShadow(color)})`;
+}
+
 // ── Constants ───────────────────────────────────────────────────────────────
 const DURATIONS = {
   TOTAL:  1200,   // header total count-up
@@ -118,7 +126,7 @@ function drawDonut(svgEl, segments, { animate = true } = {}) {
     ring.setAttribute('stroke-width', thickness);
     ring.setAttribute('stroke-linecap', 'butt');
     ring.classList.add('donut-seg');
-    ring.style.filter = `drop-shadow(0 0 8px color-mix(in srgb, ${seg.color} 35%, transparent))`;
+    ring.style.filter = glowFilter(seg.color);
     ring.setAttribute('stroke-dasharray', `0 ${circ}`);
     ring.setAttribute('stroke-dashoffset', '0');
     ring.dataset.segStart = offset;
@@ -456,7 +464,7 @@ function _buildAllocRow(item, totalTis, includeShares) {
   const dot = document.createElement('span');
   dot.className = 'dot';
   dot.style.background = item.color;
-  dot.style.boxShadow = `0 0 8px ${item.color}`;
+  dot.style.boxShadow = glowShadow(item.color);
   const name = document.createElement('span');
   name.className = 'name';
   name.textContent = item.label;
@@ -570,7 +578,7 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
     const dot = document.createElement('span');
     dot.className = 'dot';
     dot.style.background = r.color;
-    dot.style.boxShadow = `0 0 8px ${r.color}`;
+    dot.style.boxShadow = glowShadow(r.color);
     tickCell.appendChild(dot);
     const tickSpan = document.createElement('span');
     tickSpan.className = 'tick';
@@ -695,6 +703,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
 
   _renderPriceTable(p, a, ctx, anchorTs);
   _renderFooter(p, ctx);
+  document.dispatchEvent(new CustomEvent('wl:render', { detail: { totalCzk: ctx.totalCzk } }));
 }
 
 // ── History entries helpers (used by calendar.js) ───────────────────────────

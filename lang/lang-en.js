@@ -44,4 +44,22 @@ const LANG_EN = {
   calDow:       ['Mo','Tu','We','Th','Fr','Sa','Su'], // Monday-first
   calPrev:      'Previous month',
   calNext:      'Next month',
+
+  // Projector
+  projCard:           'Portfolio projection',
+  projSettings:       'Settings',
+  projSettingsTitle:  'Projection settings',
+  projTargetDate:     'Target date',
+  projReturn:         'Avg. annual return',
+  projContribsToggle: 'Monthly contributions',
+  projContribUnit:    'CZK / mo',
+  projNowLegend:      'Now',
+  projContribsLegend: 'Contribs',
+  projGrowthLegend:   'Growth',
+  projSelectFuture:   'Select a future date',
+  projPerMo:          'CZK/mo',
+  projPa:             '% p.a.',
+  projWithdrawal:     'Withdrawal rate',
+  projYears:          ['yr', 'yrs', 'yrs'],
+  projMonths:         ['mo', 'mos', 'mos'],
 };

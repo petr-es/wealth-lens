@@ -44,4 +44,22 @@ const LANG_CS = {
   calDow:       ['Po','Út','St','Čt','Pá','So','Ne'], // Monday-first
   calPrev:      'Předchozí měsíc',
   calNext:      'Další měsíc',
+
+  // Projektor
+  projCard:           'Projekce portfolia',
+  projSettings:       'Nastavení',
+  projSettingsTitle:  'Nastavení projekce',
+  projTargetDate:     'Cílové datum',
+  projReturn:         'Průměrný roční výnos',
+  projContribsToggle: 'Měsíční vklady',
+  projContribUnit:    'Kč / měs.',
+  projNowLegend:      'Nyní',
+  projContribsLegend: 'Vklady',
+  projGrowthLegend:   'Výnos',
+  projSelectFuture:   'Zvolte budoucí datum',
+  projPerMo:          'Kč/měs.',
+  projPa:             '% p.a.',
+  projWithdrawal:     'Míra výběru',
+  projYears:          ['rok', 'roky', 'let'],
+  projMonths:         ['měsíc', 'měsíce', 'měsíců'],
 };
