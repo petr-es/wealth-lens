@@ -886,6 +886,9 @@ body {
   font-size: 22px; font-weight: 600; letter-spacing: -0.02em;
   color: var(--accent);
 }
+.proj-now-group {
+  display: inline-flex; align-items: baseline; gap: 8px;
+}
 
 /* Params summary line */
 .proj-params {
@@ -1114,6 +1117,7 @@ body {
   .proj-swr-val, .proj-now-pct { font-size: 17px; }
   .proj-result-ccy { font-size: 14px; }
   .proj-params { white-space: normal; }
+  .proj-now-group { display: none; }
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────── */
@@ -1168,6 +1172,15 @@ body {
   .thead > div:nth-child(3) { display: none; }
   .chart-wrap { height: 150px; }
   .tick-cell .asset-name { display: none; }
+
+  /* Alloc: hide ks (qty) column */
+  #head-assets { grid-template-columns: 8px 2fr 1fr 1fr; }
+  #head-assets > div:nth-child(3) { display: none; }
+  #list-assets .alloc-row { grid-template-columns: 8px 2fr 1fr 1fr; }
+  #list-assets .alloc-row .pcs { display: none; }
+
+  /* Projector: hide / N% from value line */
+  .proj-now-group { display: none; }
 
   /* Header: hero fills middle, scope right */
   .header {

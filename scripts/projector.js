@@ -20,8 +20,10 @@
     set rate(v)      { safeStorage.set('wl.proj.rate', String(v)); },
     get contribOn()  { return safeStorage.get('wl.proj.contribOn') === 'true'; },
     set contribOn(v) { safeStorage.set('wl.proj.contribOn', String(v)); },
-    get monthly()    { return parseInt(safeStorage.get('wl.proj.monthly')) || 5000; },
-    set monthly(v)   { safeStorage.set('wl.proj.monthly', String(v)); },
+    get monthly()        { return parseInt(safeStorage.get('wl.proj.monthly')) || 5000; },
+    set monthly(v)       { safeStorage.set('wl.proj.monthly', String(v)); },
+    get withdrawalRate() { return parseFloat(safeStorage.get('wl.proj.wr')) || 4; },
+    set withdrawalRate(v){ safeStorage.set('wl.proj.wr', String(v)); },
   };
 
   // ── Compound growth calculation ────────────────────────────────────────────
@@ -111,18 +113,18 @@
       row.appendChild(_mkSlash());
 
       const swrEl = _el('span', 'proj-swr-val num-anim');
-      swrEl.textContent = fmtCzk(Math.round(FV * 0.04 / 12));
+      swrEl.textContent = fmtCzk(Math.round(FV * (S.withdrawalRate / 100) / 12));
       row.appendChild(swrEl);
 
       const swrCcyEl = _el('span', 'proj-swr-ccy');
       swrCcyEl.textContent = ccy;
       row.appendChild(swrCcyEl);
 
-      row.appendChild(_mkSlash());
-
+      const nowGroup = _el('span', 'proj-now-group');
       const pctEl = _el('span', 'proj-now-pct');
       pctEl.textContent = Math.round(PV / FV * 100) + '%';
-      row.appendChild(pctEl);
+      nowGroup.append(_mkSlash(), pctEl);
+      row.appendChild(nowGroup);
     }
 
     _resultEl.appendChild(row);
@@ -302,7 +304,7 @@
     header.append(titleEl, closeBtn);
 
     const body = _el('div', 'proj-modal-body');
-    body.append(_buildDateField(), _buildRateField(), _buildContribField());
+    body.append(_buildDateField(), _buildRateField(), _buildWithdrawalField(), _buildContribField());
 
     modal.append(header, body);
     backdrop.appendChild(modal);
@@ -408,6 +410,50 @@
 
   function _syncSliderFill(slider) {
     const pct = ((parseFloat(slider.value) - 3) / 17 * 100).toFixed(1);
+    slider.style.setProperty('--pct', pct + '%');
+  }
+
+  // ── Withdrawal rate field ──────────────────────────────────────────────────
+  function _buildWithdrawalField() {
+    const field = _el('div', 'proj-field');
+
+    const headerRow = _el('div', 'proj-field-label proj-rate-header');
+    const labelSpan = _el('span', '');
+    labelSpan.textContent = LANG.projWithdrawal;
+    const badge = _el('span', 'proj-rate-badge');
+    const wr = S.withdrawalRate;
+    badge.textContent = (wr % 1 === 0 ? wr : wr.toFixed(1)) + '%';
+    headerRow.append(labelSpan, badge);
+    field.appendChild(headerRow);
+
+    const sliderWrap = _el('div', 'proj-slider-wrap');
+    const tick1 = _el('span', 'proj-slider-tick');
+    tick1.textContent = '1%';
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.className = 'proj-slider';
+    slider.min = '1'; slider.max = '10'; slider.step = '0.5';
+    slider.value = String(S.withdrawalRate);
+    _syncWRFill(slider);
+
+    slider.addEventListener('input', () => {
+      S.withdrawalRate = parseFloat(slider.value);
+      _syncWRFill(slider);
+      badge.textContent = (S.withdrawalRate % 1 === 0 ? S.withdrawalRate : S.withdrawalRate.toFixed(1)) + '%';
+      renderCard();
+    });
+
+    const tick2 = _el('span', 'proj-slider-tick');
+    tick2.textContent = '10%';
+    sliderWrap.append(tick1, slider, tick2);
+    field.appendChild(sliderWrap);
+
+    return field;
+  }
+
+  function _syncWRFill(slider) {
+    const pct = ((parseFloat(slider.value) - 1) / 9 * 100).toFixed(1);
     slider.style.setProperty('--pct', pct + '%');
   }
 

@@ -59,6 +59,7 @@ const LANG_EN = {
   projSelectFuture:   'Select a future date',
   projPerMo:          'CZK/mo',
   projPa:             '% p.a.',
+  projWithdrawal:     'Withdrawal rate',
   projYears:          ['yr', 'yrs', 'yrs'],
   projMonths:         ['mo', 'mos', 'mos'],
 };

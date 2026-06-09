@@ -59,6 +59,7 @@ const LANG_CS = {
   projSelectFuture:   'Zvolte budoucí datum',
   projPerMo:          'Kč/měs.',
   projPa:             '% p.a.',
+  projWithdrawal:     'Míra výběru',
   projYears:          ['rok', 'roky', 'let'],
   projMonths:         ['měsíc', 'měsíce', 'měsíců'],
 };
