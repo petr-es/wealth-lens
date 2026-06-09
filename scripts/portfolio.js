@@ -627,7 +627,8 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
     valFull.textContent = `${fmtCzk(r.valCzk)} ${LANG.currency}`;
     const valTis = document.createElement('span');
     valTis.className = 'val-tis';
-    valTis.textContent = fmtCzk(Math.round(r.valCzk / 1000));
+    const _tis = r.valCzk / 1000;
+    valTis.textContent = _tis < 1 ? fmtNum(_tis, 1) : fmtCzk(Math.round(_tis));
     valCell.append(valFull, valTis);
     row.appendChild(valCell);
 
