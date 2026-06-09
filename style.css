@@ -898,7 +898,7 @@ body {
 /* Stacked bar */
 .proj-bar-stack {
   display: flex; height: 6px; border-radius: var(--radius-pill);
-  overflow: hidden; gap: 2px;
+  gap: 2px;
   margin-bottom: 12px;
 }
 .proj-seg {

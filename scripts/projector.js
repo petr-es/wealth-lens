@@ -145,12 +145,12 @@
     _barEl.innerHTML = '';
     _barEl.hidden = !valid;
     if (valid) {
-      _mkSeg(_barEl, PV / stackTotal,              'var(--accent)', '0 0 10px oklch(0.88 0.22 150 / 0.4)');
+      _mkSeg(_barEl, PV / stackTotal,             'var(--accent)');
       if (S.contribOn && totalContrib > 0) {
-        _mkSeg(_barEl, totalContrib / stackTotal,  '#a78bfa', '0 0 10px #a78bfa44');
+        _mkSeg(_barEl, totalContrib / stackTotal,  '#a78bfa');
       }
       if (interestEarned > 0) {
-        _mkSeg(_barEl, interestEarned / stackTotal, '#f472b6', '0 0 10px #f472b644');
+        _mkSeg(_barEl, interestEarned / stackTotal, '#f472b6');
       }
     }
 
@@ -174,11 +174,11 @@
     return s;
   }
 
-  function _mkSeg(bar, flex, bg, shadow) {
+  function _mkSeg(bar, flex, bg) {
     const seg = _el('div', 'proj-seg');
-    seg.style.flex   = flex;
-    seg.style.background  = bg;
-    seg.style.boxShadow   = shadow;
+    seg.style.flex       = flex;
+    seg.style.background = bg;
+    seg.style.boxShadow  = glowShadow(bg);
     bar.appendChild(seg);
   }
 
@@ -186,6 +186,7 @@
     const item = _el('div', 'proj-legend-item');
     const dot  = _el('span', 'proj-ldot');
     dot.style.background = color;
+    dot.style.boxShadow  = glowShadow(color);
     const lname = _el('span', 'proj-lname');
     lname.textContent = name;
     const lval = _el('span', 'proj-lval');
