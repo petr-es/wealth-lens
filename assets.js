@@ -23,7 +23,7 @@ const ASSETS = {
   },
   alpha: {
     ticker:   'STOCKS',
-    name:     'Stock Picks',
+    name:     'Stock picks',
     yahooUrl: null,
     currency: 'CZK',
     fixedCzk: 250,   // fixní odhad v tis. Kč
