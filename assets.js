@@ -22,11 +22,11 @@ const ASSETS = {
     holdings: { ibkr: 800, etrade: 0 },
   },
   alpha: {
-    ticker:   'ALPHA',
-    name:     'Seeking Alpha Picks',
+    ticker:   'STOCKS',
+    name:     'Stock Picks',
     yahooUrl: null,
     currency: 'CZK',
-    fixedCzk: 235,   // fixní odhad v tis. Kč
+    fixedCzk: 250,   // fixní odhad v tis. Kč
     holdings: {},
   },
   ib1t: {
