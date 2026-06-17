@@ -672,7 +672,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
   const assetItems = [
     { key: 'fwra',  value: ctx.vFWRA,  color: 'var(--fwra)',  label: 'FWRA',  shares: ctx.fwra_total },
     { key: 'spyy',  value: ctx.vSPYY,  color: 'var(--spyy)',  label: 'SPYY',  shares: ctx.spyy_total },
-    { key: 'alpha', value: ctx.vAlpha, color: 'var(--alpha)', label: 'Alpha', shares: null },
+    { key: 'alpha', value: ctx.vAlpha, color: 'var(--alpha)', label: 'Stocks', shares: null },
     { key: 's',     value: ctx.vS,     color: 'var(--s)',     label: 'S',     shares: ctx.s_total },
     { key: 'ib1t',  value: ctx.vIB1T,  color: 'var(--ib1t)',  label: 'IB1T',  shares: ctx.ib1t_total },
     ...(ctx.vCash > 0 ? [{ key: 'cash', value: ctx.vCash, color: 'var(--cash)', label: 'Cash', shares: null }] : []),
