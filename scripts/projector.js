@@ -24,9 +24,9 @@
     set monthly(v)       { safeStorage.set('wl.proj.monthly', String(v)); },
     get withdrawalRate() { return parseFloat(safeStorage.get('wl.proj.wr')) || 4; },
     set withdrawalRate(v){ safeStorage.set('wl.proj.wr', String(v)); },
-    get targetOn()       { return safeStorage.get('wl.proj.targetOn') === 'true'; },
+    get targetOn()       { const v = safeStorage.get('wl.proj.targetOn'); return v === null ? true : v === 'true'; },
     set targetOn(v)      { safeStorage.set('wl.proj.targetOn', String(v)); },
-    get targetAmount()   { return parseInt(safeStorage.get('wl.proj.target')) || 0; },
+    get targetAmount()   { return parseInt(safeStorage.get('wl.proj.target')) || 20000000; },
     set targetAmount(v)  { safeStorage.set('wl.proj.target', String(v)); },
   };
 

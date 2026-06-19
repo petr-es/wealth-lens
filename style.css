@@ -955,7 +955,7 @@ body {
 }
 .proj-goal-bar {
   display: flex; height: 6px; border-radius: var(--radius-pill);
-  gap: 2px; overflow: hidden;
+  gap: 2px;
 }
 .proj-goal-fill {
   border-radius: var(--radius-pill);
