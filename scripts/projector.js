@@ -24,6 +24,10 @@
     set monthly(v)       { safeStorage.set('wl.proj.monthly', String(v)); },
     get withdrawalRate() { return parseFloat(safeStorage.get('wl.proj.wr')) || 4; },
     set withdrawalRate(v){ safeStorage.set('wl.proj.wr', String(v)); },
+    get targetOn()       { return safeStorage.get('wl.proj.targetOn') === 'true'; },
+    set targetOn(v)      { safeStorage.set('wl.proj.targetOn', String(v)); },
+    get targetAmount()   { return parseInt(safeStorage.get('wl.proj.target')) || 0; },
+    set targetAmount(v)  { safeStorage.set('wl.proj.target', String(v)); },
   };
 
   // ── Compound growth calculation ────────────────────────────────────────────
@@ -84,8 +88,33 @@
     return el;
   }
 
+  // ── Formatted number input helpers ─────────────────────────────────────────
+  function _parseInputNum(str) {
+    return Math.max(0, parseInt(str.replace(/[^\d]/g, ''), 10) || 0);
+  }
+
+  function _mkFormattedInput(rawValue) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.inputMode = 'numeric';
+    input.className = 'proj-number';
+    input.value = rawValue > 0 ? rawValue.toLocaleString(_loc()) : '';
+
+    input.addEventListener('focus', () => {
+      const n = _parseInputNum(input.value);
+      input.value = n > 0 ? String(n) : '';
+    });
+
+    input.addEventListener('blur', () => {
+      const n = _parseInputNum(input.value);
+      input.value = n > 0 ? n.toLocaleString(_loc()) : '';
+    });
+
+    return input;
+  }
+
   // ── Card DOM refs ──────────────────────────────────────────────────────────
-  let _cardEl, _resultEl, _paramsEl, _barEl, _legendEl;
+  let _cardEl, _resultEl, _paramsEl, _barEl, _legendEl, _goalEl;
 
   // ── Render card ────────────────────────────────────────────────────────────
   function renderCard() {
@@ -96,6 +125,54 @@
     const stackTotal = PV + totalContrib + interestEarned || 1;
     const valid = n > 0 && FV > PV;
     const ccy = LANG.currency;
+
+    // ── Goal block ──────────────────────────────────────────────────────────
+    if (_goalEl) {
+      if (S.targetOn && S.targetAmount > 0) {
+        _goalEl.hidden = false;
+        _goalEl.innerHTML = '';
+
+        const target = S.targetAmount;
+        const pct = Math.min(100, Math.round(PV / target * 100));
+        const onTrack = valid && FV >= target;
+        const goalColor = onTrack ? 'var(--accent)' : '#fb923c';
+        const monthlyWithdraw = Math.round(target * (S.withdrawalRate / 100) / 12);
+
+        const goalRow = _el('div', 'proj-goal-row');
+        const pctSpan = _el('span', 'proj-goal-pct');
+        pctSpan.textContent = pct + '%';
+        pctSpan.style.color = goalColor;
+        goalRow.appendChild(pctSpan);
+
+        if (valid) {
+          const statusEl = _el('span', 'proj-goal-status ' + (onTrack ? 'on-track' : 'behind'));
+          statusEl.textContent = onTrack ? LANG.projOnTrack : LANG.projBehind;
+          goalRow.appendChild(statusEl);
+        }
+        _goalEl.appendChild(goalRow);
+
+        const secEl = _el('div', 'proj-goal-secondary');
+        secEl.textContent = `${LANG.projGoalLabel}: ${fmtCzk(target)} ${ccy} · ${LANG.projGoalWithdraw}: ${fmtCzk(monthlyWithdraw)} ${LANG.projPerMo}`;
+        _goalEl.appendChild(secEl);
+
+        const goalBar = _el('div', 'proj-goal-bar');
+        if (pct > 0) {
+          const fillEl = _el('div', 'proj-goal-fill');
+          fillEl.style.flex = String(pct / 100);
+          fillEl.style.background = goalColor;
+          fillEl.style.boxShadow = glowShadow(goalColor);
+          goalBar.appendChild(fillEl);
+        }
+        if (pct < 100) {
+          const emptyEl = _el('div', 'proj-goal-empty');
+          emptyEl.style.flex = String(1 - pct / 100);
+          goalBar.appendChild(emptyEl);
+        }
+        _goalEl.appendChild(goalBar);
+      } else {
+        _goalEl.hidden = true;
+      }
+    }
 
     // ── Value line ──────────────────────────────────────────────────────────
     _resultEl.innerHTML = '';
@@ -119,12 +196,6 @@
       const swrCcyEl = _el('span', 'proj-swr-ccy');
       swrCcyEl.textContent = ccy;
       row.appendChild(swrCcyEl);
-
-      const nowGroup = _el('span', 'proj-now-group');
-      const pctEl = _el('span', 'proj-now-pct');
-      pctEl.textContent = Math.round(PV / FV * 100) + '%';
-      nowGroup.append(_mkSlash(), pctEl);
-      row.appendChild(nowGroup);
     }
 
     _resultEl.appendChild(row);
@@ -213,12 +284,14 @@
           <span id="proj-settings-label">${LANG.projSettings}</span>
         </button>
       </div>
+      <div id="proj-goal" class="proj-goal-block" hidden></div>
       <div id="proj-result" class="proj-result-wrap"></div>
       <div id="proj-params" class="proj-params"></div>
       <div id="proj-bar"    class="proj-bar-stack" hidden></div>
       <div id="proj-legend" class="proj-legend proj-legend-inline" hidden></div>
     `;
 
+    _goalEl   = document.getElementById('proj-goal');
     _resultEl = document.getElementById('proj-result');
     _paramsEl = document.getElementById('proj-params');
     _barEl    = document.getElementById('proj-bar');
@@ -304,7 +377,7 @@
     header.append(titleEl, closeBtn);
 
     const body = _el('div', 'proj-modal-body');
-    body.append(_buildDateField(), _buildRateField(), _buildWithdrawalField(), _buildContribField());
+    body.append(_buildDateField(), _buildRateField(), _buildWithdrawalField(), _buildContribField(), _buildTargetField());
 
     modal.append(header, body);
     backdrop.appendChild(modal);
@@ -475,17 +548,13 @@
     const contribRow = _el('div', 'proj-contrib-row');
     contribRow.style.display = S.contribOn ? 'flex' : 'none';
 
-    const numInput = document.createElement('input');
-    numInput.type = 'number';
-    numInput.className = 'proj-number';
-    numInput.min = '0'; numInput.step = '500';
-    numInput.value = String(S.monthly);
+    const numInput = _mkFormattedInput(S.monthly);
 
     const ccyLabel = _el('span', 'proj-ccy');
     ccyLabel.textContent = LANG.projContribUnit;
 
     numInput.addEventListener('input', () => {
-      S.monthly = Math.max(0, parseInt(numInput.value) || 0);
+      S.monthly = _parseInputNum(numInput.value);
       renderCard();
     });
 
@@ -498,6 +567,47 @@
 
     contribRow.append(numInput, ccyLabel);
     field.appendChild(contribRow);
+
+    return field;
+  }
+
+  // ── Target amount field ────────────────────────────────────────────────────
+  function _buildTargetField() {
+    const field = _el('div', 'proj-field');
+
+    const toggleRow = _el('div', 'proj-toggle-row');
+    const labelSpan = _el('span', 'proj-field-label');
+    labelSpan.textContent = LANG.projTargetToggle;
+    const toggle = _el('button', 'proj-toggle' + (S.targetOn ? ' on' : ''));
+    toggle.type = 'button';
+    toggle.setAttribute('aria-label', 'Toggle target amount');
+    const knob = _el('span', 'proj-toggle-knob');
+    toggle.appendChild(knob);
+    toggleRow.append(labelSpan, toggle);
+    field.appendChild(toggleRow);
+
+    const targetRow = _el('div', 'proj-contrib-row');
+    targetRow.style.display = S.targetOn ? 'flex' : 'none';
+
+    const numInput = _mkFormattedInput(S.targetAmount);
+
+    const ccyLabel = _el('span', 'proj-ccy');
+    ccyLabel.textContent = LANG.projTargetUnit;
+
+    numInput.addEventListener('input', () => {
+      S.targetAmount = _parseInputNum(numInput.value);
+      renderCard();
+    });
+
+    toggle.addEventListener('click', () => {
+      S.targetOn = !S.targetOn;
+      toggle.classList.toggle('on', S.targetOn);
+      targetRow.style.display = S.targetOn ? 'flex' : 'none';
+      renderCard();
+    });
+
+    targetRow.append(numInput, ccyLabel);
+    field.appendChild(targetRow);
 
     return field;
   }

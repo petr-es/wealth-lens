@@ -62,4 +62,10 @@ const LANG_CS = {
   projWithdrawal:     'Míra výběru',
   projYears:          ['rok', 'roky', 'let'],
   projMonths:         ['měsíc', 'měsíce', 'měsíců'],
+  projTargetToggle:   'Cílová částka',
+  projTargetUnit:     'Kč',
+  projOnTrack:        'Na cestě',
+  projBehind:         'Pozadu',
+  projGoalLabel:      'Cíl',
+  projGoalWithdraw:   'Výběr',
 };

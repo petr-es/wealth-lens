@@ -62,4 +62,10 @@ const LANG_EN = {
   projWithdrawal:     'Withdrawal rate',
   projYears:          ['yr', 'yrs', 'yrs'],
   projMonths:         ['mo', 'mos', 'mos'],
+  projTargetToggle:   'Target amount',
+  projTargetUnit:     'CZK',
+  projOnTrack:        'On track',
+  projBehind:         'Behind',
+  projGoalLabel:      'Goal',
+  projGoalWithdraw:   'Withdraw',
 };
