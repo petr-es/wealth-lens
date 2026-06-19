@@ -888,7 +888,7 @@ body {
   font-family: var(--mono); font-size: 11px;
   color: var(--text-2);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 /* Stacked bar */
@@ -950,7 +950,7 @@ body {
 .proj-goal-secondary {
   font-family: var(--mono); font-size: 11px;
   color: var(--text-2);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .proj-goal-bar {
