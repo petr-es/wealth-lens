@@ -29,6 +29,12 @@
 
 <div class="aurora"><span></span></div>
 
+<div id="ptr-indicator" aria-hidden="true">
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="9" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="14 42"/>
+  </svg>
+</div>
+
 <div class="app" id="app">
 
   <header class="header">
@@ -72,15 +78,6 @@
           </svg>
         </div>
       </div>
-      <button class="refresh-btn" id="update-btn" type="button">
-        <svg aria-hidden="true" id="update-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14 2v4h-4"/>
-          <path d="M2 14v-4h4"/>
-          <path d="M2.5 10a5.5 5.5 0 0 0 9.2 2.2L14 10"/>
-          <path d="M13.5 6a5.5 5.5 0 0 0-9.2-2.2L2 6"/>
-        </svg>
-        <span id="update-label" data-i18n="btnUpdate">Aktualizovat</span>
-      </button>
     </div>
   </header>
 

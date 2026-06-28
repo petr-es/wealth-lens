@@ -53,10 +53,6 @@
   /* Brand */
   --brand-size: 30px;
 
-  /* Touch / mobile */
-  --fab-inset: 36px;                        /* FAB distance from screen edges */
-  --fab-size: 64px;                         /* prominent FAB size */
-
   /* Semantic color tints */
   --pos-soft: oklch(0.82 0.18 150 / 0.12);
   --pos-border: oklch(0.82 0.18 150 / 0.3);
@@ -279,25 +275,34 @@ body {
 /* Header right side */
 .header-actions { display: flex; align-items: center; gap: 12px; }
 
-.refresh-btn {
-  display: inline-flex; align-items: center; gap: 7px;
-  height: var(--control-height); padding: 0 13px;
+/* ── Pull-to-refresh indicator ──────────────────────────────────────────── */
+#ptr-indicator {
+  position: fixed;
+  top: -44px;
+  left: 50%;
+  transform: translateX(-50%) translateY(var(--ptr-y, 0px));
+  width: 36px;
+  height: 36px;
   background: var(--bg-card);
   border: 1px solid var(--stroke);
-  border-radius: var(--radius-sm);
-  color: var(--text-2);
-  cursor: pointer;
+  border-radius: 50%;
   backdrop-filter: blur(var(--blur-md));
   -webkit-backdrop-filter: blur(var(--blur-md));
-  font-family: var(--mono); font-size: 11px;
-  transition: all var(--duration);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
 }
-.refresh-btn:hover:not(:disabled) { color: var(--text-1); border-color: var(--stroke-strong); }
-.refresh-btn:disabled { cursor: default; opacity: 0.7; }
-.refresh-btn svg { width: 13px; height: 13px; }
-.refresh-btn.state-loading svg { animation: spin 0.9s linear infinite; }
-.refresh-btn.state-error { border-color: var(--neg); color: var(--neg); }
-.refresh-btn.state-success { border-color: var(--accent); color: var(--accent); }
+#ptr-indicator svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--accent);
+}
+#ptr-indicator.is-spinning svg {
+  animation: spin 0.7s linear infinite;
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Theme toggle */
@@ -1176,7 +1181,7 @@ body {
  *     inside the still-2-col card grid (cards too narrow for donut+legend).
  * md: card grid collapses to 1-col → alloc can go side-by-side again;
  *     footer wraps; table loses qty column.
- * sm: phone-size tweaks — smaller donuts, icon-only refresh button, etc.
+ * sm: phone-size tweaks — smaller donuts, etc.
  */
 
 @media (max-width: 1024px) {
@@ -1231,14 +1236,8 @@ body {
     grid-template-columns: auto 1fr auto;
     grid-template-areas: "brand hero scope";
   }
-  /* Remove header-actions from grid flow. position:fixed #update-btn escapes
-     both the absolute positioning and overflow:hidden, so FAB stays visible. */
-  .header-actions {
-    position: absolute;
-    width: 0; height: 0;
-    overflow: hidden;
-  }
-  .header-actions .theme-toggle { display: none; }
+  /* header-actions only has the theme toggle, which is shown in the footer on mobile */
+  .header-actions { display: none; }
 
   /* Scope overflow: JS adds .scope-overflow when scope won't fit row 1 */
   .header.scope-overflow {
@@ -1252,23 +1251,6 @@ body {
   /* Footer: show theme toggle alongside locale */
   .footer-end .theme-toggle { display: flex; }
 
-  /* Update button: FAB — fixed bottom-right, icon only */
-  #update-label { display: none; }
-  #update-btn {
-    position: fixed;
-    bottom: var(--fab-inset); right: var(--fab-inset);
-    width: var(--fab-size); height: var(--fab-size);
-    border-radius: 50%;
-    padding: 0;
-    justify-content: center;
-    z-index: 50;
-    background: var(--accent);
-    border-color: transparent;
-    color: var(--bg-0);
-    box-shadow: 0 4px 24px var(--accent-glow), 0 8px 32px var(--shadow-dark);
-  }
-  #update-btn svg { width: 22px; height: 22px; }
-  #update-btn:hover:not(:disabled) { color: var(--bg-0); border-color: transparent; }
 
 }
 

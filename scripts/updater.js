@@ -1,30 +1,5 @@
 const API_URL = '/api/prices';
 const FETCH_TIMEOUT_MS = 15000;
-const SUCCESS_RESET_MS = 4000;
-
-const btn   = document.getElementById('update-btn');
-const label = document.getElementById('update-label');
-
-function setBtnState(state) {
-  btn.className = 'refresh-btn' + (state ? ' state-' + state : '');
-  btn.disabled  = state === 'loading';
-  const icon = document.getElementById('update-icon');
-  if (state === 'loading') {
-    label.textContent = LANG.btnUpdating;
-  } else if (state === 'success') {
-    icon.innerHTML = '<polyline points="13 4 6 11 3 8" stroke-linecap="round" stroke-linejoin="round"/>';
-    label.textContent = LANG.btnDone;
-    setTimeout(() => setBtnState(null), SUCCESS_RESET_MS);
-  } else {
-    resetIcon();
-    label.textContent = LANG.btnUpdate;
-  }
-}
-
-function resetIcon() {
-  document.getElementById('update-icon').innerHTML =
-    '<path d="M14 2v4h-4"/><path d="M2 14v-4h4"/><path d="M2.5 10a5.5 5.5 0 0 0 9.2 2.2L14 10"/><path d="M13.5 6a5.5 5.5 0 0 0-9.2-2.2L2 6"/>';
-}
 
 function showToast(message) {
   dismissToast();
@@ -113,9 +88,7 @@ async function fetchPrices() {
 
 async function triggerUpdate() {
   dismissToast();
-  setBtnState('loading');
   setLoadingState();
-  _showPageLoader();
   try {
     const prices = await fetchPrices();
     window.PRICES = decorateLivePrices(prices);
@@ -129,25 +102,11 @@ async function triggerUpdate() {
     _lastDonutBrokerTotal = 0;
     render(window.PRICES, ASSETS, { animate: true, isLive: true });
     drawHistoryChart(_currentTf, { animate: true });
-    _hidePageLoader();
-    setBtnState('success');
   } catch (e) {
-    _hidePageLoader();
-    setBtnState(null);
     showOverlay('error', LANG.overlayError);
     showToast(LANG.toastUpdateFailed);
   }
 }
-
-btn.addEventListener('click', triggerUpdate);
-
-// Keep the button's native tooltip in sync with the current locale.
-function _syncBtnTitle() {
-  btn.setAttribute('title', LANG.btnUpdateTitle || LANG.btnUpdate);
-  btn.setAttribute('aria-label', LANG.btnUpdateTitle || LANG.btnUpdate);
-}
-_syncBtnTitle();
-document.addEventListener('wl:locale-change', _syncBtnTitle);
 
 function _showPageLoader() {
   const loader = document.getElementById('page-loader');
@@ -161,7 +120,7 @@ function _hidePageLoader() {
   loader.classList.add('is-hidden');
 }
 
-// Fetch live prices on page load
+// Fetch live prices on page load (shows full logo overlay)
 setLoadingState();
 fetchPrices().then(prices => {
   window.PRICES = decorateLivePrices(prices);
@@ -174,3 +133,94 @@ fetchPrices().then(prices => {
   showOverlay('error', LANG.overlayError);
   showToast(LANG.toastUpdateFailed);
 });
+
+// Pull-to-refresh
+(function () {
+  const PTR_THRESHOLD = 72;  // px of drag before triggering refresh
+  const PTR_MAX = 120;       // rubberband ceiling for visual drag distance
+  const PTR_REST = 52;       // where the spinner settles while loading
+
+  const indicator = document.getElementById('ptr-indicator');
+  let startY = 0;
+  let lastDelta = 0;
+  let pulling = false;
+  let refreshing = false;
+
+  function _setY(px) {
+    indicator.style.setProperty('--ptr-y', px + 'px');
+  }
+
+  function _showSpinner() {
+    refreshing = true;
+    indicator.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
+    _setY(PTR_REST);
+    indicator.style.opacity = '1';
+    indicator.querySelector('svg').style.transform = '';
+    indicator.classList.add('is-spinning');
+    setTimeout(() => { indicator.style.transition = ''; }, 220);
+  }
+
+  function _hideSpinner() {
+    indicator.classList.remove('is-spinning');
+    indicator.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+    indicator.style.opacity = '0';
+    setTimeout(() => {
+      _setY(0);
+      indicator.style.transition = '';
+      refreshing = false;
+    }, 280);
+  }
+
+  async function _doRefresh() {
+    _showSpinner();
+    try {
+      await triggerUpdate();
+    } finally {
+      _hideSpinner();
+    }
+  }
+
+  document.addEventListener('touchstart', function (e) {
+    if (refreshing || window.scrollY > 0) return;
+    startY = e.touches[0].clientY;
+    lastDelta = 0;
+    pulling = true;
+  }, { passive: true });
+
+  document.addEventListener('touchmove', function (e) {
+    if (!pulling || refreshing) return;
+    if (window.scrollY > 0) {
+      pulling = false;
+      lastDelta = 0;
+      indicator.style.opacity = '0';
+      _setY(0);
+      return;
+    }
+    const delta = e.touches[0].clientY - startY;
+    if (delta <= 0) { lastDelta = 0; return; }
+    lastDelta = delta;
+    // Rubberband resistance — visual travel compresses as delta grows
+    const visual = PTR_MAX * (1 - Math.exp(-delta / PTR_MAX));
+    _setY(visual);
+    indicator.style.opacity = String(Math.min(visual / PTR_REST, 1));
+    // Rotate the arc to hint at pull progress
+    const ratio = Math.min(delta / PTR_THRESHOLD, 1);
+    indicator.querySelector('svg').style.transform = 'rotate(' + (ratio * 270) + 'deg)';
+  }, { passive: true });
+
+  document.addEventListener('touchend', function () {
+    if (!pulling) return;
+    pulling = false;
+    if (refreshing) return;
+    if (lastDelta >= PTR_THRESHOLD) {
+      _doRefresh();
+    } else {
+      indicator.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+      indicator.style.opacity = '0';
+      indicator.querySelector('svg').style.transform = '';
+      _setY(0);
+      setTimeout(() => { indicator.style.transition = ''; }, 220);
+    }
+    lastDelta = 0;
+  }, { passive: true });
+})();
