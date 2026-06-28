@@ -281,7 +281,7 @@ body {
   height: var(--ptr-h, 0px);
   overflow: hidden;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   pointer-events: none;
 }
