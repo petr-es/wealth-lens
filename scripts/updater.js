@@ -159,21 +159,21 @@ fetchPrices().then(prices => {
 
   function _snapIn() {
     bar.classList.remove('is-ready');
-    bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.4, 0.64, 1), border-color var(--duration)';
+    bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.4, 0.64, 1)';
     _setH(PTR_REST);
     arc.setAttribute('stroke-dasharray', `${PTR_SPIN_DASH} ${PTR_CIRC}`);
     bar.classList.add('is-spinning');
     refreshing = true;
-    setTimeout(() => { bar.style.transition = 'border-color var(--duration)'; }, 320);
+    setTimeout(() => { bar.style.transition = ''; }, 320);
   }
 
   function _snapOut() {
     bar.classList.remove('is-spinning', 'is-ready');
-    bar.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color var(--duration)';
+    bar.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
     _setH(0);
     setTimeout(() => {
       _setArcProgress(0);
-      bar.style.transition = 'border-color var(--duration)';
+      bar.style.transition = '';
       refreshing = false;
     }, 320);
   }
@@ -227,10 +227,10 @@ fetchPrices().then(prices => {
       _doRefresh();
     } else {
       bar.classList.remove('is-ready');
-      bar.style.transition = 'height 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color var(--duration)';
+      bar.style.transition = 'height 0.22s cubic-bezier(0.4, 0, 0.2, 1)';
       _setArcProgress(0);
       _setH(0);
-      setTimeout(() => { bar.style.transition = 'border-color var(--duration)'; }, 240);
+      setTimeout(() => { bar.style.transition = ''; }, 240);
     }
     lastDelta = 0;
   }, { passive: true });

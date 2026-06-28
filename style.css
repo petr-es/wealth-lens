@@ -284,11 +284,7 @@ body {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color var(--duration);
 }
-#ptr-bar.is-ready,
-#ptr-bar.is-spinning { border-bottom-color: var(--stroke); }
 #ptr-bar svg {
   width: 26px;
   height: 26px;
