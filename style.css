@@ -286,8 +286,8 @@ body {
   pointer-events: none;
 }
 #ptr-bar svg {
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
   transform: rotate(-90deg);
 }
