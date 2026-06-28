@@ -136,11 +136,14 @@ fetchPrices().then(prices => {
 
 // Pull-to-refresh
 (function () {
-  const PTR_THRESHOLD = 72;  // px of drag before triggering refresh
-  const PTR_MAX = 120;       // rubberband ceiling for visual drag distance
-  const PTR_REST = 52;       // where the spinner settles while loading
+  const PTR_THRESHOLD = 72;   // px of drag before triggering refresh
+  const PTR_MAX = 130;        // rubberband ceiling for visual drag distance
+  const PTR_REST = 62;        // where the spinner settles while loading
+  const PTR_CIRC = 75.4;      // SVG arc circumference (2π × r12)
+  const PTR_SPIN_DASH = 20;   // spinner arc length during loading (~96°)
 
   const indicator = document.getElementById('ptr-indicator');
+  const arc = indicator.querySelector('.ptr-arc');
   let startY = 0;
   let lastDelta = 0;
   let pulling = false;
@@ -150,33 +153,41 @@ fetchPrices().then(prices => {
     indicator.style.setProperty('--ptr-y', px + 'px');
   }
 
-  function _showSpinner() {
-    refreshing = true;
-    indicator.style.transition = 'transform 0.2s ease, opacity 0.2s ease';
-    _setY(PTR_REST);
-    indicator.style.opacity = '1';
-    indicator.querySelector('svg').style.transform = '';
-    indicator.classList.add('is-spinning');
-    setTimeout(() => { indicator.style.transition = ''; }, 220);
+  function _setArcProgress(ratio) {
+    arc.setAttribute('stroke-dasharray', `${Math.min(ratio, 1) * PTR_CIRC} ${PTR_CIRC}`);
   }
 
-  function _hideSpinner() {
+  function _snapIn() {
+    indicator.classList.remove('is-ready');
+    // Settle to rest position with a spring-like ease
+    indicator.style.transition = 'transform 0.26s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.18s ease, border-color var(--duration)';
+    _setY(PTR_REST);
+    indicator.style.opacity = '1';
+    // Switch to fixed-length spinner arc before animation starts
+    arc.setAttribute('stroke-dasharray', `${PTR_SPIN_DASH} ${PTR_CIRC}`);
+    indicator.classList.add('is-spinning');
+    refreshing = true;
+    setTimeout(() => { indicator.style.transition = 'border-color var(--duration)'; }, 280);
+  }
+
+  function _snapOut() {
     indicator.classList.remove('is-spinning');
-    indicator.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+    indicator.style.transition = 'opacity 0.22s ease, transform 0.22s ease, border-color var(--duration)';
     indicator.style.opacity = '0';
     setTimeout(() => {
       _setY(0);
-      indicator.style.transition = '';
+      _setArcProgress(0);
+      indicator.style.transition = 'border-color var(--duration)';
       refreshing = false;
-    }, 280);
+    }, 250);
   }
 
   async function _doRefresh() {
-    _showSpinner();
+    _snapIn();
     try {
       await triggerUpdate();
     } finally {
-      _hideSpinner();
+      _snapOut();
     }
   }
 
@@ -199,13 +210,13 @@ fetchPrices().then(prices => {
     const delta = e.touches[0].clientY - startY;
     if (delta <= 0) { lastDelta = 0; return; }
     lastDelta = delta;
-    // Rubberband resistance — visual travel compresses as delta grows
+    // Rubberband resistance — visual travel compresses logarithmically
     const visual = PTR_MAX * (1 - Math.exp(-delta / PTR_MAX));
     _setY(visual);
-    indicator.style.opacity = String(Math.min(visual / PTR_REST, 1));
-    // Rotate the arc to hint at pull progress
     const ratio = Math.min(delta / PTR_THRESHOLD, 1);
-    indicator.querySelector('svg').style.transform = 'rotate(' + (ratio * 270) + 'deg)';
+    _setArcProgress(ratio);
+    indicator.style.opacity = String(Math.min(visual / (PTR_REST * 0.6), 1));
+    indicator.classList.toggle('is-ready', ratio >= 1);
   }, { passive: true });
 
   document.addEventListener('touchend', function () {
@@ -215,11 +226,12 @@ fetchPrices().then(prices => {
     if (lastDelta >= PTR_THRESHOLD) {
       _doRefresh();
     } else {
-      indicator.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+      indicator.classList.remove('is-ready');
+      indicator.style.transition = 'opacity 0.18s ease, transform 0.22s ease, border-color var(--duration)';
       indicator.style.opacity = '0';
-      indicator.querySelector('svg').style.transform = '';
+      _setArcProgress(0);
       _setY(0);
-      setTimeout(() => { indicator.style.transition = ''; }, 220);
+      setTimeout(() => { indicator.style.transition = 'border-color var(--duration)'; }, 230);
     }
     lastDelta = 0;
   }, { passive: true });
