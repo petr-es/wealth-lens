@@ -174,9 +174,6 @@ body {
 
 /* ── Header ────────────────────────────────────────────────────────────── */
 .header {
-  position: relative;
-  /* Opaque background so it cleanly masks the PTR indicator sliding behind it */
-  background: var(--bg-0);
   display: grid;
   grid-template-columns: auto auto auto 1fr auto;
   grid-template-areas: "brand hero scope . actions";
@@ -296,8 +293,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Below .app (z-index 1) so the header renders in front of the indicator */
-  z-index: 0;
+  z-index: 9998;
   opacity: 0;
   pointer-events: none;
   transition: border-color var(--duration);

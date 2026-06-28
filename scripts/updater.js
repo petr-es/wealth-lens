@@ -138,7 +138,7 @@ fetchPrices().then(prices => {
 (function () {
   const PTR_THRESHOLD = 72;   // px of drag before triggering refresh
   const PTR_MAX = 130;        // rubberband ceiling for visual drag distance
-  const PTR_REST = 50;        // where the spinner settles while loading
+  const PTR_REST = 62;        // where the spinner settles while loading
   const PTR_CIRC = 75.4;      // SVG arc circumference (2π × r12)
   const PTR_SPIN_DASH = 20;   // spinner arc length during loading (~96°)
 
@@ -209,6 +209,8 @@ fetchPrices().then(prices => {
     }
     const delta = e.touches[0].clientY - startY;
     if (delta <= 0) { lastDelta = 0; return; }
+    // Prevent Safari's native overscroll/pull-to-refresh for the whole gesture
+    e.preventDefault();
     lastDelta = delta;
     // Rubberband resistance — visual travel compresses logarithmically
     const visual = PTR_MAX * (1 - Math.exp(-delta / PTR_MAX));
@@ -217,7 +219,7 @@ fetchPrices().then(prices => {
     _setArcProgress(ratio);
     indicator.style.opacity = String(Math.min(visual / (PTR_REST * 0.6), 1));
     indicator.classList.toggle('is-ready', ratio >= 1);
-  }, { passive: true });
+  }, { passive: false });
 
   document.addEventListener('touchend', function () {
     if (!pulling) return;
