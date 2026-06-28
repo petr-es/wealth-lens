@@ -132,7 +132,7 @@ fetchPrices().then(prices => {
 (function () {
   const PTR_THRESHOLD = 72;   // px of drag before triggering refresh
   const PTR_MAX = 130;        // rubberband ceiling for visual drag distance
-  const PTR_REST = 76;        // bar height while loading: 22px + 32px SVG + 22px
+  const PTR_REST = 80;        // bar height while loading: 24px + 32px SVG + 24px
   const PTR_CIRC = 75.4;      // SVG arc circumference (2π × r12)
   const PTR_SPIN_DASH = 20;   // spinner arc length during loading (~96°)
 
