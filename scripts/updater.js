@@ -138,19 +138,19 @@ fetchPrices().then(prices => {
 (function () {
   const PTR_THRESHOLD = 72;   // px of drag before triggering refresh
   const PTR_MAX = 130;        // rubberband ceiling for visual drag distance
-  const PTR_REST = 62;        // where the spinner settles while loading
+  const PTR_REST = 64;        // bar height while loading
   const PTR_CIRC = 75.4;      // SVG arc circumference (2π × r12)
   const PTR_SPIN_DASH = 20;   // spinner arc length during loading (~96°)
 
-  const indicator = document.getElementById('ptr-indicator');
-  const arc = indicator.querySelector('.ptr-arc');
+  const bar = document.getElementById('ptr-bar');
+  const arc = bar.querySelector('.ptr-arc');
   let startY = 0;
   let lastDelta = 0;
   let pulling = false;
   let refreshing = false;
 
-  function _setY(px) {
-    indicator.style.setProperty('--ptr-y', px + 'px');
+  function _setH(px) {
+    bar.style.setProperty('--ptr-h', px + 'px');
   }
 
   function _setArcProgress(ratio) {
@@ -158,28 +158,24 @@ fetchPrices().then(prices => {
   }
 
   function _snapIn() {
-    indicator.classList.remove('is-ready');
-    // Settle to rest position with a spring-like ease
-    indicator.style.transition = 'transform 0.26s cubic-bezier(0.34, 1.4, 0.64, 1), opacity 0.18s ease, border-color var(--duration)';
-    _setY(PTR_REST);
-    indicator.style.opacity = '1';
-    // Switch to fixed-length spinner arc before animation starts
+    bar.classList.remove('is-ready');
+    bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.4, 0.64, 1), border-color var(--duration)';
+    _setH(PTR_REST);
     arc.setAttribute('stroke-dasharray', `${PTR_SPIN_DASH} ${PTR_CIRC}`);
-    indicator.classList.add('is-spinning');
+    bar.classList.add('is-spinning');
     refreshing = true;
-    setTimeout(() => { indicator.style.transition = 'border-color var(--duration)'; }, 280);
+    setTimeout(() => { bar.style.transition = 'border-color var(--duration)'; }, 320);
   }
 
   function _snapOut() {
-    indicator.classList.remove('is-spinning');
-    indicator.style.transition = 'opacity 0.22s ease, transform 0.22s ease, border-color var(--duration)';
-    indicator.style.opacity = '0';
+    bar.classList.remove('is-spinning', 'is-ready');
+    bar.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color var(--duration)';
+    _setH(0);
     setTimeout(() => {
-      _setY(0);
       _setArcProgress(0);
-      indicator.style.transition = 'border-color var(--duration)';
+      bar.style.transition = 'border-color var(--duration)';
       refreshing = false;
-    }, 250);
+    }, 320);
   }
 
   async function _doRefresh() {
@@ -192,7 +188,6 @@ fetchPrices().then(prices => {
   }
 
   document.addEventListener('touchstart', function (e) {
-    // Always record startY so the touchmove Safari guard has a reference point
     startY = e.touches[0].clientY;
     if (refreshing || window.scrollY > 0) return;
     lastDelta = 0;
@@ -210,8 +205,7 @@ fetchPrices().then(prices => {
     if (window.scrollY > 0) {
       pulling = false;
       lastDelta = 0;
-      indicator.style.opacity = '0';
-      _setY(0);
+      _setH(0);
       return;
     }
     const delta = e.touches[0].clientY - startY;
@@ -219,11 +213,10 @@ fetchPrices().then(prices => {
     lastDelta = delta;
     // Rubberband resistance — visual travel compresses logarithmically
     const visual = PTR_MAX * (1 - Math.exp(-delta / PTR_MAX));
-    _setY(visual);
+    _setH(visual);
     const ratio = Math.min(delta / PTR_THRESHOLD, 1);
     _setArcProgress(ratio);
-    indicator.style.opacity = String(Math.min(visual / (PTR_REST * 0.6), 1));
-    indicator.classList.toggle('is-ready', ratio >= 1);
+    bar.classList.toggle('is-ready', ratio >= 1);
   }, { passive: false });
 
   document.addEventListener('touchend', function () {
@@ -233,12 +226,11 @@ fetchPrices().then(prices => {
     if (lastDelta >= PTR_THRESHOLD) {
       _doRefresh();
     } else {
-      indicator.classList.remove('is-ready');
-      indicator.style.transition = 'opacity 0.18s ease, transform 0.22s ease, border-color var(--duration)';
-      indicator.style.opacity = '0';
+      bar.classList.remove('is-ready');
+      bar.style.transition = 'height 0.22s cubic-bezier(0.4, 0, 0.2, 1), border-color var(--duration)';
       _setArcProgress(0);
-      _setY(0);
-      setTimeout(() => { indicator.style.transition = 'border-color var(--duration)'; }, 230);
+      _setH(0);
+      setTimeout(() => { bar.style.transition = 'border-color var(--duration)'; }, 240);
     }
     lastDelta = 0;
   }, { passive: true });

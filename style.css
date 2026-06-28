@@ -276,38 +276,28 @@ body {
 /* Header right side */
 .header-actions { display: flex; align-items: center; gap: 12px; }
 
-/* ── Pull-to-refresh indicator ──────────────────────────────────────────── */
-#ptr-indicator {
-  position: fixed;
-  top: -50px;
-  left: 50%;
-  transform: translateX(-50%) translateY(var(--ptr-y, 0px));
-  width: 40px;
-  height: 40px;
-  background: var(--bg-card);
-  border: 1px solid var(--stroke);
-  border-radius: 50%;
-  backdrop-filter: blur(var(--blur-md));
-  -webkit-backdrop-filter: blur(var(--blur-md));
-  box-shadow: 0 4px 20px oklch(0 0 0 / 0.25), 0 1px 4px oklch(0 0 0 / 0.12);
+/* ── Pull-to-refresh bar ─────────────────────────────────────────────────── */
+#ptr-bar {
+  height: var(--ptr-h, 0px);
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9998;
-  opacity: 0;
   pointer-events: none;
+  border-bottom: 1px solid transparent;
   transition: border-color var(--duration);
 }
-#ptr-indicator.is-ready { border-color: var(--accent); }
-#ptr-indicator svg {
-  width: 22px;
-  height: 22px;
-  /* rotate so the arc starts from 12 o'clock */
+#ptr-bar.is-ready,
+#ptr-bar.is-spinning { border-bottom-color: var(--stroke); }
+#ptr-bar svg {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
   transform: rotate(-90deg);
 }
 .ptr-track { stroke: var(--stroke-strong); }
 .ptr-arc   { stroke: var(--accent); }
-#ptr-indicator.is-spinning svg {
+#ptr-bar.is-spinning svg {
   animation: ptr-spin 0.75s linear infinite;
 }
 @keyframes ptr-spin {
@@ -1241,9 +1231,6 @@ body {
   #head-assets > div:nth-child(3) { display: none; }
   #list-assets .alloc-row { grid-template-columns: 8px 2fr 1fr 1fr; }
   #list-assets .alloc-row .pcs { display: none; }
-
-  /* Extra top padding so the PTR indicator has room above the header */
-  .app { padding-top: 52px; }
 
   /* Header: hero fills middle, scope right */
   .header {
