@@ -142,8 +142,9 @@ fetchPrices().then(prices => {
   const PTR_CIRC = 75.4;      // SVG arc circumference (2π × r12)
   const PTR_SPIN_DASH = 20;   // spinner arc length during loading (~96°)
 
-  const bar = document.getElementById('ptr-bar');
-  const arc = bar.querySelector('.ptr-arc');
+  const bar    = document.getElementById('ptr-bar');
+  const arc    = bar.querySelector('.ptr-arc');
+  const appEl  = document.getElementById('app');
   let startY = 0;
   let lastDelta = 0;
   let pulling = false;
@@ -157,10 +158,23 @@ fetchPrices().then(prices => {
     arc.setAttribute('stroke-dasharray', `${Math.min(ratio, 1) * PTR_CIRC} ${PTR_CIRC}`);
   }
 
+  // Zero out the app's top padding so bar and header stay flush (no gap).
+  // Restores with a matching transition when the bar collapses.
+  function _removePad() {
+    appEl.style.paddingTop = '0';
+  }
+
+  function _restorePad(dur) {
+    appEl.style.transition = `padding-top ${dur}`;
+    appEl.style.paddingTop = ''; // falls back to CSS --card-pad value
+    setTimeout(() => { appEl.style.transition = ''; }, 320);
+  }
+
   function _snapIn() {
     bar.classList.remove('is-ready');
     bar.style.transition = 'height 0.3s cubic-bezier(0.34, 1.4, 0.64, 1)';
     _setH(PTR_REST);
+    _removePad();
     arc.setAttribute('stroke-dasharray', `${PTR_SPIN_DASH} ${PTR_CIRC}`);
     bar.classList.add('is-spinning');
     refreshing = true;
@@ -169,8 +183,10 @@ fetchPrices().then(prices => {
 
   function _snapOut() {
     bar.classList.remove('is-spinning', 'is-ready');
-    bar.style.transition = 'height 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    const dur = '0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    bar.style.transition = `height ${dur}`;
     _setH(0);
+    _restorePad(dur);
     setTimeout(() => {
       _setArcProgress(0);
       bar.style.transition = '';
@@ -211,6 +227,8 @@ fetchPrices().then(prices => {
     const delta = e.touches[0].clientY - startY;
     if (delta <= 0) { lastDelta = 0; return; }
     lastDelta = delta;
+    // Remove top padding immediately on first drag so bar and content stay flush
+    _removePad();
     // Rubberband resistance — visual travel compresses logarithmically
     const visual = PTR_MAX * (1 - Math.exp(-delta / PTR_MAX));
     _setH(visual);
@@ -227,9 +245,11 @@ fetchPrices().then(prices => {
       _doRefresh();
     } else {
       bar.classList.remove('is-ready');
-      bar.style.transition = 'height 0.22s cubic-bezier(0.4, 0, 0.2, 1)';
+      const dur = '0.22s cubic-bezier(0.4, 0, 0.2, 1)';
+      bar.style.transition = `height ${dur}`;
       _setArcProgress(0);
       _setH(0);
+      _restorePad(dur);
       setTimeout(() => { bar.style.transition = ''; }, 240);
     }
     lastDelta = 0;
