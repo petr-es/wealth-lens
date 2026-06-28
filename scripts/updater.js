@@ -108,12 +108,6 @@ async function triggerUpdate({ silent = false } = {}) {
   }
 }
 
-function _showPageLoader() {
-  const loader = document.getElementById('page-loader');
-  if (!loader) return;
-  loader.classList.remove('is-hidden');
-}
-
 function _hidePageLoader() {
   const loader = document.getElementById('page-loader');
   if (!loader) return;
@@ -159,15 +153,8 @@ fetchPrices().then(prices => {
   }
 
   // Zero out the app's top padding so bar and header stay flush (no gap).
-  // Restores with a matching transition when the bar collapses.
   function _removePad() {
     appEl.style.paddingTop = '0';
-  }
-
-  function _restorePad(dur) {
-    appEl.style.transition = `padding-top ${dur}`;
-    appEl.style.paddingTop = ''; // falls back to CSS --card-pad value
-    setTimeout(() => { appEl.style.transition = ''; }, 320);
   }
 
   function _snapIn() {
@@ -183,13 +170,15 @@ fetchPrices().then(prices => {
 
   function _snapOut() {
     bar.classList.remove('is-spinning', 'is-ready');
-    const dur = '0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-    bar.style.transition = `height ${dur}`;
+    const ease = '0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+    bar.style.transition = `height ${ease}`;
+    appEl.style.transition = `padding-top ${ease}`;
     _setH(0);
-    _restorePad(dur);
+    appEl.style.paddingTop = ''; // restores CSS --card-pad value
     setTimeout(() => {
       _setArcProgress(0);
       bar.style.transition = '';
+      appEl.style.transition = '';
       refreshing = false;
     }, 320);
   }
@@ -245,12 +234,13 @@ fetchPrices().then(prices => {
       _doRefresh();
     } else {
       bar.classList.remove('is-ready');
-      const dur = '0.22s cubic-bezier(0.4, 0, 0.2, 1)';
-      bar.style.transition = `height ${dur}`;
+      const ease = '0.22s cubic-bezier(0.4, 0, 0.2, 1)';
+      bar.style.transition = `height ${ease}`;
+      appEl.style.transition = `padding-top ${ease}`;
       _setArcProgress(0);
       _setH(0);
-      _restorePad(dur);
-      setTimeout(() => { bar.style.transition = ''; }, 240);
+      appEl.style.paddingTop = '';
+      setTimeout(() => { bar.style.transition = ''; appEl.style.transition = ''; }, 240);
     }
     lastDelta = 0;
   }, { passive: true });
