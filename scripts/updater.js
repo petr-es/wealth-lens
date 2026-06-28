@@ -192,13 +192,20 @@ fetchPrices().then(prices => {
   }
 
   document.addEventListener('touchstart', function (e) {
-    if (refreshing || window.scrollY > 0) return;
+    // Always record startY so the touchmove Safari guard has a reference point
     startY = e.touches[0].clientY;
+    if (refreshing || window.scrollY > 0) return;
     lastDelta = 0;
     pulling = true;
   }, { passive: true });
 
   document.addEventListener('touchmove', function (e) {
+    // Block Safari's native pull-to-refresh before any other logic
+    const atTop = (window.pageYOffset || document.documentElement.scrollTop) <= 0;
+    if (atTop && e.cancelable && e.touches[0].clientY > startY) {
+      e.preventDefault();
+    }
+
     if (!pulling || refreshing) return;
     if (window.scrollY > 0) {
       pulling = false;
@@ -209,8 +216,6 @@ fetchPrices().then(prices => {
     }
     const delta = e.touches[0].clientY - startY;
     if (delta <= 0) { lastDelta = 0; return; }
-    // Prevent Safari's native overscroll/pull-to-refresh for the whole gesture
-    e.preventDefault();
     lastDelta = delta;
     // Rubberband resistance — visual travel compresses logarithmically
     const visual = PTR_MAX * (1 - Math.exp(-delta / PTR_MAX));

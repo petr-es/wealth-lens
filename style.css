@@ -1242,6 +1242,9 @@ body {
   #list-assets .alloc-row { grid-template-columns: 8px 2fr 1fr 1fr; }
   #list-assets .alloc-row .pcs { display: none; }
 
+  /* Extra top padding so the PTR indicator has room above the header */
+  .app { padding-top: 52px; }
+
   /* Header: hero fills middle, scope right */
   .header {
     grid-template-columns: auto 1fr auto;
