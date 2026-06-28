@@ -86,9 +86,9 @@ async function fetchPrices() {
   }
 }
 
-async function triggerUpdate() {
+async function triggerUpdate({ silent = false } = {}) {
   dismissToast();
-  setLoadingState();
+  if (!silent) setLoadingState();
   try {
     const prices = await fetchPrices();
     window.PRICES = decorateLivePrices(prices);
@@ -185,7 +185,7 @@ fetchPrices().then(prices => {
   async function _doRefresh() {
     _snapIn();
     try {
-      await triggerUpdate();
+      await triggerUpdate({ silent: true });
     } finally {
       _snapOut();
     }
