@@ -5,7 +5,7 @@ const ASSETS = {
     name:     'Invesco FTSE All-World',
     yahooUrl: 'https://finance.yahoo.com/quote/FWRA.MI',
     currency: 'EUR',
-    holdings: { t212: 0, ibkr: 8884.5, rev: 0 },
+    holdings: { t212: 0, ibkr: 10341, rev: 0 },
   },
   spyy: {
     ticker:   'SPYY.DE',
@@ -19,7 +19,7 @@ const ASSETS = {
     name:     'SentinelOne',
     yahooUrl: 'https://finance.yahoo.com/quote/S',
     currency: 'USD',
-    holdings: { ibkr: 800, etrade: 0 },
+    holdings: { ibkr: 0, etrade: 0 },
   },
   alpha: {
     ticker:   'STOCKS',
