@@ -248,6 +248,7 @@ function _pricePerUnit(entry, assetKey) {
   const eur = entry.rates.EUR_CZK || 0;
   const usd = entry.rates.USD_CZK || 0;
   if (assetKey === 'fwra') return (entry.prices.FWRA_EUR || 0) * eur;
+  if (assetKey === 'avws') return (entry.prices.AVWS_EUR || 0) * eur;
   if (assetKey === 'spyy') return (entry.prices.SPYY_EUR || 0) * eur;
   if (assetKey === 's')    return (entry.prices.S_USD    || 0) * usd;
   if (assetKey === 'ib1t') return (entry.prices.IB1T_EUR || 0) * eur;
@@ -288,11 +289,12 @@ function _calcPortfolioValue(entry) {
   const EUR = entry.rates.EUR_CZK || 0;
   const USD = entry.rates.USD_CZK || 0;
   const F    = (entry.prices.FWRA_EUR  || 0) * EUR;
+  const AV   = (entry.prices.AVWS_EUR  || 0) * EUR;
   const P    = (entry.prices.SPYY_EUR  || 0) * EUR;
   const S    = (entry.prices.S_USD     || 0) * USD;
   const IB1T = (entry.prices.IB1T_EUR  || 0) * EUR;
   const a = entry.assets || {};
-  const fh = a.fwra || {}, ph = a.spyy || {}, sh = a.s || {}, bh = a.ib1t || {};
+  const fh = a.fwra || {}, vh = a.avws || {}, ph = a.spyy || {}, sh = a.s || {}, bh = a.ib1t || {};
   const alpha = a.alpha ? (a.alpha.fixedCzk || 0) : 0;
   const ch = a.cash || {};
   const cashTis = (
@@ -301,6 +303,7 @@ function _calcPortfolioValue(entry) {
     ((ch.ibkr_usd||0) + (ch.t212_usd||0) + (ch.rev_usd||0)) * USD
   ) / 1000;
   return ((fh.t212||0)+(fh.ibkr||0)+(fh.rev||0)) * F / 1000
+       + ((vh.t212||0)+(vh.ibkr||0)) * AV / 1000
        + ((ph.t212||0)+(ph.ibkr||0)) * P / 1000
        + ((sh.ibkr||0)+(sh.etrade||0)) * S / 1000
        + (bh.ibkr||0) * IB1T / 1000
@@ -405,11 +408,13 @@ function _computePortfolio(p, a) {
   const EUR_CZK = p.rates.EUR_CZK;
   const USD_CZK = p.rates.USD_CZK;
   const FWRA_PX  = (p.prices.FWRA_EUR  || 0) * EUR_CZK;
+  const AVWS_PX  = (p.prices.AVWS_EUR  || 0) * EUR_CZK;
   const SPYY_PX  = (p.prices.SPYY_EUR  || 0) * EUR_CZK;
   const S_PX     = (p.prices.S_USD     || 0) * USD_CZK;
   const IB1T_PX  = (p.prices.IB1T_EUR  || 0) * EUR_CZK;
 
   const fwra_total  = (a.fwra.holdings.t212 || 0) + (a.fwra.holdings.ibkr || 0) + (a.fwra.holdings.rev || 0);
+  const avws_total  = (a.avws.holdings.t212 || 0) + (a.avws.holdings.ibkr || 0);
   const spyy_total  = (a.spyy.holdings.t212 || 0) + (a.spyy.holdings.ibkr || 0);
   const s_ibkr      =  a.s.holdings.ibkr    || 0;
   const s_etrade    =  a.s.holdings.etrade  || 0;
@@ -422,24 +427,27 @@ function _computePortfolio(p, a) {
   const cashRev  = ((ch.rev_czk||0)  + (ch.rev_eur||0)  * EUR_CZK + (ch.rev_usd||0)  * USD_CZK) / 1000;
 
   const vFWRA  = fwra_total  * FWRA_PX  / 1000;
+  const vAVWS  = avws_total  * AVWS_PX  / 1000;
   const vSPYY  = spyy_total  * SPYY_PX  / 1000;
   const vS     = s_total     * S_PX     / 1000;
   const vIB1T  = ib1t_total  * IB1T_PX  / 1000;
   const vAlpha = a.alpha.fixedCzk;
   const vCash  = cashIBKR + cashT212 + cashRev;
-  const totalTis = vFWRA + vSPYY + vS + vIB1T + vAlpha + vCash;
+  const totalTis = vFWRA + vAVWS + vSPYY + vS + vIB1T + vAlpha + vCash;
 
+  const avws_t212 = (a.avws.holdings.t212 || 0) * AVWS_PX / 1000;
+  const avws_ibkr = (a.avws.holdings.ibkr || 0) * AVWS_PX / 1000;
   const spyy_t212 = (a.spyy.holdings.t212 || 0) * SPYY_PX / 1000;
   const spyy_ibkr = (a.spyy.holdings.ibkr || 0) * SPYY_PX / 1000;
-  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + spyy_t212 + vAlpha + cashT212;
-  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + spyy_ibkr + s_ibkr * S_PX / 1000 + vIB1T + cashIBKR;
+  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + avws_t212 + spyy_t212 + vAlpha + cashT212;
+  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + avws_ibkr + spyy_ibkr + s_ibkr * S_PX / 1000 + vIB1T + cashIBKR;
   const bRev    = (a.fwra.holdings.rev  || 0) * FWRA_PX / 1000 + cashRev;
   const bEtrade = s_etrade * S_PX / 1000;
 
   return {
-    EUR_CZK, USD_CZK, FWRA_PX, SPYY_PX, S_PX, IB1T_PX,
-    fwra_total, spyy_total, s_total, ib1t_total,
-    vFWRA, vSPYY, vS, vIB1T, vAlpha, vCash,
+    EUR_CZK, USD_CZK, FWRA_PX, AVWS_PX, SPYY_PX, S_PX, IB1T_PX,
+    fwra_total, avws_total, spyy_total, s_total, ib1t_total,
+    vFWRA, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash,
     totalTis, totalCzk: totalTis * 1000,
     bT212, bIBKR, bRev, bEtrade,
   };
@@ -517,7 +525,7 @@ function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares,
 }
 
 function _renderPriceTable(p, a, ctx, anchorTs) {
-  const { vFWRA, vSPYY, vS, vIB1T, vAlpha, vCash, fwra_total, spyy_total, s_total, ib1t_total } = ctx;
+  const { vFWRA, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash, fwra_total, avws_total, spyy_total, s_total, ib1t_total } = ctx;
   const ch = a.cash.holdings;
   const totalCashCzk = (ch.ibkr_czk||0) + (ch.t212_czk||0) + (ch.rev_czk||0);
   const totalCashEur = (ch.ibkr_eur||0) + (ch.t212_eur||0) + (ch.rev_eur||0);
@@ -533,6 +541,11 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
       price: p.prices.FWRA_EUR ? `€${fmtNum(p.prices.FWRA_EUR, 2)}` : '—',
       qty: fmtShares(fwra_total),
       valCzk: vFWRA * 1000 },
+    { _v: vAVWS,  key: 'avws',  color: 'var(--avws)',
+      ticker: a.avws.ticker, name: a.avws.name, url: a.avws.yahooUrl,
+      price: p.prices.AVWS_EUR ? `€${fmtNum(p.prices.AVWS_EUR, 2)}` : '—',
+      qty: fmtShares(avws_total),
+      valCzk: vAVWS * 1000 },
     { _v: vSPYY,  key: 'spyy',  color: 'var(--spyy)',
       ticker: a.spyy.ticker, name: a.spyy.name, url: a.spyy.yahooUrl,
       price: p.prices.SPYY_EUR ? `€${fmtNum(p.prices.SPYY_EUR, 2)}` : '—',
@@ -671,6 +684,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
 
   const assetItems = [
     { key: 'fwra',  value: ctx.vFWRA,  color: 'var(--fwra)',  label: 'FWRA',  shares: ctx.fwra_total },
+    { key: 'avws',  value: ctx.vAVWS,  color: 'var(--avws)',  label: 'AVWS',  shares: ctx.avws_total },
     { key: 'spyy',  value: ctx.vSPYY,  color: 'var(--spyy)',  label: 'SPYY',  shares: ctx.spyy_total },
     { key: 'alpha', value: ctx.vAlpha, color: 'var(--alpha)', label: 'Stocks', shares: null },
     { key: 's',     value: ctx.vS,     color: 'var(--s)',     label: 'S',     shares: ctx.s_total },

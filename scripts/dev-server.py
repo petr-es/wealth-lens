@@ -55,7 +55,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             'date':    date,
             'updated': updated,
             'rates':   {'EUR_CZK': prices['EUR_CZK'], 'USD_CZK': prices['USD_CZK']},
-            'prices':  {'FWRA_EUR': prices['FWRA_EUR'], 'SPYY_EUR': prices['SPYY_EUR'], 'S_USD': prices['S_USD'], 'IB1T_EUR': prices['IB1T_EUR']},
+            'prices':  {'FWRA_EUR': prices['FWRA_EUR'], 'AVWS_EUR': prices['AVWS_EUR'], 'SPYY_EUR': prices['SPYY_EUR'], 'S_USD': prices['S_USD'], 'IB1T_EUR': prices['IB1T_EUR']},
         }).encode()
         self._respond(200, 'application/json', body)
 

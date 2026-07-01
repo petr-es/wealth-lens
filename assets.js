@@ -14,6 +14,13 @@ const ASSETS = {
     currency: 'EUR',
     holdings: { t212: 0, ibkr: 901 },
   },
+  spyy: {
+    ticker:   'SPYY.DE',
+    name:     'SPDR MSCI All-Country World',
+    yahooUrl: 'https://finance.yahoo.com/quote/SPYY.DE',
+    currency: 'EUR',
+    holdings: { t212: 0, ibkr: 0 },   // sold in full 1.7.2026, replaced by AVWS; kept for history
+  },
   s: {
     ticker:   'S.NYSE',
     name:     'SentinelOne',

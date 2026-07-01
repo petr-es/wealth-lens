@@ -7,6 +7,7 @@ import yfinance as yf
 
 TICKERS = {
     'FWRA_EUR':  'FWRA.MI',
+    'AVWS_EUR':  'AVWS.DE',
     'SPYY_EUR':  'SPYY.DE',
     'S_USD':     'S',
     'IB1T_EUR':  'IB1T.DE',
@@ -48,7 +49,7 @@ class handler(BaseHTTPRequestHandler):
             'date':    date,
             'updated': updated,
             'rates':   {'EUR_CZK': prices['EUR_CZK'], 'USD_CZK': prices['USD_CZK']},
-            'prices':  {'FWRA_EUR': prices['FWRA_EUR'], 'SPYY_EUR': prices['SPYY_EUR'], 'S_USD': prices['S_USD'], 'IB1T_EUR': prices['IB1T_EUR']},
+            'prices':  {'FWRA_EUR': prices['FWRA_EUR'], 'AVWS_EUR': prices['AVWS_EUR'], 'SPYY_EUR': prices['SPYY_EUR'], 'S_USD': prices['S_USD'], 'IB1T_EUR': prices['IB1T_EUR']},
         }).encode()
 
         self.send_response(200)
