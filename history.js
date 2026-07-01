@@ -2191,22 +2191,31 @@ var PRICE_HISTORY=[
     }
   },
   {
-    "ts": "2026-07-01T14:42:34Z",
+    "ts": "2026-07-01T14:57:01Z",
     "rates": {
-      "EUR_CZK": 24.22,
-      "USD_CZK": 21.25
+      "EUR_CZK": 24.21,
+      "USD_CZK": 21.27
     },
     "prices": {
-      "FWRA_EUR": 8.16,
-      "SPYY_EUR": 282.0,
+      "FWRA_EUR": 8.15,
+      "AVWS_EUR": 25.0,
+      "SPYY_EUR": 281.65,
       "S_USD": 17.73,
-      "IB1T_EUR": 5.24
+      "IB1T_EUR": 5.22
     },
     "assets": {
       "fwra": {
         "t212": 0.0,
         "ibkr": 10373.0,
         "rev": 0.0
+      },
+      "avws": {
+        "t212": 0.0,
+        "ibkr": 901.0
+      },
+      "spyy": {
+        "t212": 0.0,
+        "ibkr": 0.0
       },
       "s": {
         "ibkr": 0.0,
