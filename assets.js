@@ -5,14 +5,14 @@ const ASSETS = {
     name:     'Invesco FTSE All-World',
     yahooUrl: 'https://finance.yahoo.com/quote/FWRA.MI',
     currency: 'EUR',
-    holdings: { t212: 0, ibkr: 10341, rev: 0 },
+    holdings: { t212: 0, ibkr: 10373, rev: 0 },
   },
-  spyy: {
-    ticker:   'SPYY.DE',
-    name:     'SPDR MSCI All-Country World',
-    yahooUrl: 'https://finance.yahoo.com/quote/SPYY.DE',
+  avws: {
+    ticker:   'AVWS.DE',
+    name:     'Avantis Global Small Cap Value',
+    yahooUrl: 'https://finance.yahoo.com/quote/AVWS.DE',
     currency: 'EUR',
-    holdings: { t212: 0, ibkr: 81 },
+    holdings: { t212: 0, ibkr: 901 },
   },
   s: {
     ticker:   'S.NYSE',
