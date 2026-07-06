@@ -33,7 +33,7 @@ const ASSETS = {
     name:     'Stock picks',
     yahooUrl: null,
     currency: 'CZK',
-    fixedCzk: 260,   // fixní odhad v tis. Kč
+    fixedCzk: 250,   // fixní odhad v tis. Kč
     holdings: {},
   },
   ib1t: {
