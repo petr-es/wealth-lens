@@ -133,14 +133,14 @@
         _goalEl.innerHTML = '';
 
         const target = S.targetAmount;
-        const pct = Math.min(100, Math.round(PV / target * 100));
+        const pct = Math.min(100, PV / target * 100);
         const onTrack = valid && FV >= target;
         const goalColor = onTrack ? 'var(--accent)' : '#fb923c';
         const monthlyWithdraw = Math.round(target * (S.withdrawalRate / 100) / 12);
 
         const goalRow = _el('div', 'proj-goal-row');
         const pctSpan = _el('span', 'proj-goal-pct');
-        pctSpan.textContent = pct + '%';
+        pctSpan.textContent = pct.toFixed(1) + '%';
         pctSpan.style.color = goalColor;
         goalRow.appendChild(pctSpan);
 
