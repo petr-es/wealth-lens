@@ -60,6 +60,13 @@ function fmtNum(n, dec = 2) {
   const s = n.toFixed(dec);
   return LANG.locale === 'cs' ? s.replace('.', ',') : s;
 }
+// Formats a value already expressed in thousands. Small holdings would round
+// away (e.g. 0.78 = 781 CZK → "1", 0.48 → "0"), so keep one decimal below 10;
+// larger amounts stay as rounded whole thousands.
+function fmtTis(n) {
+  if (n === null || n === undefined || !Number.isFinite(n)) return '—';
+  return n < 10 ? fmtNum(n, 1) : fmtCzk(Math.round(n));
+}
 function fmtShares(n) {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
   const s = n.toLocaleString(_loc());
@@ -484,7 +491,7 @@ function _buildAllocRow(item, totalTis, includeShares) {
   pcsEl.textContent = pcs;
   const val = document.createElement('span');
   val.className = 'val';
-  val.textContent = fmtCzk(Math.round(item.value));
+  val.textContent = fmtTis(item.value);
   row.append(dot, name, pctEl, pcsEl, val);
   return row;
 }
@@ -641,7 +648,7 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
     const valTis = document.createElement('span');
     valTis.className = 'val-tis';
     const _tis = r.valCzk / 1000;
-    valTis.textContent = _tis < 1 ? fmtNum(_tis, 1) : fmtCzk(Math.round(_tis));
+    valTis.textContent = fmtTis(_tis);
     valCell.append(valFull, valTis);
     row.appendChild(valCell);
 
