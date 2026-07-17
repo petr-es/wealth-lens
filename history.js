@@ -2789,5 +2789,55 @@ var PRICE_HISTORY=[
         "fixedCzk": 250.0
       }
     }
+  },
+  {
+    "ts": "2026-07-17T13:44:11Z",
+    "rates": {
+      "EUR_CZK": 24.23,
+      "USD_CZK": 21.2
+    },
+    "prices": {
+      "FWRA_EUR": 8.02,
+      "AVWS_EUR": 25.06,
+      "SPYY_EUR": 277.3,
+      "S_USD": 19.62,
+      "IB1T_EUR": 5.49
+    },
+    "assets": {
+      "fwra": {
+        "t212": 0.0,
+        "ibkr": 13849.0,
+        "rev": 0.0
+      },
+      "avws": {
+        "t212": 0.0,
+        "ibkr": 0.0
+      },
+      "spyy": {
+        "t212": 0.0,
+        "ibkr": 0.0
+      },
+      "s": {
+        "ibkr": 0.0,
+        "etrade": 2.0
+      },
+      "ib1t": {
+        "ibkr": 0.0
+      },
+      "cash": {
+        "ibkr_czk": 0.0,
+        "ibkr_eur": 20.0,
+        "ibkr_usd": 0.0,
+        "t212_czk": 0.0,
+        "t212_eur": 0.0,
+        "t212_usd": 0.0,
+        "rev_czk": 0.0,
+        "rev_eur": 0.0,
+        "rev_usd": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 250.0
+      }
+    }
   }
 ];
