@@ -41,13 +41,13 @@
   --radius-sm: 8px;
   --radius-md: 10px;
   --radius-pill: 999px;
-  --radius-pill-btn: 24px;
   --mono: 'JetBrains Mono', ui-monospace, monospace;
   --sans: 'Inter', -apple-system, system-ui, sans-serif;
   --display: 'Space Grotesk', 'Inter', sans-serif;
 
   /* Control tokens */
   --control-height: 26px;
+  --segment-inset: 3px;   /* gap between a segmented control and its segments */
   --control-bg: oklch(0 0 0 / 0.2);
   --control-active: oklch(1 0 0 / 0.08);
 
@@ -110,7 +110,9 @@
   --row-hover: oklch(0 0 0 / 0.03);
   --row-hover-strong: oklch(0 0 0 / 0.05);
 
-  --control-bg: oklch(0 0 0 / 0.04);
+  /* Light panels are already bright — let the panel show through the control
+     and leave the 1px border to delineate it, as on the scope/settings buttons */
+  --control-bg: transparent;
   --control-active: oklch(0 0 0 / 0.06);
   --pos-soft: oklch(0.78 0.18 150 / 0.14);
   --pos-border: oklch(0.65 0.18 150 / 0.32);
@@ -227,8 +229,9 @@ body {
   min-width: 0;
 }
 
-/* Scope (history) picker trigger */
-.scope-dropdown {
+/* Header-height controls: the history scope picker and the settings triggers */
+.scope-dropdown,
+.settings-btn {
   display: inline-flex; align-items: center; gap: 6px;
   height: var(--control-height); padding: 0 11px;
   white-space: nowrap;
@@ -243,8 +246,10 @@ body {
   letter-spacing: var(--tracking-label);
   font-weight: 500;
 }
-.scope-dropdown:hover { border-color: var(--stroke-strong); color: var(--text-1); }
-.scope-dropdown.active { border-color: var(--stroke-strong); color: var(--text-1); }
+.scope-dropdown:hover,
+.settings-btn:hover { border-color: var(--stroke-strong); color: var(--text-1); }
+.scope-dropdown.active,
+.settings-btn.active { border-color: var(--stroke-strong); color: var(--text-1); }
 .scope-wrap { position: relative; }
 
 /* Total number */
@@ -303,47 +308,38 @@ body {
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Theme toggle */
-.theme-toggle {
-  display: inline-flex; align-items: center;
-  width: 52px; height: var(--control-height);
-  background: var(--bg-card);
+/* ── Segmented control ─────────────────────────────────────────────────────
+ * One pill container, one active segment. Shared by the chart timeframe
+ * picker (.chart-controls) and the settings modal (theme / language).
+ */
+.segmented,
+.chart-controls {
+  display: inline-flex; align-items: stretch;
+  gap: 2px;
+  padding: var(--segment-inset);
+  background: var(--control-bg);
   border: 1px solid var(--stroke);
-  border-radius: var(--radius-pill);
-  padding: 2px;
+  border-radius: var(--radius-sm);
+}
+.segmented button,
+.chart-controls button {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 10px;
+  color: var(--text-2);
+  background: transparent;
+  border: none;
+  padding: 4px 12px;
+  /* Outer radius minus the inset keeps the segment concentric with the container */
+  border-radius: calc(var(--radius-sm) - var(--segment-inset));
   cursor: pointer;
-  position: relative;
-  backdrop-filter: blur(var(--blur-sm));
-  -webkit-backdrop-filter: blur(var(--blur-sm));
+  letter-spacing: var(--tracking-ui);
+  transition: all var(--duration-fast);
+  font-weight: 500;
 }
-.theme-toggle-dot {
-  width: 20px; height: 20px;
-  border-radius: 50%;
-  background: oklch(1 0 0 / 0.18);
-  box-shadow: none;
-  transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-  transform: translateX(0);
-  position: relative;
-  z-index: 2;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-1);
-}
-[data-theme="light"] .theme-toggle-dot { background: oklch(0 0 0 / 0.1); color: var(--text-1); }
-.theme-toggle-dot svg { width: 12px; height: 12px; display: block; }
-.theme-toggle-dot .dot-sun,
-.theme-toggle-dot .dot-moon { position: absolute; transition: opacity var(--duration); }
-.theme-toggle-dot .dot-moon { opacity: 1; }
-.theme-toggle-dot .dot-sun { opacity: 0; }
-[data-theme="light"] .theme-toggle-dot { transform: translateX(26px); }
-[data-theme="light"] .theme-toggle-dot .dot-moon { opacity: 0; }
-[data-theme="light"] .theme-toggle-dot .dot-sun { opacity: 1; }
-.theme-toggle svg.bg-icon {
-  position: absolute; width: 11px; height: 11px;
-  color: var(--text-2); top: 50%;
-  transform: translateY(-50%); opacity: 0.5;
-}
-.theme-toggle svg.bg-sun { right: 7px; }
-.theme-toggle svg.bg-moon { left: 7px; }
+.segmented button:hover,
+.chart-controls button:hover { color: var(--text-1); }
+.segmented button.active,
+.chart-controls button.active { color: var(--text-1); background: var(--control-active); }
 
 /* ── Cards ─────────────────────────────────────────────────────────────── */
 .card {
@@ -527,29 +523,7 @@ body {
 
 /* ── Portfolio chart ───────────────────────────────────────────────────── */
 .chart-card { padding: var(--card-pad); }
-.chart-controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  background: var(--control-bg);
-  border: 1px solid var(--stroke);
-  border-radius: var(--radius-pill);
-}
-.chart-controls button {
-  font-family: var(--mono); font-size: 10px;
-  color: var(--text-2);
-  background: transparent;
-  border: none;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill-btn);
-  cursor: pointer;
-  letter-spacing: var(--tracking-ui);
-  transition: all var(--duration-fast);
-  font-weight: 500;
-}
-.chart-controls button:hover { color: var(--text-1); }
-.chart-controls button.active { color: var(--text-1); background: var(--control-active); }
+/* Timeframe picker — see the shared .segmented control above */
 
 .chart-wrap {
   position: relative;
@@ -618,30 +592,7 @@ body {
   align-items: center;
   gap: 10px;
 }
-.footer-end .theme-toggle { display: none; }
-
-.locale-toggle {
-  display: inline-flex; align-items: center;
-  gap: 2px;
-  padding: 3px;
-  background: var(--control-bg);
-  border: 1px solid var(--stroke);
-  border-radius: var(--radius-pill);
-}
-.locale-toggle button {
-  font-family: var(--mono); font-size: 10px;
-  color: var(--text-2);
-  background: transparent;
-  border: none;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill-btn);
-  cursor: pointer;
-  letter-spacing: var(--tracking-ui);
-  transition: all var(--duration-fast);
-  font-weight: 500;
-}
-.locale-toggle button:hover { color: var(--text-1); }
-.locale-toggle button.active { color: var(--text-1); background: var(--control-active); }
+.footer-end .settings-btn { display: none; }
 
 /* ── Calendar picker popover ───────────────────────────────────────────── */
 .cal-popover {
@@ -842,20 +793,7 @@ body {
 
 #proj-card { margin-top: var(--grid-gap); }
 
-.proj-settings-btn {
-  display: inline-flex; align-items: center; gap: 6px;
-  font-family: var(--mono); font-size: 10px;
-  letter-spacing: var(--tracking-label); text-transform: uppercase;
-  color: var(--text-2);
-  background: transparent;
-  border: 1px solid var(--stroke);
-  border-radius: var(--radius-sm);
-  padding: 4px 10px;
-  cursor: pointer;
-  transition: color var(--duration), border-color var(--duration);
-}
-.proj-settings-btn:hover { color: var(--text-1); border-color: var(--stroke-strong); }
-.proj-settings-btn svg { width: 12px; height: 12px; flex-shrink: 0; }
+/* The card's settings trigger reuses the shared .settings-btn control */
 
 /* Value line */
 #proj-card .card-label { margin-bottom: 20px; }
@@ -1234,7 +1172,7 @@ body {
     grid-template-columns: auto 1fr auto;
     grid-template-areas: "brand hero scope";
   }
-  /* header-actions only has the theme toggle, which is shown in the footer on mobile */
+  /* header-actions only has the settings trigger, which moves to the footer on mobile */
   .header-actions { display: none; }
 
   /* Scope overflow: JS adds .scope-overflow when scope won't fit row 1 */
@@ -1246,8 +1184,8 @@ body {
     row-gap: 12px;
   }
 
-  /* Footer: show theme toggle alongside locale */
-  .footer-end .theme-toggle { display: flex; }
+  /* Footer: take over the settings trigger from the hidden header actions */
+  .footer-end .settings-btn { display: inline-flex; }
 
 
 }

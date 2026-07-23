@@ -39,6 +39,13 @@ const LANG_CS = {
   toastUpdateFailed: 'Aktualizace selhala — nepodařilo se načíst všechny ceny.',
   overlayError:      'Nepodařilo se načíst ceny.',
 
+  // Nastavení aplikace
+  settings:         'Nastavení',
+  settingsTheme:    'Vzhled',
+  settingsLight:    'Světlý',
+  settingsDark:     'Tmavý',
+  settingsLanguage: 'Jazyk',
+
   // Kalendář
   calMonths:    ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'],
   calDow:       ['Po','Út','St','Čt','Pá','So','Ne'], // Monday-first

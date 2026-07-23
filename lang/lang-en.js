@@ -39,6 +39,13 @@ const LANG_EN = {
   toastUpdateFailed: 'Update failed — could not fetch all prices.',
   overlayError:      'Could not fetch prices.',
 
+  // App settings
+  settings:         'Settings',
+  settingsTheme:    'Appearance',
+  settingsLight:    'Light',
+  settingsDark:     'Dark',
+  settingsLanguage: 'Language',
+
   // Calendar
   calMonths:    ['January','February','March','April','May','June','July','August','September','October','November','December'],
   calDow:       ['Mo','Tu','We','Th','Fr','Sa','Su'], // Monday-first

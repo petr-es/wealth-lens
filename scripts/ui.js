@@ -7,6 +7,17 @@ function _prefersLight() {
 
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
+  syncThemeControl(theme);
+}
+
+// Mark the active segment — also covers themes applied without a click
+// (initial load, OS preference change).
+function syncThemeControl(theme) {
+  document.querySelectorAll('#theme-toggle button').forEach(b => {
+    const on = b.dataset.themeSet === theme;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
 }
 
 function setTheme(theme, { persist = true } = {}) {
@@ -34,15 +45,9 @@ if (window.matchMedia) {
   else if (mq.addListener) mq.addListener(handler);
 }
 
-document.querySelectorAll('.theme-toggle').forEach(el => {
-  const toggle = () => {
-    const cur = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
-    setTheme(cur === 'light' ? 'dark' : 'light');
-  };
-  el.addEventListener('click', toggle);
-  el.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
-  });
+// Theme segmented control
+document.querySelectorAll('#theme-toggle button').forEach(b => {
+  b.addEventListener('click', () => setTheme(b.dataset.themeSet));
 });
 
 // ── Locale ──────────────────────────────────────────────────────────────────
@@ -54,7 +59,9 @@ function applyLang() {
   document.documentElement.lang = LANG.locale;
   // Update locale toggle active state
   document.querySelectorAll('#locale-toggle button').forEach(b => {
-    b.classList.toggle('active', b.dataset.locale === LANG.locale);
+    const on = b.dataset.locale === LANG.locale;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', String(on));
   });
 }
 
@@ -83,6 +90,35 @@ function setLang(val) {
 document.querySelectorAll('#locale-toggle button').forEach(b => {
   b.addEventListener('click', () => setLang(b.dataset.locale));
 });
+
+// ── Settings modal (theme + language) ───────────────────────────────────────
+// Holds the theme and locale controls; opened from the header on desktop and
+// from the footer on mobile. The markup is static (see index.html) so the
+// listeners registered above stay valid and applyLang() localises it for free.
+(function initSettingsModal() {
+  const backdrop = document.getElementById('settings-modal-backdrop');
+  const closeBtn = document.getElementById('settings-modal-close');
+  const triggers = document.querySelectorAll('[data-settings-open]');
+  if (!backdrop || !closeBtn) return;
+
+  const escHandler = (e) => { if (e.key === 'Escape') close(); };
+
+  function open() {
+    backdrop.style.display = 'flex';
+    triggers.forEach(t => t.setAttribute('aria-expanded', 'true'));
+    document.addEventListener('keydown', escHandler);
+  }
+
+  function close() {
+    backdrop.style.display = 'none';
+    triggers.forEach(t => t.setAttribute('aria-expanded', 'false'));
+    document.removeEventListener('keydown', escHandler);
+  }
+
+  triggers.forEach(t => t.addEventListener('click', open));
+  closeBtn.addEventListener('click', close);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close(); });
+})();
 
 // ── Scope-wrap overflow detection ────────────────────────────────────────────
 // Wraps the scope selector to row 2 when brand + hero-min-content + scope
