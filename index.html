@@ -47,7 +47,7 @@
       <div class="brand-divider"></div>
       <div class="total">
         <span class="num-anim" id="total-value">–</span>
-        <span class="total-ccy" data-i18n="currency">Kč</span>
+        <span class="total-ccy" data-ccy-label>Kč</span>
       </div>
       <div class="delta" id="delta-tag" hidden></div>
     </div>
@@ -82,7 +82,7 @@
           <svg role="img" aria-label="Asset composition donut chart" viewBox="0 0 160 160" width="160" height="160" style="transform: rotate(-90deg);" id="donut-assets"></svg>
           <div class="donut-center" aria-hidden="true">
             <div class="donut-value num-anim" id="center-assets">–</div>
-            <div class="donut-unit" data-i18n="currency">Kč</div>
+            <div class="donut-unit" data-ccy-label>Kč</div>
           </div>
         </div>
         <div>
@@ -205,6 +205,17 @@
         </div>
       </div>
 
+      <div class="proj-field">
+        <div class="proj-toggle-row">
+          <span class="proj-field-label" data-i18n="settingsCurrency">Měna</span>
+          <div class="segmented" id="currency-toggle" role="group" aria-label="Currency">
+            <button type="button" data-currency="CZK">CZK</button>
+            <button type="button" data-currency="EUR">EUR</button>
+            <button type="button" data-currency="USD">USD</button>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -213,6 +224,7 @@
 <script src="lang/lang-cs.js"></script>
 <script src="lang/lang-en.js"></script>
 <script src="scripts/lang-init.js"></script>
+<script src="scripts/currency.js"></script>
 <script src="assets.js"></script>
 <script src="history.js"></script>
 <script src="scripts/portfolio.js"></script>

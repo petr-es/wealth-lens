@@ -19,6 +19,7 @@ const LANG_EN = {
   currency:       'CZK',
   brokers:        'Brokers',
   million:        'M',
+  thousand:       'K',
   fixed:          'fixed',
   locale:         'en',
 
@@ -45,6 +46,7 @@ const LANG_EN = {
   settingsLight:    'Light',
   settingsDark:     'Dark',
   settingsLanguage: 'Language',
+  settingsCurrency: 'Currency',
 
   // Calendar
   calMonths:    ['January','February','March','April','May','June','July','August','September','October','November','December'],
@@ -59,18 +61,18 @@ const LANG_EN = {
   projTargetDate:     'Target date',
   projReturn:         'Avg. annual return',
   projContribsToggle: 'Monthly contributions',
-  projContribUnit:    'CZK / mo',
+  // Unit suffixes — the currency label is prepended at runtime (currency.js),
+  // so these must not spell out a currency of their own.
+  projPerMoSuffix:    '/ mo',
   projNowLegend:      'Now',
   projContribsLegend: 'Contribs',
   projGrowthLegend:   'Growth',
   projSelectFuture:   'Select a future date',
-  projPerMo:          'CZK/mo',
   projPa:             '% p.a.',
   projWithdrawal:     'Withdrawal rate',
   projYears:          ['yr', 'yrs', 'yrs'],
   projMonths:         ['mo', 'mos', 'mos'],
   projTargetToggle:   'Target amount',
-  projTargetUnit:     'CZK',
   projOnTrack:        'On track',
   projBehind:         'Behind',
   projGoalLabel:      'Goal',

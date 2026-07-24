@@ -265,6 +265,9 @@ body {
 }
 .total .num-anim { white-space: nowrap; }
 .total-ccy { font-family: var(--display); font-size: 14px; color: var(--text-2); font-weight: 500; letter-spacing: -0.01em; }
+/* €/$ are written before the amount, Kč after it. The label is a sibling of
+   the number in the markup, so the flex order does the flipping. */
+:root[data-ccy-position="prefix"] .total-ccy { order: -1; }
 
 /* Delta tag */
 .delta {

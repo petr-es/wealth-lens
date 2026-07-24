@@ -1,7 +1,13 @@
 // Portfolio projection widget — vanilla JS, mirrors the React handoff design.
-// Depends on: safeStorage (lang-init.js), LANG (ui.js), fmtCzk / fmtDate /
-//             animateNumber (portfolio.js). Receives current portfolio total
-//             via the 'wl:render' custom event dispatched from portfolio.js.
+// Depends on: safeStorage (lang-init.js), LANG (ui.js), fmtMoney / fmtDate /
+//             animateNumber (portfolio.js), toDisplay / fromDisplay
+//             (currency.js). Receives current portfolio total via the
+//             'wl:render' custom event dispatched from portfolio.js.
+//
+// The whole projection is computed in CZK — the currency the portfolio total
+// arrives in and the one the persisted settings are stored in — and converted
+// only when formatted. Switching display currency therefore never changes the
+// plan, just how it reads.
 (function () {
   'use strict';
 
@@ -20,6 +26,7 @@
     set rate(v)      { safeStorage.set('wl.proj.rate', String(v)); },
     get contribOn()  { return safeStorage.get('wl.proj.contribOn') === 'true'; },
     set contribOn(v) { safeStorage.set('wl.proj.contribOn', String(v)); },
+    // monthly and targetAmount are stored in CZK regardless of display currency.
     get monthly()        { return parseInt(safeStorage.get('wl.proj.monthly')) || 5000; },
     set monthly(v)       { safeStorage.set('wl.proj.monthly', String(v)); },
     get withdrawalRate() { return parseFloat(safeStorage.get('wl.proj.wr')) || 4; },
@@ -93,6 +100,25 @@
     return Math.max(0, parseInt(str.replace(/[^\d]/g, ''), 10) || 0);
   }
 
+  // The money inputs show and accept the display currency while the stored
+  // value stays CZK. When the snapshot has no usable rate the stored value is
+  // kept rather than overwritten with a bad conversion.
+  function _toInputValue(czk) {
+    const v = toDisplay(czk);
+    return Number.isFinite(v) ? Math.round(v) : 0;
+  }
+  function _fromInputValue(entered, currentCzk) {
+    const v = fromDisplay(entered);
+    return Number.isFinite(v) ? Math.round(v) : currentCzk;
+  }
+
+  // Unit annotation trailing a settings input. Unlike a rendered amount this
+  // is a standalone label, so it spells the currency out ("EUR / mo", not
+  // "€ / mo") and always sits after the field.
+  function _inputUnit(trailing) {
+    return trailing ? `${currencyCode()} ${trailing}` : currencyCode();
+  }
+
   function _mkFormattedInput(rawValue) {
     const input = document.createElement('input');
     input.type = 'text';
@@ -124,7 +150,7 @@
     const { FV, n, totalContrib, interestEarned } = _calc(PV, S.date, S.rate, S.contribOn, S.monthly);
     const stackTotal = PV + totalContrib + interestEarned || 1;
     const valid = n > 0 && FV > PV;
-    const ccy = LANG.currency;
+    const ccy = currencyLabel();
 
     // ── Goal block ──────────────────────────────────────────────────────────
     if (_goalEl) {
@@ -152,7 +178,7 @@
         _goalEl.appendChild(goalRow);
 
         const secEl = _el('div', 'proj-goal-secondary');
-        secEl.textContent = `${LANG.projGoalLabel}: ${fmtCzk(target)} ${ccy} · ${LANG.projGoalWithdraw}: ${fmtCzk(monthlyWithdraw)} ${LANG.projPerMo}`;
+        secEl.textContent = `${LANG.projGoalLabel}: ${withCurrency(fmtMoney(target))} · ${LANG.projGoalWithdraw}: ${withCurrency(fmtMoney(monthlyWithdraw))} ${LANG.projPerMoSuffix}`;
         _goalEl.appendChild(secEl);
 
         const goalBar = _el('div', 'proj-goal-bar');
@@ -178,30 +204,32 @@
     _resultEl.innerHTML = '';
     const row = _el('div', 'proj-result-row');
 
-    const fvEl = _el('span', 'proj-fv num-anim');
-    fvEl.textContent = fmtCzk(FV);
-    row.appendChild(fvEl);
+    // The amount and its currency are separate elements here (they carry
+    // different type styles), so the placement is done by append order.
+    const _appendAmount = (valEl, ccyClass) => {
+      const ccyEl = _el('span', ccyClass);
+      ccyEl.textContent = ccy;
+      if (currencyPrefixed()) row.append(ccyEl, valEl);
+      else row.append(valEl, ccyEl);
+    };
 
-    const ccyEl = _el('span', 'proj-result-ccy');
-    ccyEl.textContent = ccy;
-    row.appendChild(ccyEl);
+    const fvEl = _el('span', 'proj-fv num-anim');
+    fvEl.textContent = fmtMoney(FV);
+    _appendAmount(fvEl, 'proj-result-ccy');
 
     if (valid) {
       row.appendChild(_mkSlash());
 
       const swrEl = _el('span', 'proj-swr-val num-anim');
-      swrEl.textContent = fmtCzk(Math.round(FV * (S.withdrawalRate / 100) / 12));
-      row.appendChild(swrEl);
-
-      const swrCcyEl = _el('span', 'proj-swr-ccy');
-      swrCcyEl.textContent = ccy;
-      row.appendChild(swrCcyEl);
+      swrEl.textContent = fmtMoney(Math.round(FV * (S.withdrawalRate / 100) / 12));
+      _appendAmount(swrEl, 'proj-swr-ccy');
     }
 
     _resultEl.appendChild(row);
 
-    // Animate main FV number when data is present
-    if (PV > 0) animateNumber(fvEl, _prevFV, FV, 900, fmtCzk);
+    // Animate main FV number when data is present. Both ends stay in CZK —
+    // fmtMoney converts each frame, so a currency switch alone shows no jump.
+    if (PV > 0) animateNumber(fvEl, _prevFV, FV, 900, (v) => fmtMoney(v));
     _prevFV = FV;
 
     // ── Params line ─────────────────────────────────────────────────────────
@@ -210,7 +238,7 @@
     if (n > 0) parts.push(_durLabel(n));
     parts.push((rate % 1 === 0 ? rate : rate.toFixed(1)) + ' ' + LANG.projPa);
     if (S.contribOn && S.monthly > 0) {
-      parts.push(fmtCzk(S.monthly) + ' ' + LANG.currency);
+      parts.push(withCurrency(fmtMoney(S.monthly)));
     }
     _paramsEl.textContent = parts.join(' · '); // middle dot
 
@@ -231,12 +259,12 @@
     _legendEl.innerHTML = '';
     _legendEl.hidden = !valid;
     if (valid) {
-      _mkLegend(_legendEl, 'var(--accent)', LANG.projNowLegend,      fmtCzk(Math.round(PV)) + ' ' + ccy);
+      _mkLegend(_legendEl, 'var(--accent)', LANG.projNowLegend,      withCurrency(fmtMoney(Math.round(PV))));
       if (S.contribOn && totalContrib > 0) {
-        _mkLegend(_legendEl, '#a78bfa', LANG.projContribsLegend, fmtCzk(Math.round(totalContrib)) + ' ' + ccy);
+        _mkLegend(_legendEl, '#a78bfa', LANG.projContribsLegend, withCurrency(fmtMoney(Math.round(totalContrib))));
       }
       if (interestEarned > 0) {
-        _mkLegend(_legendEl, '#f472b6', LANG.projGrowthLegend,   fmtCzk(Math.round(interestEarned)) + ' ' + ccy);
+        _mkLegend(_legendEl, '#f472b6', LANG.projGrowthLegend,   withCurrency(fmtMoney(Math.round(interestEarned))));
       }
     }
   }
@@ -548,13 +576,13 @@
     const contribRow = _el('div', 'proj-contrib-row');
     contribRow.style.display = S.contribOn ? 'flex' : 'none';
 
-    const numInput = _mkFormattedInput(S.monthly);
+    const numInput = _mkFormattedInput(_toInputValue(S.monthly));
 
     const ccyLabel = _el('span', 'proj-ccy');
-    ccyLabel.textContent = LANG.projContribUnit;
+    ccyLabel.textContent = _inputUnit(LANG.projPerMoSuffix);
 
     numInput.addEventListener('input', () => {
-      S.monthly = _parseInputNum(numInput.value);
+      S.monthly = _fromInputValue(_parseInputNum(numInput.value), S.monthly);
       renderCard();
     });
 
@@ -589,13 +617,13 @@
     const targetRow = _el('div', 'proj-contrib-row');
     targetRow.style.display = S.targetOn ? 'flex' : 'none';
 
-    const numInput = _mkFormattedInput(S.targetAmount);
+    const numInput = _mkFormattedInput(_toInputValue(S.targetAmount));
 
     const ccyLabel = _el('span', 'proj-ccy');
-    ccyLabel.textContent = LANG.projTargetUnit;
+    ccyLabel.textContent = _inputUnit();
 
     numInput.addEventListener('input', () => {
-      S.targetAmount = _parseInputNum(numInput.value);
+      S.targetAmount = _fromInputValue(_parseInputNum(numInput.value), S.targetAmount);
       renderCard();
     });
 
@@ -734,6 +762,16 @@
       _backdropEl.hidden = false;
       document.addEventListener('keydown', _escHandler);
     }
+  });
+
+  // The card repaints via wl:render, but an open settings modal holds money
+  // inputs whose values and unit labels are currency-dependent — rebuild it so
+  // the amounts are re-expressed instead of being read as the new currency.
+  document.addEventListener('wl:currency-change', () => {
+    const isOpen = _backdropEl && _backdropEl.style.display !== 'none';
+    if (!isOpen) return;
+    _buildModal();                        // replaces _backdropEl, closed by default
+    _backdropEl.style.display = 'flex';
   });
 
   _init();

@@ -57,6 +57,9 @@ function applyLang() {
     if (LANG[key] !== undefined) el.textContent = LANG[key];
   });
   document.documentElement.lang = LANG.locale;
+  // The CZK label is locale-dependent ("Kč" / "CZK"), so currency slots refresh
+  // with the language too.
+  applyCurrencyLabels();
   // Update locale toggle active state
   document.querySelectorAll('#locale-toggle button').forEach(b => {
     const on = b.dataset.locale === LANG.locale;
@@ -65,18 +68,25 @@ function applyLang() {
   });
 }
 
-function setLang(val) {
-  LANG = LANGS[val];
-  safeStorage.set('lang', val);
-  applyLang();
-  document.dispatchEvent(new CustomEvent('wl:locale-change', { detail: { locale: val } }));
+// Re-render every value on the page from the snapshot currently selected —
+// live or historical. Used whenever a display setting changes; skips the
+// animation, since nothing about the underlying portfolio moved.
+function rerenderValues() {
   if (window.CalendarPicker) {
-    window.CalendarPicker.refresh();
     window.CalendarPicker.rerender({ animate: false });
   } else if (window.PRICES) {
     render(decorateLivePrices(window.PRICES), ASSETS, { animate: false, isLive: true });
   }
   if (typeof drawHistoryChart === 'function') drawHistoryChart(_currentTf, { animate: false });
+}
+
+function setLang(val) {
+  LANG = LANGS[val];
+  safeStorage.set('lang', val);
+  applyLang();
+  document.dispatchEvent(new CustomEvent('wl:locale-change', { detail: { locale: val } }));
+  if (window.CalendarPicker) window.CalendarPicker.refresh(); // date labels
+  rerenderValues();
 }
 
 // Restore saved locale
@@ -90,6 +100,15 @@ function setLang(val) {
 document.querySelectorAll('#locale-toggle button').forEach(b => {
   b.addEventListener('click', () => setLang(b.dataset.locale));
 });
+
+// ── Display currency ────────────────────────────────────────────────────────
+// setCurrency (currency.js) owns the state, persistence and labels, then
+// announces the switch; repainting the values is this module's job, exactly as
+// it is for a locale switch. The saved currency is applied by applyLang above.
+document.querySelectorAll('#currency-toggle button').forEach(b => {
+  b.addEventListener('click', () => setCurrency(b.dataset.currency));
+});
+document.addEventListener('wl:currency-change', () => rerenderValues());
 
 // ── Settings modal (theme + language) ───────────────────────────────────────
 // Holds the theme and locale controls; opened from the header on desktop and

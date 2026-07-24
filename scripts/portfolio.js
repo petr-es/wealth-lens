@@ -45,13 +45,18 @@ function fmtDateTime(d) {
   return `${fmtDate(d)} ${time}`;
 }
 
-function fmtCzk(n) {
+// Grouped whole number — the shape every money amount ends up in. Currency
+// agnostic; see fmtMoney for the CZK → display currency conversion.
+function fmtGrouped(n) {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
   const s = Math.round(n).toLocaleString(_loc());
   return LANG.locale === 'cs' ? s.replace(/\s/g, NBSP) : s;
 }
 function fmtPct(n, digits = 1) {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
+  // Anything that rounds away at this precision is just 0 — "0,0%" and "0,00%"
+  // are noisier ways of saying the same thing.
+  if (Math.abs(n) < 0.5 / Math.pow(10, digits)) return '0%';
   const s = n.toFixed(digits);
   return (LANG.locale === 'cs' ? s.replace('.', ',') : s) + '%';
 }
@@ -65,7 +70,31 @@ function fmtNum(n, dec = 2) {
 // larger amounts stay as rounded whole thousands.
 function fmtTis(n) {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
-  return n < 10 ? fmtNum(n, 1) : fmtCzk(Math.round(n));
+  if (n >= 10) return fmtGrouped(Math.round(n));
+  // Below the rounding threshold the decimal carries nothing — "0,0" is just a
+  // noisier way of writing 0, so drop it.
+  return Math.abs(n) < 0.05 ? '0' : fmtNum(n, 1);
+}
+
+// ── Money formatters ────────────────────────────────────────────────────────
+// Both take CZK (the currency everything is computed in) and render it in the
+// selected display currency. `rates` defaults to the snapshot being rendered;
+// pass it explicitly when formatting a value from a different snapshot, e.g. a
+// history chart point or a delta baseline.
+function fmtMoney(czk, rates) {
+  return fmtGrouped(toDisplay(czk, rates));
+}
+// Same, for values already scaled to thousands.
+function fmtTisMoney(tisCzk, rates) {
+  return fmtTis(toDisplay(tisCzk, rates));
+}
+// Attaches the currency to a formatted amount on the side that currency is
+// written: "€1 234" / "$1 234" but "1 234 Kč", where the non-breaking space
+// keeps the trailing unit from wrapping away from its amount.
+function withCurrency(amount) {
+  return currencyPrefixed()
+    ? `${currencyLabel()}${amount}`
+    : `${amount}${NBSP}${currencyLabel()}`;
 }
 function fmtShares(n) {
   if (n === null || n === undefined || !Number.isFinite(n)) return '—';
@@ -284,7 +313,11 @@ function priceSeriesForAsset(assetKey, windowDays = PRICE_WINDOW_DAYS, anchorTs 
     sorted = sorted.filter(e => new Date(e.ts).getTime() <= cutoff);
   }
   const slice = sorted.slice(-windowDays);
-  const series = slice.map(e => _pricePerUnit(e, assetKey)).filter(v => Number.isFinite(v));
+  // Each point converts with its own day's rates, so in EUR/USD the sparkline
+  // shows the price as it actually moved in that currency, FX included.
+  const series = slice
+    .map(e => toDisplay(_pricePerUnit(e, assetKey), e.rates))
+    .filter(v => Number.isFinite(v));
   if (series.length < 2) return { series, deltaPct: null };
   const first = series[0], last = series[series.length - 1];
   const deltaPct = first > 0 ? ((last - first) / first) * 100 : null;
@@ -324,11 +357,21 @@ function _entryDate(entry) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 }
 
+// Difference between two snapshots, expressed in the display currency. Each
+// side converts with its own rates, so the delta reflects what the portfolio
+// actually did in that currency rather than re-pricing the past at today's FX.
+function _deltaBetween(vNowTis, nowRates, prevEntry) {
+  const now  = toDisplay(vNowTis, nowRates);
+  const prev = toDisplay(_calcPortfolioValue(prevEntry), prevEntry.rates);
+  if (!Number.isFinite(now) || !Number.isFinite(prev) || !prev) return null;
+  return { pct: ((now - prev) / prev) * 100, abs: (now - prev) * 1000 };
+}
+
 // Compute delta of now (live value in tis. Kč) vs the most recent history
 // entry on a calendar day strictly before today's (Europe/Prague) date.
 // On weekends the latest history entry is typically Friday; walking back to
 // a different calendar day naturally lands on Thursday, matching the spec.
-function computeDelta(vNowTis) {
+function computeDelta(vNowTis, nowRates) {
   if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) return null;
   if (!Number.isFinite(vNowTis) || vNowTis === 0) return null;
   const sorted = [...PRICE_HISTORY].sort((a, b) => new Date(a.ts) - new Date(b.ts));
@@ -353,19 +396,15 @@ function computeDelta(vNowTis) {
     if (d < todayDay && d !== skipDay) { prev = sorted[i]; break; }
   }
   if (!prev) return null;
-  const vPrev = _calcPortfolioValue(prev);
-  if (!vPrev) return null;
-  const abs = (vNowTis - vPrev) * 1000;
-  const pct = ((vNowTis - vPrev) / vPrev) * 100;
-  return { pct, abs };
+  return _deltaBetween(vNowTis, nowRates, prev);
 }
 
-function renderDelta(isLive, vNowTis, anchorTs, animate) {
+function renderDelta(isLive, vNowTis, nowRates, anchorTs, animate) {
   const el = document.getElementById('delta-tag');
   if (!el) return;
   let d;
   if (isLive) {
-    d = computeDelta(vNowTis);
+    d = computeDelta(vNowTis, nowRates);
   } else {
     if (!window.PRICE_HISTORY || !anchorTs) { el.hidden = true; return; }
     const cutoff = new Date(anchorTs).getTime();
@@ -375,11 +414,7 @@ function renderDelta(isLive, vNowTis, anchorTs, animate) {
       if (new Date(sorted[i].ts).getTime() < cutoff) { prev = sorted[i]; break; }
     }
     if (!prev) { el.hidden = true; return; }
-    const vPrev = _calcPortfolioValue(prev);
-    if (!vPrev) { el.hidden = true; return; }
-    const abs = (vNowTis - vPrev) * 1000;
-    const pct = ((vNowTis - vPrev) / vPrev) * 100;
-    d = { pct, abs };
+    d = _deltaBetween(vNowTis, nowRates, prev);
   }
   if (!d) { el.hidden = true; return; }
   const pos = d.pct >= 0;
@@ -396,19 +431,24 @@ function renderDelta(isLive, vNowTis, anchorTs, animate) {
   el.hidden = false;
 
   const sign = pos ? '+' : '-';
+  // d.abs is already in the display currency — _deltaBetween converted both
+  // sides. The sign leads, so the symbol goes inside it: "+€1 234".
+  const signed = (v) => sign + withCurrency(fmtGrouped(v));
   if (animate) {
     animateNumber(pctEl, 0, Math.abs(d.pct), DURATIONS.TOTAL, v => sign + fmtPct(v, 2));
-    animateNumber(absEl, 0, Math.abs(d.abs), DURATIONS.TOTAL, v => '· ' + sign + fmtCzk(v) + ' ' + LANG.currency);
+    animateNumber(absEl, 0, Math.abs(d.abs), DURATIONS.TOTAL, v => '· ' + signed(v));
   } else {
     pctEl.textContent = sign + fmtPct(Math.abs(d.pct), 2);
-    absEl.textContent = '· ' + sign + fmtCzk(Math.abs(d.abs)) + ' ' + LANG.currency;
+    absEl.textContent = '· ' + signed(Math.abs(d.abs));
   }
 }
 
 // ── Render ──────────────────────────────────────────────────────────────────
+// Animation anchors, held in display-currency units so a re-render animates
+// from what is on screen rather than from a value in the previous currency.
 let _lastRenderTotal = 0;
-let _lastDonutAssetTotal = 0;
-let _lastDonutBrokerTotal = 0;
+let _lastDonutAssetTis = 0;
+let _lastDonutBrokerTis = 0;
 
 // Derive all portfolio values from raw prices + assets. Pure — no DOM.
 function _computePortfolio(p, a) {
@@ -462,12 +502,13 @@ function _computePortfolio(p, a) {
 
 function _renderHeaderTotal(totalCzk, animate) {
   const totalEl = document.getElementById('total-value');
+  const total = toDisplay(totalCzk);
   if (animate) {
-    animateNumber(totalEl, _lastRenderTotal, totalCzk, DURATIONS.TOTAL, (v) => fmtCzk(v));
+    animateNumber(totalEl, _lastRenderTotal, total, DURATIONS.TOTAL, (v) => fmtGrouped(v));
   } else {
-    totalEl.textContent = fmtCzk(totalCzk);
+    totalEl.textContent = fmtGrouped(total);
   }
-  _lastRenderTotal = totalCzk;
+  _lastRenderTotal = total;
 }
 
 function _buildAllocRow(item, totalTis, includeShares) {
@@ -491,24 +532,33 @@ function _buildAllocRow(item, totalTis, includeShares) {
   pcsEl.textContent = pcs;
   const val = document.createElement('span');
   val.className = 'val';
-  val.textContent = fmtTis(item.value);
+  val.textContent = fmtTisMoney(item.value);
   row.append(dot, name, pctEl, pcsEl, val);
   return row;
 }
 
-function _animateDonutCenter(centerEl, fromM, toM, animate) {
+// Donut centre — takes a value in thousands of the display currency and picks
+// its own unit: a portfolio worth 5.42M CZK is only ~0.22M EUR, where a fixed
+// "M" suffix would read as noise. The unit follows the target value so it stays
+// stable for the whole animation.
+function _animateDonutCenter(centerEl, fromTis, toTis, animate) {
+  const useM = Math.abs(toTis) >= 1000;
+  const unit = useM ? LANG.million : LANG.thousand;
+  const dec  = useM ? 2 : 0;
   const format = (v) => {
-    const s = v.toLocaleString(_loc(), { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    return `${s}<span class="donut-suffix">${LANG.million}</span>`;
+    if (!Number.isFinite(v)) return '—';
+    const scaled = useM ? v / 1000 : v;
+    const s = scaled.toLocaleString(_loc(), { minimumFractionDigits: dec, maximumFractionDigits: dec });
+    return `${s}<span class="donut-suffix">${unit}</span>`;
   };
   if (animate) {
-    animateNumber(centerEl, fromM, toM, DURATIONS.DONUT, format, { html: true });
+    animateNumber(centerEl, fromTis, toTis, DURATIONS.DONUT, format, { html: true });
   } else {
-    centerEl.innerHTML = format(toM);
+    centerEl.innerHTML = format(toTis);
   }
 }
 
-function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares, lastTotalM, animate, staticCount }) {
+function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares, lastTotalTis, animate, staticCount }) {
   const svg = document.getElementById(svgId);
   const paths = drawDonut(svg, items, { animate });
 
@@ -526,9 +576,9 @@ function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares,
     return 0;
   }
 
-  const targetM = totalTis / 1000;
-  _animateDonutCenter(document.getElementById(centerId), lastTotalM, targetM, animate);
-  return targetM;
+  const targetTis = toDisplay(totalTis);
+  _animateDonutCenter(document.getElementById(centerId), lastTotalTis, targetTis, animate);
+  return targetTis;
 }
 
 function _renderPriceTable(p, a, ctx, anchorTs) {
@@ -644,11 +694,11 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
     valCell.className = 'num';
     const valFull = document.createElement('span');
     valFull.className = 'val-full';
-    valFull.textContent = `${fmtCzk(r.valCzk)} ${LANG.currency}`;
+    valFull.textContent = withCurrency(fmtMoney(r.valCzk));
     const valTis = document.createElement('span');
     valTis.className = 'val-tis';
     const _tis = r.valCzk / 1000;
-    valTis.textContent = fmtTis(_tis);
+    valTis.textContent = fmtTisMoney(_tis);
     valCell.append(valFull, valTis);
     row.appendChild(valCell);
 
@@ -656,11 +706,9 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
   });
 }
 
-function _renderFooter(p, ctx) {
+function _renderFooter(p) {
   const footer = document.getElementById('footer-info');
   if (!footer) return;
-  const eur = fmtNum(ctx.EUR_CZK, 2);
-  const usd = fmtNum(ctx.USD_CZK, 2);
   let updatedStr = '—';
   if (p._rawTs) {
     const d = new Date(p._rawTs);
@@ -673,21 +721,30 @@ function _renderFooter(p, ctx) {
     el.textContent = text;
     return el;
   };
-  footer.append(
-    mkSpan(`${LANG.updated} · ${updatedStr}`),
-    mkSpan('·', 'sep'),
-    mkSpan(`EUR/CZK ${eur}`, 'rate'),
-    mkSpan('·', 'sep'),
-    mkSpan(`USD/CZK ${usd}`, 'rate'),
-  );
+  footer.append(mkSpan(`${LANG.updated} · ${updatedStr}`));
+  // Quote the rates against the display currency — these are the numbers the
+  // values on screen were actually converted with. Small rates carry the same
+  // information in fewer significant digits (CZK/EUR 0.0414, EUR/USD 1.1368),
+  // so they get more decimals than the ~24 of a CZK pair.
+  fxPairs(p.rates).forEach(({ base, quote, value }) => {
+    const dec = value != null && Math.abs(value) < 10 ? 4 : 2;
+    footer.append(
+      mkSpan('·', 'sep'),
+      mkSpan(`${base}/${quote} ${fmtNum(value, dec)}`, 'rate'),
+    );
+  });
 }
 
 function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
   document.title = 'Wealth Lens';
   const ctx = _computePortfolio(p, a);
 
+  // Everything below formats CZK through toDisplay(); anchor it to the rates of
+  // the snapshot being rendered — live for "Now", the entry's own for history.
+  setActiveRates(p.rates);
+
   _renderHeaderTotal(ctx.totalCzk, animate);
-  renderDelta(isLive, ctx.totalTis, anchorTs, animate);
+  renderDelta(isLive, ctx.totalTis, p.rates, anchorTs, animate);
 
   const assetItems = [
     { key: 'fwra',  value: ctx.vFWRA,  color: 'var(--fwra)',  label: 'FWRA',  shares: ctx.fwra_total },
@@ -703,10 +760,10 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
     return y.value - x.value;
   });
 
-  _lastDonutAssetTotal = _renderDonut({
+  _lastDonutAssetTis = _renderDonut({
     svgId: 'donut-assets', listId: 'list-assets', centerId: 'center-assets',
     items: assetItems, totalTis: ctx.totalTis, includeShares: true,
-    lastTotalM: _lastDonutAssetTotal, animate,
+    lastTotalTis: _lastDonutAssetTis, animate,
   });
 
   const brokerItems = [
@@ -716,15 +773,15 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
     { value: ctx.bEtrade, color: 'var(--etrade)', label: 'Etrade' },
   ].sort((x, y) => y.value - x.value);
 
-  _lastDonutBrokerTotal = _renderDonut({
+  _lastDonutBrokerTis = _renderDonut({
     svgId: 'donut-brokers', listId: 'list-brokers', centerId: 'center-brokers',
     items: brokerItems, totalTis: ctx.totalTis, includeShares: false,
-    lastTotalM: _lastDonutBrokerTotal, animate,
+    lastTotalTis: _lastDonutBrokerTis, animate,
     staticCount: brokerItems.filter(b => b.value > 0).length,
   });
 
   _renderPriceTable(p, a, ctx, anchorTs);
-  _renderFooter(p, ctx);
+  _renderFooter(p);
   document.dispatchEvent(new CustomEvent('wl:render', { detail: { totalCzk: ctx.totalCzk } }));
 }
 
@@ -866,6 +923,14 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     pts = all.filter(e => new Date(e.ts).getTime() >= cutoffDate.getTime());
   }
 
+  // Each point converts with the FX rates stored for its own day, so the curve
+  // shows what the portfolio was worth in the display currency back then — not
+  // the past re-priced at today's rate.
+  const data = pts
+    .map(e => ({ ts: new Date(e.ts).getTime(), value: toDisplay(_calcPortfolioValue(e), e.rates) }))
+    .filter(d => Number.isFinite(d.value))
+    .filter(d => { const dow = new Date(d.ts).getDay(); return dow !== 0 && dow !== 6; });
+
   const wrap = document.getElementById('chart-wrap');
   const W = wrap.offsetWidth || 800;
   const H = wrap.offsetHeight || 240;
@@ -873,7 +938,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
   const cW = W - pL - pR, cH = H - pT - pB;
   svgEl.setAttribute('viewBox', `0 0 ${W} ${H}`);
 
-  if (pts.length < 2) {
+  if (data.length < 2) {
     const t = document.createElementNS(SVG_NS, 'text');
     t.setAttribute('x', (W / 2).toString()); t.setAttribute('y', (H / 2).toString());
     t.setAttribute('dominant-baseline', 'middle'); t.setAttribute('text-anchor', 'middle');
@@ -883,10 +948,6 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     svgEl.appendChild(t);
     return;
   }
-
-  const data = pts
-    .map(e => ({ ts: new Date(e.ts).getTime(), value: _calcPortfolioValue(e) }))
-    .filter(d => { const dow = new Date(d.ts).getDay(); return dow !== 0 && dow !== 6; });
 
   const minTs = data[0].ts, maxTs = data[data.length - 1].ts;
   const vals = data.map(d => d.value);
@@ -1107,8 +1168,9 @@ function drawHistoryChart(tf, { animate = true } = {}) {
       dateStr = `${parseInt(mm)}/${parseInt(dd)}/${yyyy}`;
       timeStr = d.toLocaleTimeString('en-US', { ...tz, hour: 'numeric', minute: '2-digit', hour12: true });
     }
+    // closest.value is already in the display currency (see `data` above).
     tooltip.innerHTML = `<div class="tip-date">${dateStr} ${timeStr}</div>`
-      + `<div class="tip-val">${Math.round(closest.value * 1000).toLocaleString(_loc())} ${LANG.currency}</div>`;
+      + `<div class="tip-val">${withCurrency(fmtGrouped(closest.value * 1000))}</div>`;
 
     const wrapW = wrap.offsetWidth;
     const tipW = tooltip.offsetWidth;

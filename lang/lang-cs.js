@@ -19,6 +19,7 @@ const LANG_CS = {
   currency:       'Kč',
   brokers:        'brokeři',
   million:        'M',
+  thousand:       'K',
   fixed:          'fixní',
   locale:         'cs',
 
@@ -45,6 +46,7 @@ const LANG_CS = {
   settingsLight:    'Světlý',
   settingsDark:     'Tmavý',
   settingsLanguage: 'Jazyk',
+  settingsCurrency: 'Měna',
 
   // Kalendář
   calMonths:    ['Leden','Únor','Březen','Duben','Květen','Červen','Červenec','Srpen','Září','Říjen','Listopad','Prosinec'],
@@ -59,18 +61,18 @@ const LANG_CS = {
   projTargetDate:     'Cílové datum',
   projReturn:         'Průměrný roční výnos',
   projContribsToggle: 'Měsíční vklady',
-  projContribUnit:    'Kč / měs.',
+  // Unit suffixes — the currency label is prepended at runtime (currency.js),
+  // so these must not spell out a currency of their own.
+  projPerMoSuffix:    '/ měs.',
   projNowLegend:      'Nyní',
   projContribsLegend: 'Vklady',
   projGrowthLegend:   'Výnos',
   projSelectFuture:   'Zvolte budoucí datum',
-  projPerMo:          'Kč/měs.',
   projPa:             '% p.a.',
   projWithdrawal:     'Míra výběru',
   projYears:          ['rok', 'roky', 'let'],
   projMonths:         ['měsíc', 'měsíce', 'měsíců'],
   projTargetToggle:   'Cílová částka',
-  projTargetUnit:     'Kč',
   projOnTrack:        'Na cestě',
   projBehind:         'Pozadu',
   projGoalLabel:      'Cíl',

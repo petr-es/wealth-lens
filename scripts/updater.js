@@ -98,8 +98,8 @@ async function triggerUpdate({ silent = false } = {}) {
       window.CalendarPicker.refresh();
     }
     _lastRenderTotal = 0;
-    _lastDonutAssetTotal = 0;
-    _lastDonutBrokerTotal = 0;
+    _lastDonutAssetTis = 0;
+    _lastDonutBrokerTis = 0;
     render(window.PRICES, ASSETS, { animate: true, isLive: true });
     drawHistoryChart(_currentTf, { animate: true });
   } catch (e) {
