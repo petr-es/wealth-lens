@@ -515,7 +515,9 @@ function _buildAllocRow(item, totalTis, includeShares) {
   const row = document.createElement('div');
   row.className = 'alloc-row';
   const pct = (item.value / totalTis * 100).toFixed(1);
-  const pcs = includeShares && item.shares != null ? fmtShares(item.shares) : '';
+  // Assets donut shows a share count; entries without one (Stocks, Cash) get an
+  // em-dash, matching the assets table. Brokers donut has no QTY column at all.
+  const pcs = includeShares ? (item.shares != null ? fmtShares(item.shares) : '—') : '';
   // Safe DOM — no innerHTML with external values.
   const dot = document.createElement('span');
   dot.className = 'dot';

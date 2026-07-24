@@ -757,9 +757,12 @@
 
     renderCard();
 
-    if (_backdropEl && !_backdropEl.hidden) {
+    // Open state is tracked by style.display (see _openModal/_closeModal), so
+    // test that — not .hidden, which is never set on the backdrop. _buildModal
+    // creates it closed, hence restoring display: flex.
+    if (_backdropEl && _backdropEl.style.display !== 'none') {
       _buildModal();
-      _backdropEl.hidden = false;
+      _backdropEl.style.display = 'flex';
       document.addEventListener('keydown', _escHandler);
     }
   });

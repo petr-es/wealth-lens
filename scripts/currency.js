@@ -31,7 +31,6 @@ let DISPLAY_CCY = (function initCurrency() {
 // is formatted, so toDisplay() can default to "whatever is being shown".
 let _activeRates = null;
 
-function getCurrency() { return DISPLAY_CCY; }
 function setActiveRates(rates) { _activeRates = rates || null; }
 
 function currencyLabel(ccy = DISPLAY_CCY) {
@@ -96,6 +95,9 @@ function fxPairs(rates = _activeRates) {
 function applyCurrencyLabels() {
   const label = currencyLabel();
   document.querySelectorAll('[data-ccy-label]').forEach(el => { el.textContent = label; });
+  // Slots that spell the currency out ("EUR"/"USD") rather than show the glyph.
+  const code = currencyCode();
+  document.querySelectorAll('[data-ccy-code]').forEach(el => { el.textContent = code; });
   // Lets CSS flip label slots that sit in static markup (the header total) to
   // the front for symbol-first currencies.
   document.documentElement.dataset.ccyPosition = currencyPrefixed() ? 'prefix' : 'suffix';
