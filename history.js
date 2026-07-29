@@ -3089,5 +3089,155 @@ var PRICE_HISTORY=[
         "fixedCzk": 250.0
       }
     }
+  },
+  {
+    "ts": "2026-07-27T14:41:00Z",
+    "rates": {
+      "EUR_CZK": 24.16,
+      "USD_CZK": 21.24
+    },
+    "prices": {
+      "FWRA_EUR": 8.08,
+      "AVWS_EUR": 25.3,
+      "SPYY_EUR": 279.25,
+      "S_USD": 18.16,
+      "IB1T_EUR": 5.7
+    },
+    "assets": {
+      "fwra": {
+        "t212": 0.0,
+        "ibkr": 13849.0,
+        "rev": 0.0
+      },
+      "avws": {
+        "t212": 0.0,
+        "ibkr": 0.0
+      },
+      "spyy": {
+        "t212": 0.0,
+        "ibkr": 0.0
+      },
+      "s": {
+        "ibkr": 0.0,
+        "etrade": 2.0
+      },
+      "ib1t": {
+        "ibkr": 0.0
+      },
+      "cash": {
+        "ibkr_czk": 0.0,
+        "ibkr_eur": 20.0,
+        "ibkr_usd": 0.0,
+        "t212_czk": 0.0,
+        "t212_eur": 0.0,
+        "t212_usd": 0.0,
+        "rev_czk": 0.0,
+        "rev_eur": 0.0,
+        "rev_usd": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 250.0
+      }
+    }
+  },
+  {
+    "ts": "2026-07-28T14:12:53Z",
+    "rates": {
+      "EUR_CZK": 24.18,
+      "USD_CZK": 21.25
+    },
+    "prices": {
+      "FWRA_EUR": 8.02,
+      "AVWS_EUR": 25.27,
+      "SPYY_EUR": 277.55,
+      "S_USD": 17.77,
+      "IB1T_EUR": 5.53
+    },
+    "assets": {
+      "fwra": {
+        "t212": 0.0,
+        "ibkr": 13849.0,
+        "rev": 0.0
+      },
+      "avws": {
+        "t212": 0.0,
+        "ibkr": 0.0
+      },
+      "spyy": {
+        "t212": 0.0,
+        "ibkr": 0.0
+      },
+      "s": {
+        "ibkr": 0.0,
+        "etrade": 2.0
+      },
+      "ib1t": {
+        "ibkr": 0.0
+      },
+      "cash": {
+        "ibkr_czk": 0.0,
+        "ibkr_eur": 20.0,
+        "ibkr_usd": 0.0,
+        "t212_czk": 0.0,
+        "t212_eur": 0.0,
+        "t212_usd": 0.0,
+        "rev_czk": 0.0,
+        "rev_eur": 0.0,
+        "rev_usd": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 250.0
+      }
+    }
+  },
+  {
+    "ts": "2026-07-29T14:15:14Z",
+    "rates": {
+      "EUR_CZK": 24.18,
+      "USD_CZK": 21.22
+    },
+    "prices": {
+      "FWRA_EUR": 8.02,
+      "AVWS_EUR": 25.27,
+      "SPYY_EUR": 277.25,
+      "S_USD": 18.29,
+      "IB1T_EUR": 5.66
+    },
+    "assets": {
+      "fwra": {
+        "t212": 0.0,
+        "ibkr": 13849.0,
+        "rev": 0.0
+      },
+      "avws": {
+        "t212": 0.0,
+        "ibkr": 0.0
+      },
+      "spyy": {
+        "t212": 0.0,
+        "ibkr": 0.0
+      },
+      "s": {
+        "ibkr": 0.0,
+        "etrade": 2.0
+      },
+      "ib1t": {
+        "ibkr": 0.0
+      },
+      "cash": {
+        "ibkr_czk": 0.0,
+        "ibkr_eur": 20.0,
+        "ibkr_usd": 0.0,
+        "t212_czk": 0.0,
+        "t212_eur": 0.0,
+        "t212_usd": 0.0,
+        "rev_czk": 0.0,
+        "rev_eur": 0.0,
+        "rev_usd": 0.0
+      },
+      "alpha": {
+        "fixedCzk": 250.0
+      }
+    }
   }
 ];
