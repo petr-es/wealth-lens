@@ -122,6 +122,12 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { margin: 0; padding: 0; }
+/* Safari (iOS/macOS) inflates text in plain block containers via its automatic
+   text sizing. Most widgets escape it because their text sits in flex/grid
+   layouts, but the projector card's block content gets boosted — which made its
+   type render larger than the identically-sized type in the other cards.
+   Pin the adjustment so every widget renders at the declared font sizes. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   font-family: var(--sans);
   color: var(--text-0);
@@ -802,12 +808,13 @@ body {
 #proj-card .card-label { margin-bottom: 20px; }
 .proj-result-wrap { margin-bottom: 6px; }
 .proj-result-row {
-  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  /* 4px keeps the amount tight to its currency label, matching the header total */
+  display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap;
   font-family: var(--display);
   font-variant-numeric: tabular-nums;
 }
 .proj-fv {
-  font-size: 38px; font-weight: 700; letter-spacing: -0.03em;
+  font-size: 32px; font-weight: 700; letter-spacing: -0.03em;
   color: var(--text-0); line-height: 1;
 }
 .proj-result-ccy {
@@ -815,9 +822,10 @@ body {
   color: var(--text-2); letter-spacing: -0.01em;
 }
 .proj-slash {
-  font-size: 28px; font-weight: 300;
+  font-size: 24px; font-weight: 300;
   color: var(--text-3); line-height: 1;
-  margin: 0 2px;
+  /* Absorbs the tightened row gap so the two amounts stay visually separated */
+  margin: 0 6px;
 }
 .proj-swr-val {
   font-size: 22px; font-weight: 600; letter-spacing: -0.02em;
@@ -872,7 +880,7 @@ body {
 }
 .proj-goal-pct {
   font-family: var(--display);
-  font-size: 38px; font-weight: 700; letter-spacing: -0.03em;
+  font-size: 32px; font-weight: 700; letter-spacing: -0.03em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   transition: color 0.3s;
@@ -1102,12 +1110,13 @@ body {
 
 /* Responsive tweaks for projector */
 @media (max-width: 480px) {
-  .proj-fv { font-size: 26px; }
-  .proj-slash { font-size: 20px; }
+  /* 24px matches the header total, so both headline figures read as one scale */
+  .proj-fv { font-size: 24px; }
+  .proj-slash { font-size: 18px; }
   .proj-swr-val { font-size: 17px; }
   .proj-result-ccy { font-size: 14px; }
   .proj-params { white-space: normal; }
-  .proj-goal-pct { font-size: 26px; }
+  .proj-goal-pct { font-size: 24px; }
   .proj-goal-secondary { white-space: normal; }
 }
 
