@@ -814,7 +814,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .proj-fv {
-  font-size: 32px; font-weight: 700; letter-spacing: -0.03em;
+  font-size: 30px; font-weight: 700; letter-spacing: -0.03em;
   color: var(--text-0); line-height: 1;
 }
 .proj-result-ccy {
@@ -880,7 +880,7 @@ body {
 }
 .proj-goal-pct {
   font-family: var(--display);
-  font-size: 32px; font-weight: 700; letter-spacing: -0.03em;
+  font-size: 30px; font-weight: 700; letter-spacing: -0.03em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   transition: color 0.3s;
