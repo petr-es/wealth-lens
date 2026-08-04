@@ -564,6 +564,8 @@ body {
 .chart-tooltip.visible { opacity: 1; }
 .chart-tooltip .tip-date { color: var(--text-2); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
 .chart-tooltip .tip-val { font-size: 14px; color: var(--accent); font-variant-numeric: tabular-nums; }
+/* Set while the plotted range is down, so the hovered value matches the curve. */
+.chart-tooltip.neg .tip-val { color: var(--neg); }
 
 /* Label + timeframe picker on one row, the timeframe change underneath, evenly
    spaced between that row and the chart. */

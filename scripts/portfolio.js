@@ -122,7 +122,10 @@ function animateNumber(el, from, to, duration, formatter, { html = false } = {})
   if (prev) cancelAnimationFrame(prev);
   const start = performance.now();
   const tick = (t) => {
-    const p = Math.min(1, (t - start) / duration);
+    // A frame that began before this animation was scheduled reports a
+    // timestamp earlier than `start`. Left unclamped, the easing below turns
+    // that negative progress into a wildly out-of-range number for one frame.
+    const p = Math.min(1, Math.max(0, (t - start) / duration));
     const e = 1 - Math.pow(1 - p, 5); // easeOutQuint
     const v = from + (to - from) * e;
     if (html) el.innerHTML = formatter(v);
@@ -904,11 +907,33 @@ function initHistoryChart() {
   }
 }
 
+// Direction of the change across a plotted range: 'pos' | 'neg' | 'flat'.
+// Measured on the rounded amount, so a change that rounds away on screen reads
+// as flat rather than as a signed move. Drives both the indicator and the
+// curve's color, keeping the two from ever disagreeing.
+function _rangeDirection(data) {
+  if (!data || data.length < 2) return 'flat';
+  const rounded = Math.round((data[data.length - 1].value - data[0].value) * 1000);
+  return rounded > 0 ? 'pos' : rounded < 0 ? 'neg' : 'flat';
+}
+
+// The curve is the accent green while the range is up or flat, and the loss red
+// when it is down — the same red as the indicator and the negative sparklines.
+function _rangeColor(dir) {
+  return dir === 'neg' ? 'var(--neg)' : 'var(--accent)';
+}
+
 // Portfolio value change across the plotted range: the absolute change as the
 // headline number, the percentage as a color-coded tag. Endpoints are the first
 // and last points actually drawn, so a timeframe reaching past our history
 // starts at the earliest entry we have rather than showing nothing.
 function _renderChartChange(data, animate) {
+  // Tooltip color lives here rather than beside the drawing code so it is set
+  // on every path — including the ones that bail out before a chart is drawn,
+  // which would otherwise leave the previous range's color behind.
+  const tooltip = document.getElementById('chart-tooltip');
+  if (tooltip) tooltip.classList.toggle('neg', _rangeDirection(data) === 'neg');
+
   const el = document.getElementById('chart-change');
   if (!el) return;
   if (!data || data.length < 2) { el.hidden = true; return; }
@@ -919,10 +944,9 @@ function _renderChartChange(data, animate) {
   const abs = (last - first) * 1000;
   const pct = first ? ((last - first) / first) * 100 : 0;
 
-  // Direction follows the rounded amount, so the sign always matches the digits
-  // on screen — a change that rounds away reads as flat, never as "-0".
-  const rounded = Math.round(abs);
-  const dir = rounded > 0 ? 'pos' : rounded < 0 ? 'neg' : 'flat';
+  // The sign always matches the digits on screen — a change that rounds away
+  // reads as flat, never as "-0".
+  const dir = _rangeDirection(data);
   const sign = dir === 'pos' ? '+' : dir === 'neg' ? '-' : '';
 
   el.className = 'chart-change ' + dir;
@@ -979,6 +1003,9 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     .filter(d => { const dow = new Date(d.ts).getDay(); return dow !== 0 && dow !== 6; });
 
   _renderChartChange(data, animate);
+  // Every stroke and fill below follows the range direction, so a losing period
+  // reads red end to end instead of a red headline over a green curve.
+  const rangeColor = _rangeColor(_rangeDirection(data));
 
   const wrap = document.getElementById('chart-wrap');
   const W = wrap.offsetWidth || 800;
@@ -1026,11 +1053,11 @@ function drawHistoryChart(tf, { animate = true } = {}) {
   grad.setAttribute('x1', '0'); grad.setAttribute('y1', pT.toString());
   grad.setAttribute('x2', '0'); grad.setAttribute('y2', (pT + cH).toString());
   const s1 = document.createElementNS(SVG_NS, 'stop');
-  s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', 'var(--accent)'); s1.setAttribute('stop-opacity', '0.28');
+  s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', rangeColor); s1.setAttribute('stop-opacity', '0.28');
   const s2 = document.createElementNS(SVG_NS, 'stop');
-  s2.setAttribute('offset', '60%'); s2.setAttribute('stop-color', 'var(--accent)'); s2.setAttribute('stop-opacity', '0.06');
+  s2.setAttribute('offset', '60%'); s2.setAttribute('stop-color', rangeColor); s2.setAttribute('stop-opacity', '0.06');
   const s3 = document.createElementNS(SVG_NS, 'stop');
-  s3.setAttribute('offset', '100%'); s3.setAttribute('stop-color', 'var(--accent)'); s3.setAttribute('stop-opacity', '0');
+  s3.setAttribute('offset', '100%'); s3.setAttribute('stop-color', rangeColor); s3.setAttribute('stop-opacity', '0');
   grad.appendChild(s1); grad.appendChild(s2); grad.appendChild(s3); defs.appendChild(grad);
 
   const filterId = 'chart-glow-' + Math.random().toString(36).slice(2, 7);
@@ -1077,7 +1104,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
 
   const lineEl = document.createElementNS(SVG_NS, 'path');
   lineEl.setAttribute('d', linePts); lineEl.setAttribute('fill', 'none');
-  lineEl.setAttribute('stroke', 'var(--accent)'); lineEl.setAttribute('stroke-width', '1.8');
+  lineEl.setAttribute('stroke', rangeColor); lineEl.setAttribute('stroke-width', '1.8');
   lineEl.setAttribute('stroke-linecap', 'round'); lineEl.setAttribute('stroke-linejoin', 'round');
   lineEl.setAttribute('filter', `url(#${filterId})`);
   lineEl.setAttribute('stroke-dasharray', pathLen);
@@ -1088,7 +1115,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
   const endRing = document.createElementNS(SVG_NS, 'circle');
   endRing.setAttribute('cx', lastSp.x.toFixed(1));
   endRing.setAttribute('cy', lastSp.y.toFixed(1));
-  endRing.setAttribute('r', '5'); endRing.setAttribute('fill', 'var(--accent)');
+  endRing.setAttribute('r', '5'); endRing.setAttribute('fill', rangeColor);
   endRing.setAttribute('filter', `url(#${filterId})`);
   endRing.style.opacity = '0';
   const anim1 = document.createElementNS(SVG_NS, 'animate');
@@ -1101,7 +1128,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
   const endDot = document.createElementNS(SVG_NS, 'circle');
   endDot.setAttribute('cx', lastSp.x.toFixed(1));
   endDot.setAttribute('cy', lastSp.y.toFixed(1));
-  endDot.setAttribute('r', '3'); endDot.setAttribute('fill', 'var(--accent)');
+  endDot.setAttribute('r', '3'); endDot.setAttribute('fill', rangeColor);
   endDot.style.opacity = '0';
   svgEl.appendChild(endDot);
 
@@ -1177,12 +1204,12 @@ function drawHistoryChart(tf, { animate = true } = {}) {
 
   const xhair = document.createElementNS(SVG_NS, 'line');
   xhair.setAttribute('y1', pT); xhair.setAttribute('y2', pT + cH);
-  xhair.setAttribute('stroke', 'var(--accent)'); xhair.setAttribute('stroke-opacity', '0.3');
+  xhair.setAttribute('stroke', rangeColor); xhair.setAttribute('stroke-opacity', '0.3');
   xhair.setAttribute('stroke-dasharray', '3 3'); xhair.style.display = 'none';
   svgEl.appendChild(xhair);
 
   const hDot = document.createElementNS(SVG_NS, 'circle');
-  hDot.setAttribute('r', '5'); hDot.setAttribute('fill', 'var(--accent)');
+  hDot.setAttribute('r', '5'); hDot.setAttribute('fill', rangeColor);
   hDot.setAttribute('filter', `url(#${filterId})`);
   hDot.style.display = 'none';
   svgEl.appendChild(hDot);
