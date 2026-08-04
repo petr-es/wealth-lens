@@ -585,6 +585,15 @@ body {
 .chart-change.pos  .total { color: var(--pos); }
 .chart-change.neg  .total { color: var(--neg); }
 .chart-change.flat .total { color: var(--text-2); }
+/* From 481px up the value carries the projection widget's headline scale
+   (.proj-fv / .proj-result-ccy). Scoped min-width on purpose: below it the
+   block keeps inheriting the header's .total scale, with nothing to restate. */
+@media (min-width: 481px) {
+  .chart-change .total {
+    font-size: 28px; font-weight: 700; letter-spacing: -0.03em; line-height: 1;
+  }
+  .chart-change .total-ccy { font-size: 18px; }
+}
 
 /* ── Footer ────────────────────────────────────────────────────────────── */
 .footer {
@@ -829,7 +838,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .proj-fv {
-  font-size: 30px; font-weight: 700; letter-spacing: -0.03em;
+  font-size: 28px; font-weight: 700; letter-spacing: -0.03em;
   color: var(--text-0); line-height: 1;
 }
 .proj-result-ccy {
@@ -895,7 +904,7 @@ body {
 }
 .proj-goal-pct {
   font-family: var(--display);
-  font-size: 30px; font-weight: 700; letter-spacing: -0.03em;
+  font-size: 28px; font-weight: 700; letter-spacing: -0.03em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
   transition: color 0.3s;
