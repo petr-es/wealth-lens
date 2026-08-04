@@ -285,6 +285,8 @@ body {
 }
 .delta.pos { color: var(--pos); background: var(--pos-soft); border: 1px solid var(--pos-border); }
 .delta.neg { color: var(--neg); background: var(--neg-soft); border: 1px solid var(--neg-border); }
+/* No movement worth signing — neutral, so it reads as "flat", not as a loss. */
+.delta.flat { color: var(--text-2); background: var(--control-bg); border: 1px solid var(--stroke); }
 .delta svg { width: 12px; height: 12px; }
 .delta .delta-abs { opacity: 0.7; }
 
@@ -563,13 +565,26 @@ body {
 .chart-tooltip .tip-date { color: var(--text-2); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; }
 .chart-tooltip .tip-val { font-size: 14px; color: var(--accent); font-variant-numeric: tabular-nums; }
 
+/* Label + timeframe picker on one row, the timeframe change underneath, evenly
+   spaced between that row and the chart. */
+.chart-top {
+  display: flex; flex-direction: column; gap: 12px;
+  margin-bottom: 12px;
+}
 .chart-header {
   display: flex; align-items: center; justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 20px;
 }
 .chart-header .card-label { margin-bottom: 0; }
+
+/* Timeframe change — reuses the header's .total / .delta type scale, with the
+   value color-coded by direction instead of the neutral header ink. */
+.chart-change { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.chart-change .total-ccy { color: inherit; opacity: 0.7; }
+.chart-change.pos  .total { color: var(--pos); }
+.chart-change.neg  .total { color: var(--neg); }
+.chart-change.flat .total { color: var(--text-2); }
 
 /* ── Footer ────────────────────────────────────────────────────────────── */
 .footer {

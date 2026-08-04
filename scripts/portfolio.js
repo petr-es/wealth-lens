@@ -399,6 +399,14 @@ function computeDelta(vNowTis, nowRates) {
   return _deltaBetween(vNowTis, nowRates, prev);
 }
 
+// Direction arrow for a delta tag — shared by the header tag and the chart's
+// timeframe change pill.
+function _deltaArrow(up) {
+  return up
+    ? `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 10V2M6 2L2.5 5.5M6 2l3.5 3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+    : `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2V10M6 10L2.5 6.5M6 10l3.5-3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
 function renderDelta(isLive, vNowTis, nowRates, anchorTs, animate) {
   const el = document.getElementById('delta-tag');
   if (!el) return;
@@ -418,11 +426,8 @@ function renderDelta(isLive, vNowTis, nowRates, anchorTs, animate) {
   }
   if (!d) { el.hidden = true; return; }
   const pos = d.pct >= 0;
-  const arrow = pos
-    ? `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 10V2M6 2L2.5 5.5M6 2l3.5 3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`
-    : `<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 2V10M6 10L2.5 6.5M6 10l3.5-3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-  el.innerHTML = arrow;
+  el.innerHTML = _deltaArrow(pos);
   const pctEl = document.createElement('span');
   const absEl = document.createElement('span');
   absEl.className = 'delta-abs';
@@ -899,13 +904,53 @@ function initHistoryChart() {
   }
 }
 
+// Portfolio value change across the plotted range: the absolute change as the
+// headline number, the percentage as a color-coded tag. Endpoints are the first
+// and last points actually drawn, so a timeframe reaching past our history
+// starts at the earliest entry we have rather than showing nothing.
+function _renderChartChange(data, animate) {
+  const el = document.getElementById('chart-change');
+  if (!el) return;
+  if (!data || data.length < 2) { el.hidden = true; return; }
+
+  const first = data[0].value, last = data[data.length - 1].value;
+  // Chart values are in thousands (see _calcPortfolioValue); the headline is a
+  // plain amount, like the header total.
+  const abs = (last - first) * 1000;
+  const pct = first ? ((last - first) / first) * 100 : 0;
+
+  // Direction follows the rounded amount, so the sign always matches the digits
+  // on screen — a change that rounds away reads as flat, never as "-0".
+  const rounded = Math.round(abs);
+  const dir = rounded > 0 ? 'pos' : rounded < 0 ? 'neg' : 'flat';
+  const sign = dir === 'pos' ? '+' : dir === 'neg' ? '-' : '';
+
+  el.className = 'chart-change ' + dir;
+  el.hidden = false;
+
+  const valEl = document.getElementById('chart-change-value');
+  const tagEl = document.getElementById('chart-change-delta');
+  tagEl.className = 'delta ' + dir;
+  tagEl.innerHTML = dir === 'flat' ? '' : _deltaArrow(dir === 'pos');
+  const pctEl = document.createElement('span');
+  tagEl.appendChild(pctEl);
+
+  if (animate) {
+    animateNumber(valEl, 0, Math.abs(abs), DURATIONS.TOTAL, v => sign + fmtGrouped(v));
+    animateNumber(pctEl, 0, Math.abs(pct), DURATIONS.TOTAL, v => sign + fmtPct(v, 2));
+  } else {
+    valEl.textContent = sign + fmtGrouped(Math.abs(abs));
+    pctEl.textContent = sign + fmtPct(Math.abs(pct), 2);
+  }
+}
+
 function drawHistoryChart(tf, { animate = true } = {}) {
   _lastChartDrawTs = Date.now();
   const svgEl = document.getElementById('chart-history');
   if (!svgEl) return;
   svgEl.innerHTML = '';
 
-  if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) return;
+  if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) { _renderChartChange(null); return; }
 
   const all = [...PRICE_HISTORY].sort((a, b) => new Date(a.ts) - new Date(b.ts));
   const now = Date.now();
@@ -932,6 +977,8 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     .map(e => ({ ts: new Date(e.ts).getTime(), value: toDisplay(_calcPortfolioValue(e), e.rates) }))
     .filter(d => Number.isFinite(d.value))
     .filter(d => { const dow = new Date(d.ts).getDay(); return dow !== 0 && dow !== 6; });
+
+  _renderChartChange(data, animate);
 
   const wrap = document.getElementById('chart-wrap');
   const W = wrap.offsetWidth || 800;

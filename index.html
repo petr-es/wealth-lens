@@ -139,9 +139,22 @@
     </div>
 
     <div class="card chart-card">
-      <div class="chart-header">
-        <div class="card-label"><span data-i18n="portfolioHistory">Vývoj portfolia</span></div>
-        <div class="chart-controls" id="timeframe-btns"></div>
+      <div class="chart-top">
+        <div class="chart-header">
+          <div class="card-label"><span data-i18n="portfolioHistory">Vývoj portfolia</span></div>
+          <div class="chart-controls" id="timeframe-btns"></div>
+        </div>
+        <!-- Portfolio value change across the plotted timeframe. Same type as
+             the header total + delta tag, but color-coded by direction. Sits
+             below the whole header row so the timeframe picker always comes
+             first, including when the row wraps on narrow screens. -->
+        <div class="chart-change" id="chart-change" hidden>
+          <div class="total">
+            <span class="num-anim" id="chart-change-value">–</span>
+            <span class="total-ccy" data-ccy-label>Kč</span>
+          </div>
+          <div class="delta" id="chart-change-delta"></div>
+        </div>
       </div>
       <div class="card-overlay" id="overlay-history"></div>
       <div id="content-history">
