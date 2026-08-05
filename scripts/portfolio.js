@@ -29,6 +29,9 @@ const PRICE_WINDOW_DAYS = 30; // sparkline history window
 
 // ── Formatting helpers ──────────────────────────────────────────────────────
 const NBSP = '\u00a0';
+// Stands in for a number that does not exist: the same em dash the formatters
+// below return for a missing value.
+const EMPTY_VALUE = '\u2014';
 const _loc     = () => LANG.locale === 'cs' ? 'cs-CZ' : 'en-US';
 const _dateLoc = () => LANG.locale === 'cs' ? 'cs-CZ' : 'en-GB';
 function fmtDate(d) {
@@ -116,10 +119,29 @@ function fmtCashK(amount, currency) {
 // ── Number animation ────────────────────────────────────────────────────────
 const _animHandles = new WeakMap();
 
+// Writes a final value, replacing whatever is on the element — including a
+// count-up still in flight. A plain assignment would not survive one: the
+// animation's next frame overwrites it ~16ms later, and the value would settle
+// on the number that animation was heading for. Harmless while every animated
+// render is user-initiated, but a background refresh could start one at any
+// moment, so final writes go through here.
+function setNumber(el, text, { html = false } = {}) {
+  if (!el) return;
+  cancelNumberAnimation(el);
+  if (html) el.innerHTML = text;
+  else el.textContent = text;
+}
+
+function cancelNumberAnimation(el) {
+  const handle = _animHandles.get(el);
+  if (handle == null) return;
+  cancelAnimationFrame(handle);
+  _animHandles.delete(el);
+}
+
 function animateNumber(el, from, to, duration, formatter, { html = false } = {}) {
   if (!el) return;
-  const prev = _animHandles.get(el);
-  if (prev) cancelAnimationFrame(prev);
+  cancelNumberAnimation(el);
   const start = performance.now();
   const tick = (t) => {
     // A frame that began before this animation was scheduled reports a
@@ -407,6 +429,16 @@ function computeDelta(vNowTis, nowRates) {
   return _deltaBetween(vNowTis, nowRates, prev);
 }
 
+// Dresses a delta tag for a direction and returns the span its number goes in:
+// arrow for a move, nothing for flat.
+function _paintDeltaTag(tagEl, dir) {
+  tagEl.className = 'delta ' + dir;
+  tagEl.innerHTML = dir === 'flat' ? '' : _deltaArrow(dir === 'pos');
+  const pctEl = document.createElement('span');
+  tagEl.appendChild(pctEl);
+  return pctEl;
+}
+
 // Direction arrow for a delta tag — shared by the header tag and the chart's
 // timeframe change pill.
 function _deltaArrow(up) {
@@ -451,8 +483,8 @@ function renderDelta(isLive, vNowTis, nowRates, anchorTs, animate) {
     animateNumber(pctEl, 0, Math.abs(d.pct), DURATIONS.TOTAL, v => sign + fmtPct(v, 2));
     animateNumber(absEl, 0, Math.abs(d.abs), DURATIONS.TOTAL, v => '· ' + signed(v));
   } else {
-    pctEl.textContent = sign + fmtPct(Math.abs(d.pct), 2);
-    absEl.textContent = '· ' + signed(Math.abs(d.abs));
+    setNumber(pctEl, sign + fmtPct(Math.abs(d.pct), 2));
+    setNumber(absEl, '· ' + signed(Math.abs(d.abs)));
   }
 }
 
@@ -463,10 +495,11 @@ let _lastRenderTotal = 0;
 let _lastDonutAssetTis = 0;
 let _lastDonutBrokerTis = 0;
 
-// The value the header is currently showing, kept so the history chart can end
-// on it instead of on the last saved snapshot. Null while a past date is
-// anchored — that view is history, and it has no "now" to plot.
-let _liveSnapshot = null;
+// What the header is currently showing — the live read, or the past date
+// anchored from the scope picker. The history chart ends on this rather than on
+// the last saved snapshot, and hides its timeframe picker while it is anchored:
+// the range is then fixed, running from the start of history to that date.
+let _viewSnapshot = null;
 
 // Derive all portfolio values from raw prices + assets. Pure — no DOM.
 function _computePortfolio(p, a) {
@@ -524,7 +557,7 @@ function _renderHeaderTotal(totalCzk, animate) {
   if (animate) {
     animateNumber(totalEl, _lastRenderTotal, total, DURATIONS.TOTAL, (v) => fmtGrouped(v));
   } else {
-    totalEl.textContent = fmtGrouped(total);
+    setNumber(totalEl, fmtGrouped(total));
   }
   _lastRenderTotal = total;
 }
@@ -574,7 +607,7 @@ function _animateDonutCenter(centerEl, fromTis, toTis, animate) {
   if (animate) {
     animateNumber(centerEl, fromTis, toTis, DURATIONS.DONUT, format, { html: true });
   } else {
-    centerEl.innerHTML = format(toTis);
+    setNumber(centerEl, format(toTis), { html: true });
   }
 }
 
@@ -767,9 +800,14 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
   renderDelta(isLive, ctx.totalTis, p.rates, anchorTs, animate);
 
   // Read by drawHistoryChart, which every caller runs right after this.
-  _liveSnapshot = isLive
-    ? { ts: p._rawTs ? new Date(p._rawTs).getTime() : Date.now(), tisCzk: ctx.totalTis, rates: p.rates }
-    : null;
+  _viewSnapshot = {
+    ts: isLive
+      ? (p._rawTs ? new Date(p._rawTs).getTime() : Date.now())
+      : new Date(anchorTs).getTime(),
+    tisCzk: ctx.totalTis,
+    rates: p.rates,
+    isLive,
+  };
 
   const assetItems = [
     { key: 'fwra',  value: ctx.vFWRA,  color: 'var(--fwra)',  label: 'FWRA',  shares: ctx.fwra_total },
@@ -922,18 +960,19 @@ function initHistoryChart() {
   }
 }
 
-// The live header value as a chart point, or null while a past date is anchored
-// — that view is history, and it has no "now" to plot.
+// The header's current value as a chart point — the live read, or the anchored
+// date's. Either way it is the value on screen, so the curve ends where the
+// header does.
 //
-// The x axis is built from business days, so a weekend read is positioned on
-// the Friday it actually reflects: markets are shut, so the live value *is*
+// The x axis is built from business days, so a weekend value is positioned on
+// the Friday it reflects: markets are shut, so a live weekend read *is*
 // Friday's close, and it supersedes that day's mid-session snapshot. `xTs`
 // carries that placement while `ts` keeps the real read time for the tooltip.
-function _liveChartPoint() {
-  if (!_liveSnapshot) return null;
-  const value = toDisplay(_liveSnapshot.tisCzk, _liveSnapshot.rates);
+function _viewChartPoint() {
+  if (!_viewSnapshot) return null;
+  const value = toDisplay(_viewSnapshot.tisCzk, _viewSnapshot.rates);
   if (!Number.isFinite(value)) return null;
-  return { ts: _liveSnapshot.ts, xTs: _lastBusinessDay(_liveSnapshot.ts), value };
+  return { ts: _viewSnapshot.ts, xTs: _lastBusinessDay(_viewSnapshot.ts), value };
 }
 
 // Rolls a weekend timestamp back to the Friday whose close it reflects.
@@ -945,19 +984,20 @@ function _lastBusinessDay(ts) {
   return d.getTime();
 }
 
-// Ends the plotted series on the live value rather than on the last saved
-// snapshot. A snapshot from today is superseded rather than drawn alongside —
-// two points on one calendar day share an x position, which would show up as a
-// vertical spike at the right edge.
-function _withLivePoint(data) {
-  const live = _liveChartPoint();
-  if (!live) return data;
+// Ends the plotted series on the header's value rather than on the last saved
+// snapshot. A snapshot from the same day is superseded rather than drawn
+// alongside — two points on one calendar day share an x position, which would
+// show up as a vertical spike at the right edge.
+function _withViewPoint(data) {
+  const view = _viewChartPoint();
+  if (!view) return data;
   const last = data[data.length - 1];
-  const liveDay = _dayStart(live.xTs);
-  // A stored point newer than the live read — clock skew, or a snapshot saved
-  // after the last render — wins, rather than drawing the series backwards.
-  if (last && last.ts > live.ts && _dayStart(last.ts) !== liveDay) return data;
-  return [...data.filter(d => _dayStart(d.ts) !== liveDay), live];
+  const viewDay = _dayStart(view.xTs);
+  // A stored point newer than the header's read — clock skew, or a snapshot
+  // saved after the last render — wins, rather than drawing the series
+  // backwards.
+  if (last && last.ts > view.ts && _dayStart(last.ts) !== viewDay) return data;
+  return [...data.filter(d => _dayStart(d.ts) !== viewDay), view];
 }
 
 // Direction of the change across a plotted range: 'pos' | 'neg' | 'flat'.
@@ -989,7 +1029,19 @@ function _renderChartChange(data, animate) {
 
   const el = document.getElementById('chart-change');
   if (!el) return;
-  if (!data || data.length < 2) { el.hidden = true; return; }
+  const valEl = document.getElementById('chart-change-value');
+  const tagEl = document.getElementById('chart-change-delta');
+  el.hidden = false;
+
+  // A single point is not a range, so there is no change to state. Say that in
+  // place — leaving the previous range's number on screen would read as if it
+  // still applied to what the chart is showing.
+  if (!data || data.length < 2) {
+    el.className = 'chart-change flat';
+    setNumber(valEl, EMPTY_VALUE);
+    tagEl.hidden = true;
+    return;
+  }
 
   const first = data[0].value, last = data[data.length - 1].value;
   // Chart values are in thousands (see _calcPortfolioValue); the headline is a
@@ -1003,21 +1055,15 @@ function _renderChartChange(data, animate) {
   const sign = dir === 'pos' ? '+' : dir === 'neg' ? '-' : '';
 
   el.className = 'chart-change ' + dir;
-  el.hidden = false;
-
-  const valEl = document.getElementById('chart-change-value');
-  const tagEl = document.getElementById('chart-change-delta');
-  tagEl.className = 'delta ' + dir;
-  tagEl.innerHTML = dir === 'flat' ? '' : _deltaArrow(dir === 'pos');
-  const pctEl = document.createElement('span');
-  tagEl.appendChild(pctEl);
+  tagEl.hidden = false;
+  const pctEl = _paintDeltaTag(tagEl, dir);
 
   if (animate) {
     animateNumber(valEl, 0, Math.abs(abs), DURATIONS.TOTAL, v => sign + fmtGrouped(v));
     animateNumber(pctEl, 0, Math.abs(pct), DURATIONS.TOTAL, v => sign + fmtPct(v, 2));
   } else {
-    valEl.textContent = sign + fmtGrouped(Math.abs(abs));
-    pctEl.textContent = sign + fmtPct(Math.abs(pct), 2);
+    setNumber(valEl, sign + fmtGrouped(Math.abs(abs)));
+    setNumber(pctEl, sign + fmtPct(Math.abs(pct), 2));
   }
 }
 
@@ -1027,12 +1073,20 @@ function drawHistoryChart(tf, { animate = true } = {}) {
   if (!svgEl) return;
   svgEl.innerHTML = '';
 
+  // With a past date anchored the range is not the user's to pick: it runs from
+  // the start of history to that date, so the picker steps aside.
+  const anchored = !!_viewSnapshot && !_viewSnapshot.isLive;
+  const btnsEl = document.getElementById('timeframe-btns');
+  if (btnsEl) btnsEl.hidden = anchored;
+
   if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) { _renderChartChange(null); return; }
 
   const all = [...PRICE_HISTORY].sort((a, b) => new Date(a.ts) - new Date(b.ts));
   const now = Date.now();
   let pts;
-  if (tf === 'MAX') {
+  if (anchored) {
+    pts = all.filter(e => new Date(e.ts).getTime() <= _viewSnapshot.ts);
+  } else if (tf === 'MAX') {
     pts = all;
   } else if (tf === 'YTD') {
     const jan1 = new Date(new Date().getFullYear(), 0, 1).getTime();
@@ -1056,8 +1110,9 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     .filter(d => { const dow = new Date(d.ts).getDay(); return dow !== 0 && dow !== 6; });
 
   // The curve — and so the change indicator, which reads its endpoints — ends
-  // on the live header value rather than on the newest stored snapshot.
-  const data = _withLivePoint(stored);
+  // on the value the header is showing rather than on the newest stored
+  // snapshot, live or anchored alike.
+  const data = _withViewPoint(stored);
 
   _renderChartChange(data, animate);
   // Every stroke and fill below follows the range direction, so a losing period

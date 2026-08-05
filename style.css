@@ -283,6 +283,9 @@ body {
   border-radius: var(--radius-sm);
   white-space: nowrap;
 }
+/* The display rule above outranks the UA's [hidden], so hiding a tag from JS
+   needs this — without it a hidden tag keeps showing its last value. */
+.delta[hidden] { display: none; }
 .delta.pos { color: var(--pos); background: var(--pos-soft); border: 1px solid var(--pos-border); }
 .delta.neg { color: var(--neg); background: var(--neg-soft); border: 1px solid var(--neg-border); }
 /* No movement worth signing — neutral, so it reads as "flat", not as a loss. */
@@ -323,6 +326,11 @@ body {
  * One pill container, one active segment. Shared by the chart timeframe
  * picker (.chart-controls) and the settings modal (theme / language).
  */
+/* Hidden while a past date is anchored in the header. Kept in the layout rather
+   than removed, so the label and the value below it do not shift; visibility
+   still takes it out of the tab order and the accessibility tree. The display
+   rules below would otherwise beat the UA's [hidden] { display: none }. */
+.chart-controls[hidden] { visibility: hidden; }
 .segmented,
 .chart-controls {
   display: inline-flex; align-items: stretch;
@@ -583,6 +591,9 @@ body {
 /* Timeframe change — reuses the header's .total / .delta type scale, with the
    value color-coded by direction instead of the neutral header ink. */
 .chart-change { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+/* Only for the pre-render markup state — the display rule above outranks the
+   UA's [hidden], so without this the placeholder would show before first paint. */
+.chart-change[hidden] { display: none; }
 .chart-change .total-ccy { color: inherit; opacity: 0.7; }
 .chart-change.pos  .total { color: var(--pos); }
 .chart-change.neg  .total { color: var(--neg); }
@@ -831,7 +842,9 @@ body {
 /* The card's settings trigger reuses the shared .settings-btn control */
 
 /* Value line */
-#proj-card .card-label { margin-bottom: 20px; }
+/* 14px, not 20: the settings button makes this row 6px taller than its text, so
+   14 puts the same 20px of visible space under the title as the history card. */
+#proj-card .card-label { margin-bottom: 14px; }
 .proj-result-wrap { margin-bottom: 6px; }
 .proj-result-row {
   /* 4px keeps the amount tight to its currency label, matching the header total */
@@ -1260,6 +1273,12 @@ body {
   .chart-header { flex-direction: column; align-items: stretch; gap: 16px; }
   .chart-controls { display: flex; width: 100%; }
   .chart-controls button { flex: 1; padding: 4px 0; }
+  /* Stacked, the picker is a full-width row of its own — reserving that space
+     while it is hidden would leave a gap, so here it is removed outright. */
+  .chart-controls[hidden] { display: none; }
+  /* Stacked, the value sits this far below whichever row is above it — the
+     picker, or the label alone when the picker is hidden. */
+  .chart-top { gap: 14px; }
 
   /* Cal picker: scrollable on small screens */
   .cal-popover { max-height: 70vh; overflow-y: auto; }
