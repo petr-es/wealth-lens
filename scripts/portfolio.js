@@ -355,9 +355,14 @@ function _calcPortfolioValue(entry) {
 }
 
 // ── Delta tag: latest vs most recent entry on a different calendar date ─────
-function _entryDate(entry) {
-  const d = new Date(entry.ts);
+// Local midnight of a timestamp — the unit both the delta walk-back and the
+// history chart compare days in.
+function _dayStart(ts) {
+  const d = new Date(ts);
   return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+}
+function _entryDate(entry) {
+  return _dayStart(entry.ts);
 }
 
 // Difference between two snapshots, expressed in the display currency. Each
@@ -457,6 +462,11 @@ function renderDelta(isLive, vNowTis, nowRates, anchorTs, animate) {
 let _lastRenderTotal = 0;
 let _lastDonutAssetTis = 0;
 let _lastDonutBrokerTis = 0;
+
+// The value the header is currently showing, kept so the history chart can end
+// on it instead of on the last saved snapshot. Null while a past date is
+// anchored — that view is history, and it has no "now" to plot.
+let _liveSnapshot = null;
 
 // Derive all portfolio values from raw prices + assets. Pure — no DOM.
 function _computePortfolio(p, a) {
@@ -756,6 +766,11 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
   _renderHeaderTotal(ctx.totalCzk, animate);
   renderDelta(isLive, ctx.totalTis, p.rates, anchorTs, animate);
 
+  // Read by drawHistoryChart, which every caller runs right after this.
+  _liveSnapshot = isLive
+    ? { ts: p._rawTs ? new Date(p._rawTs).getTime() : Date.now(), tisCzk: ctx.totalTis, rates: p.rates }
+    : null;
+
   const assetItems = [
     { key: 'fwra',  value: ctx.vFWRA,  color: 'var(--fwra)',  label: 'FWRA',  shares: ctx.fwra_total },
     { key: 'avws',  value: ctx.vAVWS,  color: 'var(--avws)',  label: 'AVWS',  shares: ctx.avws_total },
@@ -907,6 +922,44 @@ function initHistoryChart() {
   }
 }
 
+// The live header value as a chart point, or null while a past date is anchored
+// — that view is history, and it has no "now" to plot.
+//
+// The x axis is built from business days, so a weekend read is positioned on
+// the Friday it actually reflects: markets are shut, so the live value *is*
+// Friday's close, and it supersedes that day's mid-session snapshot. `xTs`
+// carries that placement while `ts` keeps the real read time for the tooltip.
+function _liveChartPoint() {
+  if (!_liveSnapshot) return null;
+  const value = toDisplay(_liveSnapshot.tisCzk, _liveSnapshot.rates);
+  if (!Number.isFinite(value)) return null;
+  return { ts: _liveSnapshot.ts, xTs: _lastBusinessDay(_liveSnapshot.ts), value };
+}
+
+// Rolls a weekend timestamp back to the Friday whose close it reflects.
+function _lastBusinessDay(ts) {
+  const d = new Date(ts);
+  const dow = d.getDay();
+  if (dow === 6) d.setDate(d.getDate() - 1);
+  else if (dow === 0) d.setDate(d.getDate() - 2);
+  return d.getTime();
+}
+
+// Ends the plotted series on the live value rather than on the last saved
+// snapshot. A snapshot from today is superseded rather than drawn alongside —
+// two points on one calendar day share an x position, which would show up as a
+// vertical spike at the right edge.
+function _withLivePoint(data) {
+  const live = _liveChartPoint();
+  if (!live) return data;
+  const last = data[data.length - 1];
+  const liveDay = _dayStart(live.xTs);
+  // A stored point newer than the live read — clock skew, or a snapshot saved
+  // after the last render — wins, rather than drawing the series backwards.
+  if (last && last.ts > live.ts && _dayStart(last.ts) !== liveDay) return data;
+  return [...data.filter(d => _dayStart(d.ts) !== liveDay), live];
+}
+
 // Direction of the change across a plotted range: 'pos' | 'neg' | 'flat'.
 // Measured on the rounded amount, so a change that rounds away on screen reads
 // as flat rather than as a signed move. Drives both the indicator and the
@@ -997,10 +1050,14 @@ function drawHistoryChart(tf, { animate = true } = {}) {
   // Each point converts with the FX rates stored for its own day, so the curve
   // shows what the portfolio was worth in the display currency back then — not
   // the past re-priced at today's rate.
-  const data = pts
+  const stored = pts
     .map(e => ({ ts: new Date(e.ts).getTime(), value: toDisplay(_calcPortfolioValue(e), e.rates) }))
     .filter(d => Number.isFinite(d.value))
     .filter(d => { const dow = new Date(d.ts).getDay(); return dow !== 0 && dow !== 6; });
+
+  // The curve — and so the change indicator, which reads its endpoints — ends
+  // on the live header value rather than on the newest stored snapshot.
+  const data = _withLivePoint(stored);
 
   _renderChartChange(data, animate);
   // Every stroke and fill below follows the range direction, so a losing period
@@ -1042,7 +1099,9 @@ function drawHistoryChart(tf, { animate = true } = {}) {
     return pL + (idx >= 0 ? idx : 0) / bdSpan * (cW - hPadR);
   };
   const sy = v => pT + cH - (v - yMin) / yRange * cH;
-  const sp = data.map(d => ({ x: sxBd(d.ts), y: sy(d.value), ts: d.ts, value: d.value }));
+  // Stored points sit on their own day; the live point may carry an `xTs` that
+  // places a weekend read on the Friday it reflects.
+  const sp = data.map(d => ({ x: sxBd(d.xTs ?? d.ts), y: sy(d.value), ts: d.ts, value: d.value }));
 
   // ── Defs: gradient + glow ────────────────────────────────────────────────
   const defs = document.createElementNS(SVG_NS, 'defs');
