@@ -1016,6 +1016,19 @@ function _rangeColor(dir) {
   return dir === 'neg' ? 'var(--neg)' : 'var(--accent)';
 }
 
+// Set while a price fetch has failed. The app still holds the last good data
+// and would happily redraw it — a resize alone is enough — so the flag, not a
+// one-off blanking, is what keeps a stale number off the screen.
+let _pricesUnavailable = false;
+
+// The error overlay covers the chart but not the change line above it, so that
+// line is blanked here — and stays blank until prices actually land, since a
+// currency switch or a resize would otherwise redraw the last good numbers.
+function setPricesUnavailable(unavailable) {
+  _pricesUnavailable = unavailable;
+  if (unavailable) _renderChartChange(null);
+}
+
 // Portfolio value change across the plotted range: the absolute change as the
 // headline number, the percentage as a color-coded tag. Endpoints are the first
 // and last points actually drawn, so a timeframe reaching past our history
@@ -1033,10 +1046,10 @@ function _renderChartChange(data, animate) {
   const tagEl = document.getElementById('chart-change-delta');
   el.hidden = false;
 
-  // A single point is not a range, so there is no change to state. Say that in
-  // place — leaving the previous range's number on screen would read as if it
-  // still applied to what the chart is showing.
-  if (!data || data.length < 2) {
+  // A single point is not a range, and unavailable prices are not a range
+  // either. Say that in place — leaving the previous number on screen would
+  // read as if it still applied to what the chart is showing.
+  if (_pricesUnavailable || !data || data.length < 2) {
     el.className = 'chart-change flat';
     setNumber(valEl, EMPTY_VALUE);
     tagEl.hidden = true;

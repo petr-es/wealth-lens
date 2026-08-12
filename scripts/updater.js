@@ -59,6 +59,12 @@ function showOverlay(state, msgText = '') {
     if (el) el.style.display = state ? 'none' : '';
   });
   document.getElementById('app').classList.toggle('is-loading-root', state === 'loading');
+  // The history card's change line lives outside the overlay, so it has to be
+  // blanked by hand. Clearing on the way out — this runs before the render that
+  // follows a successful fetch — is what lets the numbers come back. The loading
+  // state leaves the flag alone; .is-loading-root already hides the line.
+  if (state === 'error') setPricesUnavailable(true);
+  else if (!state) setPricesUnavailable(false);
 }
 
 function setLoadingState() {
