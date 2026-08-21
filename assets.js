@@ -7,6 +7,13 @@ const ASSETS = {
     currency: 'EUR',
     holdings: { t212: 0, ibkr: 11834, rev: 0 },
   },
+  vgla: {
+    ticker:   'VGLA.DE',
+    name:     'Vanguard FTSE Global All-Cap',
+    yahooUrl: 'https://finance.yahoo.com/quote/VGLA.DE',
+    currency: 'EUR',
+    holdings: { t212: 0, ibkr: 0 },
+  },
   avws: {
     ticker:   'AVWS.DE',
     name:     'Avantis Global Small Cap Value',

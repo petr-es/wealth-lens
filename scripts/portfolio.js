@@ -305,26 +305,44 @@ function buildSparkline(data, color, { width = SPARK.WIDTH, height = SPARK.HEIGH
 }
 
 // ── Per-asset 30D price history ─────────────────────────────────────────────
+// A snapshot that carries no price for an asset is missing data, not a price of
+// zero — the asset had a price that day, we simply were not tracking it yet.
+// The distinction drives the sparkline: priceSeriesForAsset drops non-finite
+// points, so the chart scales to the prices that actually exist. Substituting 0
+// would instead pin the y axis to the origin and squash every real move into the
+// top pixel until the last gap scrolled out of the 30-entry window — roughly six
+// weeks of a flat, uncoloured line for any newly added asset.
+const MISSING_PRICE = NaN;
+
 function _pricePerUnit(entry, assetKey) {
   const eur = entry.rates.EUR_CZK || 0;
   const usd = entry.rates.USD_CZK || 0;
-  if (assetKey === 'fwra') return (entry.prices.FWRA_EUR || 0) * eur;
-  if (assetKey === 'avws') return (entry.prices.AVWS_EUR || 0) * eur;
-  if (assetKey === 'spyy') return (entry.prices.SPYY_EUR || 0) * eur;
-  if (assetKey === 's')    return (entry.prices.S_USD    || 0) * usd;
-  if (assetKey === 'ib1t') return (entry.prices.IB1T_EUR || 0) * eur;
+  const prices = entry.prices || {};
+  // Per-unit price in CZK, or MISSING_PRICE when this snapshot predates the
+  // asset being tracked. Guards on the key itself rather than on truthiness, so
+  // a genuine 0 would still be honoured.
+  const quoted = (key, rate) => (prices[key] == null ? MISSING_PRICE : prices[key] * rate);
+  if (assetKey === 'fwra') return quoted('FWRA_EUR', eur);
+  if (assetKey === 'vgla') return quoted('VGLA_EUR', eur);
+  if (assetKey === 'avws') return quoted('AVWS_EUR', eur);
+  if (assetKey === 'spyy') return quoted('SPYY_EUR', eur);
+  if (assetKey === 's')    return quoted('S_USD',    usd);
+  if (assetKey === 'ib1t') return quoted('IB1T_EUR', eur);
   if (assetKey === 'alpha') {
     const a = entry.assets && entry.assets.alpha;
-    return a ? (a.fixedCzk || 0) : 0;
+    return a ? (a.fixedCzk || 0) : MISSING_PRICE;
   }
   if (assetKey === 'cash') {
-    const ch = (entry.assets && entry.assets.cash) || {};
+    // An entry with a cash record but empty balances really is zero cash; one
+    // with no record at all predates cash tracking.
+    const ch = entry.assets && entry.assets.cash;
+    if (!ch) return MISSING_PRICE;
     const czk = (ch.ibkr_czk||0) + (ch.t212_czk||0) + (ch.rev_czk||0);
     const eur_ = (ch.ibkr_eur||0) + (ch.t212_eur||0) + (ch.rev_eur||0);
     const usd_ = (ch.ibkr_usd||0) + (ch.t212_usd||0) + (ch.rev_usd||0);
     return czk + eur_ * eur + usd_ * usd;
   }
-  return 0;
+  return MISSING_PRICE;
 }
 
 // Get last N entries' per-unit price series for an asset.
@@ -354,12 +372,13 @@ function _calcPortfolioValue(entry) {
   const EUR = entry.rates.EUR_CZK || 0;
   const USD = entry.rates.USD_CZK || 0;
   const F    = (entry.prices.FWRA_EUR  || 0) * EUR;
+  const VG   = (entry.prices.VGLA_EUR  || 0) * EUR;
   const AV   = (entry.prices.AVWS_EUR  || 0) * EUR;
   const P    = (entry.prices.SPYY_EUR  || 0) * EUR;
   const S    = (entry.prices.S_USD     || 0) * USD;
   const IB1T = (entry.prices.IB1T_EUR  || 0) * EUR;
   const a = entry.assets || {};
-  const fh = a.fwra || {}, vh = a.avws || {}, ph = a.spyy || {}, sh = a.s || {}, bh = a.ib1t || {};
+  const fh = a.fwra || {}, vgh = a.vgla || {}, avh = a.avws || {}, ph = a.spyy || {}, sh = a.s || {}, bh = a.ib1t || {};
   const alpha = a.alpha ? (a.alpha.fixedCzk || 0) : 0;
   const ch = a.cash || {};
   const cashTis = (
@@ -368,7 +387,8 @@ function _calcPortfolioValue(entry) {
     ((ch.ibkr_usd||0) + (ch.t212_usd||0) + (ch.rev_usd||0)) * USD
   ) / 1000;
   return ((fh.t212||0)+(fh.ibkr||0)+(fh.rev||0)) * F / 1000
-       + ((vh.t212||0)+(vh.ibkr||0)) * AV / 1000
+       + ((vgh.t212||0)+(vgh.ibkr||0)) * VG / 1000
+       + ((avh.t212||0)+(avh.ibkr||0)) * AV / 1000
        + ((ph.t212||0)+(ph.ibkr||0)) * P / 1000
        + ((sh.ibkr||0)+(sh.etrade||0)) * S / 1000
        + (bh.ibkr||0) * IB1T / 1000
@@ -506,12 +526,14 @@ function _computePortfolio(p, a) {
   const EUR_CZK = p.rates.EUR_CZK;
   const USD_CZK = p.rates.USD_CZK;
   const FWRA_PX  = (p.prices.FWRA_EUR  || 0) * EUR_CZK;
+  const VGLA_PX  = (p.prices.VGLA_EUR  || 0) * EUR_CZK;
   const AVWS_PX  = (p.prices.AVWS_EUR  || 0) * EUR_CZK;
   const SPYY_PX  = (p.prices.SPYY_EUR  || 0) * EUR_CZK;
   const S_PX     = (p.prices.S_USD     || 0) * USD_CZK;
   const IB1T_PX  = (p.prices.IB1T_EUR  || 0) * EUR_CZK;
 
   const fwra_total  = (a.fwra.holdings.t212 || 0) + (a.fwra.holdings.ibkr || 0) + (a.fwra.holdings.rev || 0);
+  const vgla_total  = (a.vgla.holdings.t212 || 0) + (a.vgla.holdings.ibkr || 0);
   const avws_total  = (a.avws.holdings.t212 || 0) + (a.avws.holdings.ibkr || 0);
   const spyy_total  = (a.spyy.holdings.t212 || 0) + (a.spyy.holdings.ibkr || 0);
   const s_ibkr      =  a.s.holdings.ibkr    || 0;
@@ -525,27 +547,30 @@ function _computePortfolio(p, a) {
   const cashRev  = ((ch.rev_czk||0)  + (ch.rev_eur||0)  * EUR_CZK + (ch.rev_usd||0)  * USD_CZK) / 1000;
 
   const vFWRA  = fwra_total  * FWRA_PX  / 1000;
+  const vVGLA  = vgla_total  * VGLA_PX  / 1000;
   const vAVWS  = avws_total  * AVWS_PX  / 1000;
   const vSPYY  = spyy_total  * SPYY_PX  / 1000;
   const vS     = s_total     * S_PX     / 1000;
   const vIB1T  = ib1t_total  * IB1T_PX  / 1000;
   const vAlpha = a.alpha.fixedCzk;
   const vCash  = cashIBKR + cashT212 + cashRev;
-  const totalTis = vFWRA + vAVWS + vSPYY + vS + vIB1T + vAlpha + vCash;
+  const totalTis = vFWRA + vVGLA + vAVWS + vSPYY + vS + vIB1T + vAlpha + vCash;
 
+  const vgla_t212 = (a.vgla.holdings.t212 || 0) * VGLA_PX / 1000;
+  const vgla_ibkr = (a.vgla.holdings.ibkr || 0) * VGLA_PX / 1000;
   const avws_t212 = (a.avws.holdings.t212 || 0) * AVWS_PX / 1000;
   const avws_ibkr = (a.avws.holdings.ibkr || 0) * AVWS_PX / 1000;
   const spyy_t212 = (a.spyy.holdings.t212 || 0) * SPYY_PX / 1000;
   const spyy_ibkr = (a.spyy.holdings.ibkr || 0) * SPYY_PX / 1000;
-  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + avws_t212 + spyy_t212 + vAlpha + cashT212;
-  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + avws_ibkr + spyy_ibkr + s_ibkr * S_PX / 1000 + vIB1T + cashIBKR;
+  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + vgla_t212 + avws_t212 + spyy_t212 + vAlpha + cashT212;
+  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + vgla_ibkr + avws_ibkr + spyy_ibkr + s_ibkr * S_PX / 1000 + vIB1T + cashIBKR;
   const bRev    = (a.fwra.holdings.rev  || 0) * FWRA_PX / 1000 + cashRev;
   const bEtrade = s_etrade * S_PX / 1000;
 
   return {
-    EUR_CZK, USD_CZK, FWRA_PX, AVWS_PX, SPYY_PX, S_PX, IB1T_PX,
-    fwra_total, avws_total, spyy_total, s_total, ib1t_total,
-    vFWRA, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash,
+    EUR_CZK, USD_CZK, FWRA_PX, VGLA_PX, AVWS_PX, SPYY_PX, S_PX, IB1T_PX,
+    fwra_total, vgla_total, avws_total, spyy_total, s_total, ib1t_total,
+    vFWRA, vVGLA, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash,
     totalTis, totalCzk: totalTis * 1000,
     bT212, bIBKR, bRev, bEtrade,
   };
@@ -635,7 +660,7 @@ function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares,
 }
 
 function _renderPriceTable(p, a, ctx, anchorTs) {
-  const { vFWRA, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash, fwra_total, avws_total, spyy_total, s_total, ib1t_total } = ctx;
+  const { vFWRA, vVGLA, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash, fwra_total, vgla_total, avws_total, spyy_total, s_total, ib1t_total } = ctx;
   const ch = a.cash.holdings;
   const totalCashCzk = (ch.ibkr_czk||0) + (ch.t212_czk||0) + (ch.rev_czk||0);
   const totalCashEur = (ch.ibkr_eur||0) + (ch.t212_eur||0) + (ch.rev_eur||0);
@@ -651,6 +676,11 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
       price: p.prices.FWRA_EUR ? `€${fmtNum(p.prices.FWRA_EUR, 2)}` : '—',
       qty: fmtShares(fwra_total),
       valCzk: vFWRA * 1000 },
+    { _v: vVGLA,  key: 'vgla',  color: 'var(--vgla)',
+      ticker: a.vgla.ticker, name: a.vgla.name, url: a.vgla.yahooUrl,
+      price: p.prices.VGLA_EUR ? `€${fmtNum(p.prices.VGLA_EUR, 2)}` : '—',
+      qty: fmtShares(vgla_total),
+      valCzk: vVGLA * 1000 },
     { _v: vAVWS,  key: 'avws',  color: 'var(--avws)',
       ticker: a.avws.ticker, name: a.avws.name, url: a.avws.yahooUrl,
       price: p.prices.AVWS_EUR ? `€${fmtNum(p.prices.AVWS_EUR, 2)}` : '—',
@@ -811,6 +841,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
 
   const assetItems = [
     { key: 'fwra',  value: ctx.vFWRA,  color: 'var(--fwra)',  label: 'FWRA',  shares: ctx.fwra_total },
+    { key: 'vgla',  value: ctx.vVGLA,  color: 'var(--vgla)',  label: 'VGLA',  shares: ctx.vgla_total },
     { key: 'avws',  value: ctx.vAVWS,  color: 'var(--avws)',  label: 'AVWS',  shares: ctx.avws_total },
     { key: 'spyy',  value: ctx.vSPYY,  color: 'var(--spyy)',  label: 'SPYY',  shares: ctx.spyy_total },
     { key: 'alpha', value: ctx.vAlpha, color: 'var(--alpha)', label: 'Stocks', shares: null },
