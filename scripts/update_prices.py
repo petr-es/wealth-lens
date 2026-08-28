@@ -5,30 +5,28 @@ import json
 import re
 import sys
 from datetime import datetime
+from pathlib import Path
 import pytz
 import yfinance as yf
 
-
-TICKERS = {
-    'FWRA_EUR':  'FWRA.MI',
-    'ALLW_EUR':  'ALLW.DE',
-    'AVWS_EUR':  'AVWS.DE',
-    'SPYY_EUR':  'SPYY.DE',
-    'S_USD':     'S',
-    'IB1T_EUR':  'IB1T.DE',
-    'EUR_CZK':   'EURCZK=X',
-    'USD_CZK':   'USDCZK=X',
-}
-
-# Every position and cash balance converts through these, so a snapshot
-# without them is meaningless — they gate the update unconditionally.
-RATE_KEYS = ('EUR_CZK', 'USD_CZK')
+# Which symbols to fetch, and which of them are the FX rates, are shared with
+# the live price endpoint rather than restated here — two copies could drift,
+# and then the recorded history and the dashboard would disagree about which
+# funds exist. Same import route the dev server uses.
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from api.prices import TICKERS, RATE_KEYS
 
 HISTORY = 'history.js'
 ASSETS  = 'assets.js'
 
 
 def fetch_price(symbol: str):
+    """Deliberately not shared with api.prices.fetch_price.
+
+    This one names the failure on stderr so a symbol Yahoo would not serve is
+    visible in the Actions log of a run that recorded nothing. The endpoint
+    stays silent and reports through its JSON response instead.
+    """
     try:
         info = yf.Ticker(symbol).info
         val = info.get('regularMarketPrice') or info.get('previousClose')
