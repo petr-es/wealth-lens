@@ -2,8 +2,10 @@ name: Update prices
 
 on:
   schedule:
-    # 14:00 Prague (CEST = UTC+2, summer) / 13:00 (CET = UTC+1, winter)
-    - cron: '0 12 * * 1-5'
+    # Noon Prague, weekdays. Cron is UTC and has no notion of DST, so this
+    # is 12:00 during CEST (UTC+2) and 11:00 during CET (UTC+1) — switch to
+    # '0 11 * * 1-5' at the October changeover to hold noon through winter.
+    - cron: '0 10 * * 1-5'
   workflow_dispatch: # allow manual trigger
 
 jobs:

@@ -93,6 +93,12 @@ def required_keys(assets: dict, priced: dict) -> set:
     }
 
 
+def _prague_day(ts: str, prague):
+    """Calendar day a snapshot belongs to, in the timezone the app renders."""
+    return datetime.strptime(ts, '%Y-%m-%dT%H:%M:%SZ') \
+        .replace(tzinfo=pytz.utc).astimezone(prague).date()
+
+
 def main():
     prague = pytz.timezone('Europe/Prague')
     now = datetime.now(prague)
@@ -137,6 +143,15 @@ def main():
     except Exception:
         existing = []
 
+    # One snapshot per Prague day, and the newest wins: a run that lands
+    # after the day already has an entry — a delayed schedule, or a manual
+    # dispatch — replaces it rather than appending. Two entries for one day
+    # would otherwise cost the sparkline a day of history, since it plots
+    # the last 30 *entries* rather than the last 30 days.
+    kept = [e for e in existing if _prague_day(e['ts'], prague) != now.date()]
+    if len(kept) != len(existing):
+        print(f'  replacing the existing entry for {now.date()} with this one.')
+    existing = kept
     existing.append(entry)
     with open(HISTORY, 'w', encoding='utf-8') as f:
         f.write(f'var PRICE_HISTORY={json.dumps(existing, indent=2)};\n')
