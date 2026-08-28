@@ -20,6 +20,11 @@
   --rev:    #c2c6cc;
   --etrade: #a78bfa;
   --cash:   #94a3b8;
+  
+    /* Composition donut groups by exposure, not by instrument: FWRA + ALLW are
+     one "Global" slice, AVWS is the "Small" one. */
+  --global: #4ade80;
+  --small:  #38bdf8;
 
   /* Dark theme (default) */
   --bg-0: oklch(0.13 0.015 260);
@@ -48,6 +53,7 @@
 
   /* Control tokens */
   --control-height: 26px;
+  --segment-height: 28px; /* segmented controls; taller than --control-height */
   --segment-inset: 3px;   /* gap between a segmented control and its segments */
   --control-bg: oklch(0 0 0 / 0.2);
   --control-active: oklch(1 0 0 / 0.08);
@@ -279,7 +285,10 @@ body {
 /* Delta tag */
 .delta {
   display: inline-flex; align-items: center; gap: 5px;
-  padding: 3px 10px;
+  /* Matches the header controls it sits beside — the scope picker and the
+     settings trigger. Fixed rather than padding-derived, so the pill keeps its
+     size when a direction class adds its 1px border. */
+  height: var(--control-height); padding: 0 10px;
   font-family: var(--mono); font-size: 11px;
   border-radius: var(--radius-sm);
   white-space: nowrap;
@@ -335,6 +344,9 @@ body {
 .segmented,
 .chart-controls {
   display: inline-flex; align-items: stretch;
+  /* Fixed so every segmented control matches, whatever sits in a segment —
+     text of any locale, or a bare icon. */
+  height: var(--segment-height);
   gap: 2px;
   padding: var(--segment-inset);
   background: var(--control-bg);
@@ -348,7 +360,7 @@ body {
   color: var(--text-2);
   background: transparent;
   border: none;
-  padding: 4px 12px;
+  padding: 0 12px;
   /* Outer radius minus the inset keeps the segment concentric with the container */
   border-radius: calc(var(--radius-sm) - var(--segment-inset));
   cursor: pointer;
@@ -356,6 +368,10 @@ body {
   transition: all var(--duration-fast);
   font-weight: 500;
 }
+/* Icon-only variant — the wide text padding would leave a stretched pill
+   around a 13px glyph, so the segments are squared off instead. */
+.segmented--icons button { padding: 0 8px; }
+.segmented--icons svg { display: block; }
 .segmented button:hover,
 .chart-controls button:hover { color: var(--text-1); }
 .segmented button.active,
@@ -392,6 +408,9 @@ body {
   display: flex; align-items: center; justify-content: space-between;
   margin-bottom: 24px;
 }
+/* Only the assets card carries a control in its label, but both cards in the
+   top grid reserve its height so the two donuts stay on the same baseline. */
+.grid-top .card-label { min-height: var(--segment-height); }
 
 /* ── Grid ──────────────────────────────────────────────────────────────── */
 .grid-top { display: grid; grid-template-columns: 1fr 1fr; gap: var(--grid-gap); margin-bottom: var(--grid-gap); }
@@ -1273,7 +1292,7 @@ body {
   /* Full-width timeframe selector */
   .chart-header { flex-direction: column; align-items: stretch; gap: 16px; }
   .chart-controls { display: flex; width: 100%; }
-  .chart-controls button { flex: 1; padding: 4px 0; }
+  .chart-controls button { flex: 1; padding: 0; }
   /* Stacked, the picker is a full-width row of its own — reserving that space
      while it is hidden would leave a gap, so here it is removed outright. */
   .chart-controls[hidden] { display: none; }

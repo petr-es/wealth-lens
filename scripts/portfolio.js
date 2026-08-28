@@ -590,6 +590,73 @@ function _renderHeaderTotal(totalCzk, animate) {
   _lastRenderTotal = total;
 }
 
+// ── Asset composition view ──────────────────────────────────────────────────
+// The composition donut can be read two ways, and the switch in its card label
+// picks which:
+//   grouped — by exposure. FWRA and ALLW track the same broad global market, so
+//             they collapse into one "Global" slice, and AVWS is labelled by
+//             what it actually adds to the mix — small caps.
+//   split   — by instrument, one row per position.
+// Only this widget follows the setting; the assets table always lists every
+// position separately.
+//
+// Depends on: safeStorage (lang-init.js).
+const ASSET_VIEW_KEY = 'wl.assetView';
+const ASSET_VIEWS = ['grouped', 'split'];
+
+let ASSET_VIEW = (function initAssetView() {
+  const saved = safeStorage.get(ASSET_VIEW_KEY);
+  return ASSET_VIEWS.includes(saved) ? saved : 'grouped';
+})();
+
+// Mark the active segment — also covers the initial load, which restores the
+// saved view without a click.
+function syncAssetViewControl() {
+  document.querySelectorAll('#asset-view-toggle button').forEach(b => {
+    const on = b.dataset.assetView === ASSET_VIEW;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+}
+
+function setAssetView(view) {
+  if (!ASSET_VIEWS.includes(view) || view === ASSET_VIEW) return;
+  ASSET_VIEW = view;
+  safeStorage.set(ASSET_VIEW_KEY, view);
+  syncAssetViewControl();
+  document.dispatchEvent(new CustomEvent('wl:asset-view-change', { detail: { view } }));
+}
+
+// Donut segments for the current view. Zero-valued positions drop out (sold
+// holdings stay in ASSETS for history), and Cash is pinned last regardless of
+// size — it is the residual, not an allocation decision.
+function buildAssetItems(ctx) {
+  const global = ASSET_VIEW === 'grouped'
+    // Shares are deliberately omitted for the merged slice: the two ETFs have
+    // different unit prices, so a summed KS figure would be meaningless.
+    ? [{ key: 'global', value: ctx.vFWRA + ctx.vALLW, color: 'var(--global)', label: 'Global', shares: null }]
+    : [
+        { key: 'fwra', value: ctx.vFWRA, color: 'var(--fwra)', label: 'FWRA', shares: ctx.fwra_total },
+        { key: 'allw', value: ctx.vALLW, color: 'var(--allw)', label: 'ALLW', shares: ctx.allw_total },
+      ];
+  const smallColor = ASSET_VIEW === 'grouped' ? 'var(--small)' : 'var(--avws)';
+  const smallLabel = ASSET_VIEW === 'grouped' ? 'Small' : 'AVWS';
+
+  return [
+    ...global,
+    { key: 'avws',  value: ctx.vAVWS,  color: smallColor,     label: smallLabel, shares: ctx.avws_total },
+    { key: 'spyy',  value: ctx.vSPYY,  color: 'var(--spyy)',  label: 'SPYY',  shares: ctx.spyy_total },
+    { key: 'alpha', value: ctx.vAlpha, color: 'var(--alpha)', label: 'Stocks', shares: null },
+    { key: 's',     value: ctx.vS,     color: 'var(--s)',     label: 'S',     shares: ctx.s_total },
+    { key: 'ib1t',  value: ctx.vIB1T,  color: 'var(--ib1t)',  label: 'IB1T',  shares: ctx.ib1t_total },
+    ...(ctx.vCash > 0 ? [{ key: 'cash', value: ctx.vCash, color: 'var(--cash)', label: 'Cash', shares: null }] : []),
+  ].filter(x => x.value > 0).sort((x, y) => {
+    if (x.key === 'cash') return 1;
+    if (y.key === 'cash') return -1;
+    return y.value - x.value;
+  });
+}
+
 function _buildAllocRow(item, totalTis, includeShares) {
   const row = document.createElement('div');
   row.className = 'alloc-row';
@@ -842,20 +909,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
     isLive,
   };
 
-  const assetItems = [
-    { key: 'fwra',  value: ctx.vFWRA,  color: 'var(--fwra)',  label: 'FWRA',  shares: ctx.fwra_total },
-    { key: 'allw',  value: ctx.vALLW,  color: 'var(--allw)',  label: 'ALLW',  shares: ctx.allw_total },
-    { key: 'avws',  value: ctx.vAVWS,  color: 'var(--avws)',  label: 'AVWS',  shares: ctx.avws_total },
-    { key: 'spyy',  value: ctx.vSPYY,  color: 'var(--spyy)',  label: 'SPYY',  shares: ctx.spyy_total },
-    { key: 'alpha', value: ctx.vAlpha, color: 'var(--alpha)', label: 'Stocks', shares: null },
-    { key: 's',     value: ctx.vS,     color: 'var(--s)',     label: 'S',     shares: ctx.s_total },
-    { key: 'ib1t',  value: ctx.vIB1T,  color: 'var(--ib1t)',  label: 'IB1T',  shares: ctx.ib1t_total },
-    ...(ctx.vCash > 0 ? [{ key: 'cash', value: ctx.vCash, color: 'var(--cash)', label: 'Cash', shares: null }] : []),
-  ].filter(x => x.value > 0).sort((x, y) => {
-    if (x.key === 'cash') return 1;
-    if (y.key === 'cash') return -1;
-    return y.value - x.value;
-  });
+  const assetItems = buildAssetItems(ctx);
 
   _lastDonutAssetTis = _renderDonut({
     svgId: 'donut-assets', listId: 'list-assets', centerId: 'center-assets',

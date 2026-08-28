@@ -75,7 +75,29 @@
   <div class="grid-top">
 
     <div class="card">
-      <div class="card-label"><span data-i18n="assetsByAsset">Složení dle aktiva</span></div>
+      <div class="card-label">
+        <span data-i18n="assetsByAsset">Složení dle aktiva</span>
+        <!-- Grouped rolls the all-world trackers into one slice, split lists
+             every instrument; affects this widget only. Each glyph is the
+             widget's own donut, cut into few slices or many — arc lengths are
+             a dasharray over r=5 (circumference 31.4). With no text node to
+             translate, the label lives in aria-label / title, filled by
+             applyLang() from data-i18n-label. -->
+        <div class="segmented segmented--icons" id="asset-view-toggle" role="group" aria-label="Composition view">
+          <button type="button" data-asset-view="grouped" data-i18n-label="viewGrouped">
+            <svg viewBox="0 0 14 14" width="13" height="13" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.75"
+                      stroke-dasharray="13.5 2.2" stroke-linecap="butt"/>
+            </svg>
+          </button>
+          <button type="button" data-asset-view="split" data-i18n-label="viewSplit">
+            <svg viewBox="0 0 14 14" width="13" height="13" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.75"
+                      stroke-dasharray="4.48 1.8" stroke-linecap="butt"/>
+            </svg>
+          </button>
+        </div>
+      </div>
       <div class="card-overlay" id="overlay-assets"></div>
       <div class="alloc" id="content-assets">
         <div class="donut-wrap">

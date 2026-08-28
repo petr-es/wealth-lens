@@ -56,6 +56,14 @@ function applyLang() {
     const key = el.getAttribute('data-i18n');
     if (LANG[key] !== undefined) el.textContent = LANG[key];
   });
+  // Icon-only controls have no text node to translate — their name lives in
+  // aria-label (screen readers) and title (hover tooltip) instead.
+  document.querySelectorAll('[data-i18n-label]').forEach(el => {
+    const key = el.getAttribute('data-i18n-label');
+    if (LANG[key] === undefined) return;
+    el.setAttribute('aria-label', LANG[key]);
+    el.setAttribute('title', LANG[key]);
+  });
   document.documentElement.lang = LANG.locale;
   // The CZK label is locale-dependent ("Kč" / "CZK"), so currency slots refresh
   // with the language too.
@@ -109,6 +117,16 @@ document.querySelectorAll('#currency-toggle button').forEach(b => {
   b.addEventListener('click', () => setCurrency(b.dataset.currency));
 });
 document.addEventListener('wl:currency-change', () => rerenderValues());
+
+// ── Asset composition view (grouped / split) ────────────────────────────────
+// Same split of duties as the currency control: setAssetView (portfolio.js)
+// owns the state, persistence and the segment's active mark, this module wires
+// the clicks and repaints. Nothing about the portfolio moved, so no animation.
+document.querySelectorAll('#asset-view-toggle button').forEach(b => {
+  b.addEventListener('click', () => setAssetView(b.dataset.assetView));
+});
+document.addEventListener('wl:asset-view-change', () => rerenderValues());
+syncAssetViewControl();
 
 // ── Settings modal (theme + language) ───────────────────────────────────────
 // Holds the theme and locale controls; opened from the header on desktop and

@@ -4,6 +4,8 @@ const LANG_CS = {
   assetsByBroker: 'Složení dle brokera',
   assets:         'Aktiva',
   portfolioHistory: 'Historie',
+  viewGrouped:    'Sloučeně',
+  viewSplit:      'Odděleně',
 
   // Záhlaví tabulek
   colAsset:       'Aktivum',

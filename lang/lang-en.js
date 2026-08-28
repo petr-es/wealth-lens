@@ -4,6 +4,8 @@ const LANG_EN = {
   assetsByBroker: 'Composition by broker',
   assets:         'Assets',
   portfolioHistory: 'History',
+  viewGrouped:    'Grouped',
+  viewSplit:      'Split',
 
   // Table headers
   colAsset:       'Asset',
