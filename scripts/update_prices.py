@@ -11,7 +11,7 @@ import yfinance as yf
 
 TICKERS = {
     'FWRA_EUR':  'FWRA.MI',
-    'VGLA_EUR':  'VGLA.DE',
+    'ALLW_EUR':  'ALLW.DE',
     'AVWS_EUR':  'AVWS.DE',
     'SPYY_EUR':  'SPYY.DE',
     'S_USD':     'S',
@@ -20,7 +20,9 @@ TICKERS = {
     'USD_CZK':   'USDCZK=X',
 }
 
-REQUIRED = {'FWRA_EUR', 'VGLA_EUR', 'AVWS_EUR', 'SPYY_EUR', 'S_USD', 'IB1T_EUR', 'EUR_CZK', 'USD_CZK'}
+# Every position and cash balance converts through these, so a snapshot
+# without them is meaningless — they gate the update unconditionally.
+RATE_KEYS = ('EUR_CZK', 'USD_CZK')
 
 HISTORY = 'history.js'
 ASSETS  = 'assets.js'
@@ -36,11 +38,30 @@ def fetch_price(symbol: str):
         return None
 
 
-def parse_assets() -> dict:
+def parse_price_keys() -> dict:
+    """Price key -> asset key, read from the priceKey fields in assets.js.
+
+    assets.js is the single place that declares which price field an asset
+    is quoted by, so adding a fund does not mean keeping a parallel list
+    here in step by hand. Dict order follows the file, which is the order
+    snapshots record prices in.
+
+    The Yahoo symbol still lives in TICKERS: it is not always the asset's
+    own ticker (S.NYSE is quoted as plain 'S'), so it cannot be derived.
+    """
+    with open(ASSETS, 'r', encoding='utf-8') as f:
+        content = f.read()
+    return {
+        m.group(2): m.group(1)
+        for m in re.finditer(r"(?m)^\s+(\w+):\s*\{[^}]*?priceKey:\s*'(\w+)'", content)
+    }
+
+
+def parse_assets(priced: dict) -> dict:
     with open(ASSETS, 'r', encoding='utf-8') as f:
         content = f.read()
     result = {}
-    for name in ('fwra', 'vgla', 'avws', 'spyy', 's', 'ib1t', 'cash'):
+    for name in tuple(priced.values()) + ('cash',):
         m = re.search(rf'(?m)^\s+{name}:\s*\{{.*?holdings:\s*\{{([^}}]+)\}}', content, re.DOTALL)
         if m:
             result[name] = {
@@ -51,6 +72,25 @@ def parse_assets() -> dict:
     if alpha_m:
         result['alpha'] = {'fixedCzk': float(alpha_m.group(1))}
     return result
+
+
+def required_keys(assets: dict, priced: dict) -> set:
+    """Rates, plus a price for each asset actually held.
+
+    Every ticker is still fetched and stored, holdings or not: the history
+    is a price record, and an unbroken series is what lets a fund's
+    sparkline span a period spent out of the market. But only a held asset
+    may *gate* the update. Letting a zero-holding fund do so means one
+    Yahoo hiccup on a position worth nothing discards the entire snapshot,
+    including the prices of the positions that are worth something.
+
+    An omitted key reads back as MISSING_PRICE in portfolio.js, which drops
+    the point from the sparkline rather than charting a fake zero.
+    """
+    return set(RATE_KEYS) | {
+        key for key, name in priced.items()
+        if sum(assets.get(name, {}).values()) > 0
+    }
 
 
 def main():
@@ -65,16 +105,29 @@ def main():
             prices[key] = price
             print(f'  {symbol}: {price}')
 
-    missing = REQUIRED - set(prices.keys())
+    priced = parse_price_keys()
+    if not priced:
+        # Every asset is declared in assets.js; parsing none of them means
+        # the file is unreadable, not that the portfolio is empty. Writing
+        # a priceless snapshot would silently corrupt the history.
+        print('ERROR: no priceKey declarations found in assets.js — history not updated.', file=sys.stderr)
+        sys.exit(1)
+    assets = parse_assets(priced)
+
+    missing = required_keys(assets, priced) - set(prices.keys())
     if missing:
         print(f'ERROR: missing prices: {", ".join(sorted(missing))} — history not updated.', file=sys.stderr)
         sys.exit(1)
 
+    omitted = [k for k in priced if k not in prices]
+    if omitted:
+        print(f'  NOTE: no price for unheld {", ".join(omitted)} — omitted from this snapshot.')
+
     entry = {
         'ts': now.astimezone(pytz.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
-        'rates':  {k: prices[k] for k in ['EUR_CZK', 'USD_CZK']},
-        'prices': {k: prices[k] for k in ['FWRA_EUR', 'VGLA_EUR', 'AVWS_EUR', 'SPYY_EUR', 'S_USD', 'IB1T_EUR']},
-        'assets': parse_assets(),
+        'rates':  {k: prices[k] for k in RATE_KEYS},
+        'prices': {k: prices[k] for k in priced if k in prices},
+        'assets': assets,
     }
 
     try:

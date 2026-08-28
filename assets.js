@@ -2,27 +2,31 @@
 const ASSETS = {
   fwra: {
     ticker:   'FWRA.MI',
+    priceKey: 'FWRA_EUR',
     name:     'Invesco FTSE All-World',
     yahooUrl: 'https://finance.yahoo.com/quote/FWRA.MI',
     currency: 'EUR',
     holdings: { t212: 0, ibkr: 11834, rev: 0 },
   },
-  vgla: {
-    ticker:   'VGLA.DE',
-    name:     'Vanguard FTSE Global All-Cap',
-    yahooUrl: 'https://finance.yahoo.com/quote/VGLA.DE',
+  allw: {
+    ticker:   'ALLW.DE',
+    priceKey: 'ALLW_EUR',
+    name:     'Xtrackers FTSE All-World',
+    yahooUrl: 'https://finance.yahoo.com/quote/ALLW.DE',
     currency: 'EUR',
-    holdings: { t212: 0, ibkr: 0 },
+    holdings: { t212: 299, ibkr: 0 },
   },
   avws: {
     ticker:   'AVWS.DE',
+    priceKey: 'AVWS_EUR',
     name:     'Avantis Global Small Cap Value',
     yahooUrl: 'https://finance.yahoo.com/quote/AVWS.DE',
     currency: 'EUR',
-    holdings: { t212: 0, ibkr: 655 },
+    holdings: { t212: 19, ibkr: 655 },
   },
   spyy: {
     ticker:   'SPYY.DE',
+    priceKey: 'SPYY_EUR',
     name:     'SPDR MSCI All-Country World',
     yahooUrl: 'https://finance.yahoo.com/quote/SPYY.DE',
     currency: 'EUR',
@@ -30,6 +34,7 @@ const ASSETS = {
   },
   s: {
     ticker:   'S.NYSE',
+    priceKey: 'S_USD',
     name:     'SentinelOne, Inc.',
     yahooUrl: 'https://finance.yahoo.com/quote/S',
     currency: 'USD',
@@ -40,11 +45,12 @@ const ASSETS = {
     name:     'Stock picks',
     yahooUrl: null,
     currency: 'CZK',
-    fixedCzk: 240,   // fixní odhad v tis. Kč
+    fixedCzk: 140,   // fixní odhad v tis. Kč
     holdings: {},
   },
   ib1t: {
     ticker:   'IB1T.DE',
+    priceKey: 'IB1T_EUR',
     name:     'iShares Bitcoin ETP',
     yahooUrl: 'https://finance.yahoo.com/quote/IB1T.DE',
     currency: 'EUR',

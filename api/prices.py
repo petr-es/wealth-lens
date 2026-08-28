@@ -7,7 +7,7 @@ import yfinance as yf
 
 TICKERS = {
     'FWRA_EUR':  'FWRA.MI',
-    'VGLA_EUR':  'VGLA.DE',
+    'ALLW_EUR':  'ALLW.DE',
     'AVWS_EUR':  'AVWS.DE',
     'SPYY_EUR':  'SPYY.DE',
     'S_USD':     'S',
@@ -15,6 +15,12 @@ TICKERS = {
     'EUR_CZK':   'EURCZK=X',
     'USD_CZK':   'USDCZK=X',
 }
+
+# Every position and cash balance converts through these, so a response
+# without them is useless — they alone gate the endpoint. A missing asset
+# price is omitted instead: the client knows the holdings and decides
+# whether it matters (see _missingHeldPrices in scripts/updater.js).
+RATE_KEYS = ('EUR_CZK', 'USD_CZK')
 
 def fetch_price(symbol: str):
     try:
@@ -35,10 +41,10 @@ class handler(BaseHTTPRequestHandler):
         updated = f'{date} {now.strftime("%H:%M")}'
 
         prices = {key: fetch_price(symbol) for key, symbol in TICKERS.items()}
-        missing = [k for k, v in prices.items() if v is None]
+        missing_rates = [k for k in RATE_KEYS if prices[k] is None]
 
-        if missing:
-            body = json.dumps({'error': f'Failed to fetch: {", ".join(missing)}'}).encode()
+        if missing_rates:
+            body = json.dumps({'error': f'Failed to fetch: {", ".join(missing_rates)}'}).encode()
             self.send_response(502)
             self.send_header('Content-Type', 'application/json')
             self.send_header('Access-Control-Allow-Origin', '*')
@@ -49,8 +55,8 @@ class handler(BaseHTTPRequestHandler):
         body = json.dumps({
             'date':    date,
             'updated': updated,
-            'rates':   {'EUR_CZK': prices['EUR_CZK'], 'USD_CZK': prices['USD_CZK']},
-            'prices':  {'FWRA_EUR': prices['FWRA_EUR'], 'VGLA_EUR': prices['VGLA_EUR'], 'AVWS_EUR': prices['AVWS_EUR'], 'SPYY_EUR': prices['SPYY_EUR'], 'S_USD': prices['S_USD'], 'IB1T_EUR': prices['IB1T_EUR']},
+            'rates':   {k: prices[k] for k in RATE_KEYS},
+            'prices':  {k: v for k, v in prices.items() if k not in RATE_KEYS and v is not None},
         }).encode()
 
         self.send_response(200)

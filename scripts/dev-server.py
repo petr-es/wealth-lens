@@ -22,7 +22,7 @@ MIME = {
 
 # Import the API handler
 sys.path.insert(0, str(ROOT))
-from api.prices import fetch_price, czech_date, TICKERS
+from api.prices import fetch_price, czech_date, TICKERS, RATE_KEYS
 from datetime import datetime
 import pytz
 
@@ -44,18 +44,18 @@ class Handler(http.server.BaseHTTPRequestHandler):
         updated = f'{date} {now.strftime("%H:%M")}'
 
         prices = {key: fetch_price(symbol) for key, symbol in TICKERS.items()}
-        missing = [k for k, v in prices.items() if v is None]
+        missing_rates = [k for k in RATE_KEYS if prices[k] is None]
 
-        if missing:
-            body = json.dumps({'error': f'Failed to fetch: {", ".join(missing)}'}).encode()
+        if missing_rates:
+            body = json.dumps({'error': f'Failed to fetch: {", ".join(missing_rates)}'}).encode()
             self._respond(502, 'application/json', body)
             return
 
         body = json.dumps({
             'date':    date,
             'updated': updated,
-            'rates':   {'EUR_CZK': prices['EUR_CZK'], 'USD_CZK': prices['USD_CZK']},
-            'prices':  {'FWRA_EUR': prices['FWRA_EUR'], 'VGLA_EUR': prices['VGLA_EUR'], 'AVWS_EUR': prices['AVWS_EUR'], 'SPYY_EUR': prices['SPYY_EUR'], 'S_USD': prices['S_USD'], 'IB1T_EUR': prices['IB1T_EUR']},
+            'rates':   {k: prices[k] for k in RATE_KEYS},
+            'prices':  {k: v for k, v in prices.items() if k not in RATE_KEYS and v is not None},
         }).encode()
         self._respond(200, 'application/json', body)
 

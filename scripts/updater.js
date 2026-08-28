@@ -71,6 +71,22 @@ function setLoadingState() {
   showOverlay('loading');
 }
 
+// Which held assets came back without a price. A missing price is only
+// fatal when we actually hold the asset: at zero units it contributes
+// 0 Kč and is filtered out of every table and chart anyway, so failing
+// the whole render over it would blank the dashboard for nothing. Held,
+// though, it must fail loudly — the total would silently be short by
+// that position, and a wrong number is worse than an honest error.
+function _missingHeldPrices(data) {
+  return Object.values(ASSETS)
+    .filter(asset => asset.priceKey)
+    .filter(asset => {
+      const units = Object.values(asset.holdings || {}).reduce((sum, n) => sum + (n || 0), 0);
+      return units > 0 && !Number.isFinite(data.prices[asset.priceKey]);
+    })
+    .map(asset => asset.priceKey);
+}
+
 function _isValidPricesShape(data) {
   return data
     && typeof data === 'object'
@@ -86,6 +102,8 @@ async function fetchPrices() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     if (!_isValidPricesShape(data)) throw new Error('Invalid response shape');
+    const missing = _missingHeldPrices(data);
+    if (missing.length) throw new Error(`Missing prices for held assets: ${missing.join(', ')}`);
     return data;
   } finally {
     clearTimeout(timer);
