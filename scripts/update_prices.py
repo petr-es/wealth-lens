@@ -91,6 +91,17 @@ def required_keys(assets: dict, priced: dict) -> set:
     }
 
 
+def read_history() -> list:
+    """Snapshots already recorded. An unreadable or absent file reads as empty,
+    which is what lets the very first run create it."""
+    try:
+        with open(HISTORY, 'r', encoding='utf-8') as f:
+            raw = f.read()
+        return json.loads(re.search(r'\[.*\]', raw, re.DOTALL).group())
+    except Exception:
+        return []
+
+
 def _prague_day(ts: str, prague):
     """Calendar day a snapshot belongs to, in the timezone the app renders."""
     return datetime.strptime(ts, '%Y-%m-%dT%H:%M:%SZ') \
@@ -100,6 +111,18 @@ def _prague_day(ts: str, prague):
 def main():
     prague = pytz.timezone('Europe/Prague')
     now = datetime.now(prague)
+
+    # --only-if-missing marks a backup run: it exists solely to cover a primary
+    # run GitHub never dispatched, so on a day that already has a snapshot it
+    # must do nothing. Without this it would overwrite the noon entry (newest
+    # wins, below) and quietly turn every day into a late-afternoon reading.
+    # Checked before the fetch — a no-op run should not call Yahoo at all.
+    if '--only-if-missing' in sys.argv[1:]:
+        if any(_prague_day(e['ts'], prague) == now.date() for e in read_history()):
+            print(f'{now.date()} is already recorded — backup run has nothing to do.')
+            return
+        print(f'No snapshot for {now.date()} yet — backup run taking over.')
+
     print(f'Fetching prices at {now.strftime("%Y-%m-%d %H:%M %Z")} ...')
 
     prices = {}
@@ -134,12 +157,7 @@ def main():
         'assets': assets,
     }
 
-    try:
-        with open(HISTORY, 'r', encoding='utf-8') as f:
-            raw = f.read()
-        existing = json.loads(re.search(r'\[.*\]', raw, re.DOTALL).group())
-    except Exception:
-        existing = []
+    existing = read_history()
 
     # One snapshot per Prague day, and the newest wins: a run that lands
     # after the day already has an entry — a delayed schedule, or a manual
