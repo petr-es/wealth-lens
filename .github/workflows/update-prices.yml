@@ -12,13 +12,15 @@ on:
     # one was arriving ~50 min late, once 10 h late, and once not at all.
     - cron: '7 10 * * 1-5'
     #
-    # Backup, 17:07 Prague (16:07 during CET — same October caveat as above).
+    # Backup, 17:41 Prague (16:41 during CET — same October caveat as above).
+    # Deliberately a different minute from the primary: if a given minute's
+    # bucket is what gets dropped, two slots sharing :07 would fail together.
     # GitHub's queue is best effort and a missed dispatch is silent, so a
     # second slot covers the primary never arriving; European markets are
     # still open at this hour, so the prices are as live as the noon ones.
     # It runs with --only-if-missing and does nothing on a day the primary
     # already recorded, which keeps the usual snapshot at noon.
-    - cron: '7 15 * * 1-5'
+    - cron: '41 15 * * 1-5'
   workflow_dispatch: # allow manual trigger
 
 jobs:
@@ -44,7 +46,7 @@ jobs:
         # manual dispatch, which therefore always records.
         run: python scripts/update_prices.py $BACKUP_FLAG
         env:
-          BACKUP_FLAG: ${{ github.event.schedule == '7 15 * * 1-5' && '--only-if-missing' || '' }}
+          BACKUP_FLAG: ${{ github.event.schedule == '41 15 * * 1-5' && '--only-if-missing' || '' }}
 
       - name: Commit and push if changed
         run: |
