@@ -4366,9 +4366,9 @@ var PRICE_HISTORY=[
     }
   },
   {
-    "ts": "2026-08-31T16:09:48Z",
+    "ts": "2026-08-31T17:33:06Z",
     "rates": {
-      "EUR_CZK": 24.15,
+      "EUR_CZK": 24.14,
       "USD_CZK": 20.79
     },
     "prices": {
@@ -4376,7 +4376,7 @@ var PRICE_HISTORY=[
       "ALLW_EUR": 9.29,
       "AVWS_EUR": 25.3,
       "SPYY_EUR": 283.45,
-      "S_USD": 21.76,
+      "S_USD": 21.78,
       "IB1T_EUR": 6.75
     },
     "assets": {
