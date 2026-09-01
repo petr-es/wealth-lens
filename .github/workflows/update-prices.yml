@@ -43,8 +43,13 @@ jobs:
 
       - name: Fetch prices and update history.js
         # github.event.schedule names the cron that fired; it is empty for a
-        # manual dispatch, which therefore always records.
-        run: python scripts/update_prices.py $BACKUP_FLAG
+        # manual dispatch, which therefore always records. Echoed as well as
+        # tested, because nothing else in the run says which slot woke it —
+        # the API reports only event: schedule, so without this line telling
+        # the two apart means reading timestamps against the cron times.
+        run: |
+          echo "Triggered by: ${{ github.event_name }} ${{ github.event.schedule }}"
+          python scripts/update_prices.py $BACKUP_FLAG
         env:
           BACKUP_FLAG: ${{ github.event.schedule == '41 15 * * 1-5' && '--only-if-missing' || '' }}
 
