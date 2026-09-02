@@ -38,7 +38,7 @@ const ASSETS = {
     name:     'SentinelOne, Inc.',
     yahooUrl: 'https://finance.yahoo.com/quote/S',
     currency: 'USD',
-    holdings: { ibkr: 0, etrade: 290 },
+    holdings: { ibkr: 0, etrade: 1 },
   },
   alpha: {
     ticker:   'STOCKS',
