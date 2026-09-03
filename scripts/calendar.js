@@ -18,11 +18,26 @@
   // sortedEntries: oldest→newest, with added `idx` pointing back to original PRICE_HISTORY order
   let sortedEntries = [];
 
+  // Civil date of a grid cell. The cells are built from plain year/month/day
+  // numbers, so local getters read back exactly what went in.
   function _ymd(d) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
+  }
+
+  // Civil date a snapshot belongs to, in Europe/Prague — the day it was filed
+  // under when written, and the day it is labelled with everywhere else. Read
+  // in the viewer's zone instead, an evening snapshot would land on the next
+  // day's cell for anyone east of Prague. en-CA renders as YYYY-MM-DD, the same
+  // shape _ymd produces, so the two compare directly.
+  function _entryYmd(ts) {
+    return new Date(ts).toLocaleDateString('en-CA', { timeZone: 'Europe/Prague' });
+  }
+  // That civil date as a local Date, for reading its year and month back.
+  function _entryCivilDate(ts) {
+    return new Date(`${_entryYmd(ts)}T00:00`);
   }
 
   function _rebuildIndex() {
@@ -34,15 +49,15 @@
     );
     sortedEntries = list;
     list.forEach(({ entry }) => {
-      const key = _ymd(new Date(entry.ts));
+      const key = _entryYmd(entry.ts);
       (entriesByDay[key] = entriesByDay[key] || []).push(entry);
     });
   }
 
   function _availableRange() {
     if (!sortedEntries.length) return null;
-    const first = new Date(sortedEntries[0].entry.ts);
-    const last  = new Date(sortedEntries[sortedEntries.length - 1].entry.ts);
+    const first = _entryCivilDate(sortedEntries[0].entry.ts);
+    const last  = _entryCivilDate(sortedEntries[sortedEntries.length - 1].entry.ts);
     return { first, last };
   }
 
@@ -148,7 +163,7 @@
 
     // Selected entry date for highlighting
     const selectedDate = selectedEntryIdx != null
-      ? _ymd(new Date(PRICE_HISTORY[selectedEntryIdx].ts))
+      ? _entryYmd(PRICE_HISTORY[selectedEntryIdx].ts)
       : null;
 
     for (let i = 0; i < 42; i++) {
@@ -192,7 +207,7 @@
     _rebuildIndex();
     const range = _availableRange();
     if (selectedEntryIdx != null) {
-      const d = new Date(PRICE_HISTORY[selectedEntryIdx].ts);
+      const d = _entryCivilDate(PRICE_HISTORY[selectedEntryIdx].ts);
       viewYear = d.getFullYear(); viewMonth = d.getMonth();
     } else if (range) {
       viewYear = range.last.getFullYear(); viewMonth = range.last.getMonth();

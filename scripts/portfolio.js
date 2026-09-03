@@ -25,7 +25,10 @@ const SPARK = {
   STROKE_WIDTH: 1.3,
 };
 
-const PRICE_WINDOW_DAYS = 30; // sparkline history window
+// Sparkline history window, counted in working days — one per snapshot, the
+// same unit the history chart's axis is stepped in. Thirty of them reach back
+// about six calendar weeks.
+const PRICE_WINDOW_DAYS = 30;
 
 // ── Formatting helpers ──────────────────────────────────────────────────────
 const NBSP = '\u00a0';
@@ -249,30 +252,57 @@ function linkDonutLegend(paths, rowEls) {
 }
 
 // ── Sparkline ───────────────────────────────────────────────────────────────
-function buildSparkline(data, color, { width = SPARK.WIDTH, height = SPARK.HEIGHT, strokeWidth = SPARK.STROKE_WIDTH } = {}) {
-  if (!data || data.length < 2) {
+// A flat trace across the whole cell, for a row with nothing to chart at all.
+// It sits at mid-height because there is no y scale to place it on.
+function _sparkFlatline(x1, x2, color, height, strokeWidth) {
+  const line = document.createElementNS(SVG_NS, 'line');
+  line.setAttribute('x1', x1); line.setAttribute('y1', height / 2);
+  line.setAttribute('x2', x2); line.setAttribute('y2', height / 2);
+  line.setAttribute('stroke', color); line.setAttribute('stroke-opacity', '0.5');
+  line.setAttribute('stroke-width', strokeWidth);
+  return line;
+}
+
+// `points` are { pos, value }, where pos is the point's place on the window's
+// time axis (0 = oldest day of the window, 1 = newest) rather than its index in
+// the array. An asset held for only part of the window therefore moves over only
+// that part of the width instead of being stretched across all of it, and runs
+// flat across the rest.
+function buildSparkline(points, color, { width = SPARK.WIDTH, height = SPARK.HEIGHT, strokeWidth = SPARK.STROKE_WIDTH } = {}) {
+  if (!points || points.length < 2) {
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
     svg.setAttribute('width', width); svg.setAttribute('height', height);
     svg.classList.add('sparkline');
-    const line = document.createElementNS(SVG_NS, 'line');
-    line.setAttribute('x1', 0); line.setAttribute('y1', height / 2);
-    line.setAttribute('x2', width); line.setAttribute('y2', height / 2);
-    line.setAttribute('stroke', color); line.setAttribute('stroke-opacity', '0.5');
-    line.setAttribute('stroke-width', strokeWidth);
-    svg.appendChild(line);
+    svg.appendChild(_sparkFlatline(0, width, color, height, strokeWidth));
     return svg;
   }
-  const min = Math.min(...data);
-  const max = Math.max(...data);
+  const values = points.map(p => p.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
   const range = max - min || 1;
-  const points = data.map((v, i) => {
-    const x = (i / (data.length - 1)) * width;
-    const y = height - ((v - min) / range) * (height - 4) - 2;
+  const coords = points.map(p => {
+    const x = p.pos * width;
+    const y = height - ((p.value - min) / range) * (height - 4) - 2;
     return [x, y];
   });
-  const d = points.map(([x, y], i) => (i === 0 ? `M${x.toFixed(1)},${y.toFixed(1)}` : `L${x.toFixed(1)},${y.toFixed(1)}`)).join(' ');
-  const area = d + ` L${width},${height} L0,${height} Z`;
+  const xy = ([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`;
+  const path = pts => `M${xy(pts[0])} ` + pts.slice(1).map(p => `L${xy(p)}`).join(' ');
+  const [xFirst, yFirst] = coords[0];
+  const [xLast, yLast] = coords[coords.length - 1];
+
+  // The stroke runs the full width even when the prices do not: it comes in
+  // flat at the first price it knows, starts moving where the history does, and
+  // holds the last one to the edge. Drawn as one path so the flat stretch is
+  // the same line — same weight, same colour, joined to the trend — rather than
+  // a separate mark butted against it.
+  const lead  = xFirst > 0     ? [[0, yFirst]] : [];
+  const trail = xLast < width  ? [[width, yLast]] : [];
+  const d = path([...lead, ...coords, ...trail]);
+
+  // The fill stays under the real prices only — carrying it along the flat
+  // stretches would shade a span the data does not cover.
+  const area = path(coords) + ` L${xLast.toFixed(1)},${height} L${xFirst.toFixed(1)},${height} Z`;
 
   const svg = document.createElementNS(SVG_NS, 'svg');
   svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
@@ -310,8 +340,8 @@ function buildSparkline(data, color, { width = SPARK.WIDTH, height = SPARK.HEIGH
 // The distinction drives the sparkline: priceSeriesForAsset drops non-finite
 // points, so the chart scales to the prices that actually exist. Substituting 0
 // would instead pin the y axis to the origin and squash every real move into the
-// top pixel until the last gap scrolled out of the 30-entry window — roughly six
-// weeks of a flat, uncoloured line for any newly added asset.
+// top pixel until the last gap scrolled out of the 30 working-day window —
+// roughly six weeks of a flat, uncoloured line for any newly added asset.
 const MISSING_PRICE = NaN;
 
 function _pricePerUnit(entry, assetKey) {
@@ -348,26 +378,67 @@ function _pricePerUnit(entry, assetKey) {
   return MISSING_PRICE;
 }
 
-// Get last N entries' per-unit price series for an asset.
-// Returns { series: number[], deltaPct: number|null } — deltaPct is the
-// full-window change (first vs last); used for sparkline color.
+// Per-unit price series for an asset over the trailing `windowDays` working
+// days, ending on the newest snapshot at or before the anchor.
+//
+// Returns { points: [{ pos, value }], deltaPct }. `pos` is where the point sits
+// on the window's axis — 0 at its oldest day, 1 at its newest — so a row is
+// drawn against elapsed trading time, not against how many snapshots happen to
+// carry a price for it. An asset first priced a week ago covers only the
+// right-hand stretch of the chart; spreading its handful of points across the
+// full width would read as a six-week trend that never happened.
+//
+// The axis is one slot per working day, the unit snapshots are written in and
+// the same one the history chart steps its x axis in. Weekends get no width,
+// and a trading day we hold no snapshot for stays an empty slot rather than
+// closing the gap.
+//
+// deltaPct is the change across the drawn points (first vs last); it colors the
+// sparkline.
 function priceSeriesForAsset(assetKey, windowDays = PRICE_WINDOW_DAYS, anchorTs = null) {
-  if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) return { series: [], deltaPct: null };
+  const EMPTY = { points: [], deltaPct: null };
+  if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) return EMPTY;
   let sorted = [...PRICE_HISTORY].sort((a, b) => new Date(a.ts) - new Date(b.ts));
   if (anchorTs != null) {
     const cutoff = new Date(anchorTs).getTime();
     sorted = sorted.filter(e => new Date(e.ts).getTime() <= cutoff);
   }
-  const slice = sorted.slice(-windowDays);
+  if (!sorted.length) return EMPTY;
+
+  // The trading day a snapshot belongs to: a weekend read reflects the Friday
+  // close, and is filed under it rather than dropped for having no slot of its
+  // own. The history chart places its own weekend reads the same way.
+  const slotDay = ts => _lastBusinessDay(_dayStart(ts));
+
+  // One axis for every row, anchored on the newest snapshot rather than on each
+  // asset's own last price, so the sparklines stay comparable across the table.
+  const axis = _businessDaysBack(slotDay(sorted[sorted.length - 1].ts), windowDays);
+  const span = Math.max(axis.length - 1, 1);
+
   // Each point converts with its own day's rates, so in EUR/USD the sparkline
   // shows the price as it actually moved in that currency, FX included.
-  const series = slice
-    .map(e => toDisplay(_pricePerUnit(e, assetKey), e.rates))
-    .filter(v => Number.isFinite(v));
-  if (series.length < 2) return { series, deltaPct: null };
-  const first = series[0], last = series[series.length - 1];
+  //
+  // Collected per slot, so a trading day carries one point: a Saturday read
+  // filed onto a Friday that already has one supersedes it, the way the history
+  // chart supersedes a same-day snapshot. Two points sharing an x would draw as
+  // a vertical spike, and — if they were the only two — as an empty area under a
+  // zero-width fill.
+  const bySlot = new Map();
+  for (const e of sorted) {
+    const value = toDisplay(_pricePerUnit(e, assetKey), e.rates);
+    if (!Number.isFinite(value)) continue;
+    // Anything older than the window has no slot on the axis (indexOf → -1).
+    const slot = axis.indexOf(slotDay(e.ts));
+    if (slot >= 0) bySlot.set(slot, value);
+  }
+  const points = [...bySlot.keys()]
+    .sort((a, b) => a - b)
+    .map(slot => ({ pos: slot / span, value: bySlot.get(slot) }));
+
+  if (points.length < 2) return { points, deltaPct: null };
+  const first = points[0].value, last = points[points.length - 1].value;
   const deltaPct = first > 0 ? ((last - first) / first) * 100 : null;
-  return { series, deltaPct };
+  return { points, deltaPct };
 }
 
 // ── Portfolio value calc ────────────────────────────────────────────────────
@@ -399,12 +470,37 @@ function _calcPortfolioValue(entry) {
        + cashTis;
 }
 
-// ── Delta tag: latest vs most recent entry on a different calendar date ─────
-// Local midnight of a timestamp — the unit both the delta walk-back and the
-// history chart compare days in.
+// ── Prague days ─────────────────────────────────────────────────────────────
+// The day a timestamp belongs to, in Europe/Prague — the unit the delta
+// walk-back, the history chart and the sparklines all compare days in.
+//
+// Prague, not the viewer's zone: update_prices.py writes one snapshot per
+// Prague day and replaces a same-day one, and every date on screen is formatted
+// in Prague. Bucketing by local midnight instead would file an evening snapshot
+// under the next day for a viewer east of us, merging two trading days into one
+// and moving the delta's baseline off the day it names.
+//
+// The key is the UTC midnight of that Prague date. Two properties earn it:
+// arithmetic on it runs in UTC, which has no DST to shift a day boundary, and
+// it formats back to the date it came from in any Prague-pinned formatter,
+// since Prague is always ahead of UTC. Every helper below reads and returns
+// these keys, so a key handed back in is left unchanged.
 function _dayStart(ts) {
-  const d = new Date(ts);
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  // en-CA renders as YYYY-MM-DD, which is what makes this parseable.
+  const [y, m, d] = new Date(ts)
+    .toLocaleDateString('en-CA', { timeZone: 'Europe/Prague' })
+    .split('-').map(Number);
+  return Date.UTC(y, m - 1, d);
+}
+// Day of week of a Prague day, Sunday 0 — read in UTC to match the key.
+function _dayOfWeek(dayKey) {
+  return new Date(dayKey).getUTCDay();
+}
+// A Prague day shifted by whole days, staying on the UTC grid.
+function _addDays(dayKey, n) {
+  const d = new Date(dayKey);
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.getTime();
 }
 function _entryDate(entry) {
   return _dayStart(entry.ts);
@@ -428,20 +524,14 @@ function computeDelta(vNowTis, nowRates) {
   if (!window.PRICE_HISTORY || !PRICE_HISTORY.length) return null;
   if (!Number.isFinite(vNowTis) || vNowTis === 0) return null;
   const sorted = [...PRICE_HISTORY].sort((a, b) => new Date(a.ts) - new Date(b.ts));
-  const today = new Date();
-  const todayDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  const todayDay = _dayStart(Date.now());
 
   // On weekends, skip Friday too — weekend prices equal Friday's market close,
   // so the meaningful comparison is vs Thursday.
-  const dow = today.getDay(); // 0=Sun, 6=Sat
+  const dow = _dayOfWeek(todayDay); // 0=Sun, 6=Sat
   let skipDay = null;
-  if (dow === 6) {
-    const fri = new Date(today); fri.setDate(fri.getDate() - 1);
-    skipDay = new Date(fri.getFullYear(), fri.getMonth(), fri.getDate()).getTime();
-  } else if (dow === 0) {
-    const fri = new Date(today); fri.setDate(fri.getDate() - 2);
-    skipDay = new Date(fri.getFullYear(), fri.getMonth(), fri.getDate()).getTime();
-  }
+  if (dow === 6) skipDay = _addDays(todayDay, -1);
+  else if (dow === 0) skipDay = _addDays(todayDay, -2);
 
   let prev = null;
   for (let i = sorted.length - 1; i >= 0; i--) {
@@ -593,9 +683,9 @@ function _renderHeaderTotal(totalCzk, animate) {
 // ── Asset composition view ──────────────────────────────────────────────────
 // The composition donut can be read two ways, and the switch in its card label
 // picks which:
-//   grouped — by exposure. FWRA and ALLW track the same broad global market, so
-//             they collapse into one "Global" slice, and AVWS is labelled by
-//             what it actually adds to the mix — small caps.
+//   grouped — by exposure. FWRA, ALLW and SPYY track the same broad global
+//             market, so they collapse into one "Global" slice, and AVWS is
+//             labelled by what it actually adds to the mix — small caps.
 //   split   — by instrument, one row per position.
 // Only this widget follows the setting; the assets table always lists every
 // position separately.
@@ -632,12 +722,13 @@ function setAssetView(view) {
 // size — it is the residual, not an allocation decision.
 function buildAssetItems(ctx) {
   const global = ASSET_VIEW === 'grouped'
-    // Shares are deliberately omitted for the merged slice: the two ETFs have
+    // Shares are deliberately omitted for the merged slice: the ETFs have
     // different unit prices, so a summed KS figure would be meaningless.
-    ? [{ key: 'global', value: ctx.vFWRA + ctx.vALLW, color: 'var(--global)', label: 'Global', shares: null }]
+    ? [{ key: 'global', value: ctx.vFWRA + ctx.vALLW + ctx.vSPYY, color: 'var(--global)', label: 'Global', shares: null }]
     : [
         { key: 'fwra', value: ctx.vFWRA, color: 'var(--fwra)', label: 'FWRA', shares: ctx.fwra_total },
         { key: 'allw', value: ctx.vALLW, color: 'var(--allw)', label: 'ALLW', shares: ctx.allw_total },
+        { key: 'spyy', value: ctx.vSPYY, color: 'var(--spyy)', label: 'SPYY', shares: ctx.spyy_total },
       ];
   const smallColor = ASSET_VIEW === 'grouped' ? 'var(--small)' : 'var(--avws)';
   const smallLabel = ASSET_VIEW === 'grouped' ? 'Small' : 'AVWS';
@@ -645,7 +736,6 @@ function buildAssetItems(ctx) {
   return [
     ...global,
     { key: 'avws',  value: ctx.vAVWS,  color: smallColor,     label: smallLabel, shares: ctx.avws_total },
-    { key: 'spyy',  value: ctx.vSPYY,  color: 'var(--spyy)',  label: 'SPYY',  shares: ctx.spyy_total },
     { key: 'alpha', value: ctx.vAlpha, color: 'var(--alpha)', label: 'Stocks', shares: null },
     { key: 's',     value: ctx.vS,     color: 'var(--s)',     label: 'S',     shares: ctx.s_total },
     { key: 'ib1t',  value: ctx.vIB1T,  color: 'var(--ib1t)',  label: 'IB1T',  shares: ctx.ib1t_total },
@@ -840,7 +930,7 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
     const color = series.deltaPct == null
       ? NEUTRAL
       : (series.deltaPct >= 0 ? POS : NEG);
-    sparkCell.appendChild(buildSparkline(series.series, color));
+    sparkCell.appendChild(buildSparkline(series.points, color));
     row.appendChild(sparkCell);
 
     const valCell = document.createElement('div');
@@ -1006,14 +1096,27 @@ function _xLabel(ts, rangeDays) {
   return d.toLocaleDateString(loc, { ...tz, month: 'short', year: '2-digit' });
 }
 
+// The last `count` business days up to and including ts's own day, oldest →
+// newest. Counterpart to _businessDaysList for a window measured in trading
+// days rather than between two dates — what the sparkline plots on, since
+// snapshots are written per trading day.
+function _businessDaysBack(ts, count) {
+  const bds = [];
+  let day = _dayStart(ts);
+  while (bds.length < count) {
+    if (_dayOfWeek(day) !== 0 && _dayOfWeek(day) !== 6) bds.push(day);
+    day = _addDays(day, -1);
+  }
+  return bds.reverse();
+}
+
 function _businessDaysList(minTs, maxTs) {
   const bds = [];
-  const d = new Date(minTs); d.setHours(0, 0, 0, 0);
-  const endMidnight = new Date(maxTs); endMidnight.setHours(23, 59, 59, 999);
-  while (d <= endMidnight) {
-    const dow = d.getDay();
-    if (dow !== 0 && dow !== 6) bds.push(d.getTime());
-    d.setDate(d.getDate() + 1);
+  const end = _dayStart(maxTs);
+  let day = _dayStart(minTs);
+  while (day <= end) {
+    if (_dayOfWeek(day) !== 0 && _dayOfWeek(day) !== 6) bds.push(day);
+    day = _addDays(day, 1);
   }
   return bds;
 }
@@ -1063,13 +1166,13 @@ function _viewChartPoint() {
   return { ts: _viewSnapshot.ts, xTs: _lastBusinessDay(_viewSnapshot.ts), value };
 }
 
-// Rolls a weekend timestamp back to the Friday whose close it reflects.
+// Rolls a weekend day back to the Friday whose close it reflects.
 function _lastBusinessDay(ts) {
-  const d = new Date(ts);
-  const dow = d.getDay();
-  if (dow === 6) d.setDate(d.getDate() - 1);
-  else if (dow === 0) d.setDate(d.getDate() - 2);
-  return d.getTime();
+  const day = _dayStart(ts);
+  const dow = _dayOfWeek(day);
+  if (dow === 6) return _addDays(day, -1);
+  if (dow === 0) return _addDays(day, -2);
+  return day;
 }
 
 // Ends the plotted series on the header's value rather than on the last saved
@@ -1190,16 +1293,12 @@ function drawHistoryChart(tf, { animate = true } = {}) {
   } else if (tf === 'MAX') {
     pts = all;
   } else if (tf === 'YTD') {
-    const jan1 = new Date(new Date().getFullYear(), 0, 1).getTime();
-    pts = all.filter(e => new Date(e.ts).getTime() >= jan1);
+    const jan1 = _dayStart(new Date(new Date().getFullYear(), 0, 1));
+    pts = all.filter(e => _dayStart(e.ts) >= jan1);
   } else {
     const days = { '1W': 7, '1M': 30, '3M': 90, '6M': 180, '1Y': 365 }[tf];
-    const cutoffDate = new Date(now - days * 86400000);
-    cutoffDate.setHours(0, 0, 0, 0);
-    const dow = cutoffDate.getDay();
-    if (dow === 6) cutoffDate.setDate(cutoffDate.getDate() - 1);
-    if (dow === 0) cutoffDate.setDate(cutoffDate.getDate() - 2);
-    pts = all.filter(e => new Date(e.ts).getTime() >= cutoffDate.getTime());
+    const cutoff = _lastBusinessDay(_addDays(_dayStart(now), -days));
+    pts = all.filter(e => _dayStart(e.ts) >= cutoff);
   }
 
   // Each point converts with the FX rates stored for its own day, so the curve
@@ -1208,7 +1307,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
   const stored = pts
     .map(e => ({ ts: new Date(e.ts).getTime(), value: toDisplay(_calcPortfolioValue(e), e.rates) }))
     .filter(d => Number.isFinite(d.value))
-    .filter(d => { const dow = new Date(d.ts).getDay(); return dow !== 0 && dow !== 6; });
+    .filter(d => { const dow = _dayOfWeek(_dayStart(d.ts)); return dow !== 0 && dow !== 6; });
 
   // The curve — and so the change indicator, which reads its endpoints — ends
   // on the value the header is showing rather than on the newest stored
@@ -1250,8 +1349,7 @@ function drawHistoryChart(tf, { animate = true } = {}) {
   const bdList = _businessDaysList(minTs, maxTs);
   const bdSpan = Math.max(bdList.length - 1, 1);
   const sxBd = ts => {
-    const d = new Date(ts); d.setHours(0, 0, 0, 0);
-    const idx = bdList.indexOf(d.getTime());
+    const idx = bdList.indexOf(_dayStart(ts));
     return pL + (idx >= 0 ? idx : 0) / bdSpan * (cW - hPadR);
   };
   const sy = v => pT + cH - (v - yMin) / yRange * cH;
