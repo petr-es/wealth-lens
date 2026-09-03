@@ -14,7 +14,7 @@ const ASSETS = {
     name:     'Xtrackers FTSE All-World',
     yahooUrl: 'https://finance.yahoo.com/quote/ALLW.DE',
     currency: 'EUR',
-    holdings: { t212: 281, ibkr: 0 },
+    holdings: { t212: 413, ibkr: 0 },
   },
   avws: {
     ticker:   'AVWS.DE',
@@ -22,7 +22,7 @@ const ASSETS = {
     name:     'Avantis Global Small Cap Value',
     yahooUrl: 'https://finance.yahoo.com/quote/AVWS.DE',
     currency: 'EUR',
-    holdings: { t212: 25.6, ibkr: 680.5 },
+    holdings: { t212: 37.6, ibkr: 680.5 },
   },
   spyy: {
     ticker:   'SPYY.DE',
@@ -45,7 +45,7 @@ const ASSETS = {
     name:     'Stock picks',
     yahooUrl: null,
     currency: 'CZK',
-    fixedCzk: 140,   // fixní odhad v tis. Kč
+    fixedCzk: 100,   // fixní odhad v tis. Kč
     holdings: {},
   },
   ib1t: {
