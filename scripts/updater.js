@@ -33,8 +33,11 @@ function dismissToast() {
   if (t) t.remove();
 }
 
-const OVERLAYS = ['overlay-assets', 'overlay-brokers', 'overlay-prices', 'overlay-history'];
-const CONTENTS = ['content-assets', 'content-brokers', 'content-prices', 'content-history'];
+// Every card's overlay/content pair. The projection card builds its own pair in
+// projector.js — which is why that script loads before this one, so the ids are
+// in the DOM by the time the first fetch sets a state.
+const OVERLAYS = ['overlay-assets', 'overlay-brokers', 'overlay-prices', 'overlay-history', 'overlay-projection'];
+const CONTENTS = ['content-assets', 'content-brokers', 'content-prices', 'content-history', 'content-projection'];
 
 function showOverlay(state, msgText = '') {
   OVERLAYS.forEach(id => {

@@ -265,8 +265,10 @@
 <script src="scripts/portfolio.js"></script>
 <script src="scripts/calendar.js"></script>
 <script src="scripts/ui.js"></script>
-<script src="scripts/updater.js"></script>
+<!-- projector before updater: the projection card's overlay is built by
+     projector.js, and updater.js sets the first card state as it loads. -->
 <script src="scripts/projector.js"></script>
+<script src="scripts/updater.js"></script>
 <script>document.getElementById('footer-version').textContent = APP_VERSION;</script>
 
 </body>

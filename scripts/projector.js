@@ -316,6 +316,12 @@
   }
 
   // ── Build card skeleton ────────────────────────────────────────────────────
+  // The projection body sits in its own #content-projection wrapper with a
+  // sibling #overlay-projection, the same pairing the four static cards
+  // use — updater.js drives both by id, so a failed price fetch blanks this
+  // widget too instead of leaving a projection built on stale numbers on
+  // screen. The label stays outside the pair, as it does on the other cards, so
+  // the title and its settings button survive the error state.
   function _buildCard() {
     _cardEl = document.getElementById('proj-card');
     if (!_cardEl) return false;
@@ -331,11 +337,14 @@
           <span id="proj-settings-label">${LANG.projSettings}</span>
         </button>
       </div>
-      <div id="proj-goal" class="proj-goal-block" hidden></div>
-      <div id="proj-result" class="proj-result-wrap"></div>
-      <div id="proj-params" class="proj-params"></div>
-      <div id="proj-bar"    class="proj-bar-stack" hidden></div>
-      <div id="proj-legend" class="proj-legend proj-legend-inline" hidden></div>
+      <div class="card-overlay" id="overlay-projection"></div>
+      <div id="content-projection">
+        <div id="proj-goal" class="proj-goal-block" hidden></div>
+        <div id="proj-result" class="proj-result-wrap"></div>
+        <div id="proj-params" class="proj-params"></div>
+        <div id="proj-bar"    class="proj-bar-stack" hidden></div>
+        <div id="proj-legend" class="proj-legend proj-legend-inline" hidden></div>
+      </div>
     `;
 
     _goalEl   = document.getElementById('proj-goal');
