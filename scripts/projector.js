@@ -37,14 +37,33 @@
     set targetAmount(v)  { safeStorage.set('wl.proj.target', String(v)); },
   };
 
+  // ── Prague civil dates ─────────────────────────────────────────────────────
+  // Target dates are civil — 'YYYY-MM-DD', no time of day — but new Date() reads
+  // that as UTC midnight, and getting it back with local getters loses a day
+  // anywhere behind UTC: a 1 Jan target reads as 31 Dec in New York, quietly
+  // understating the horizon by a month. Both directions go through _dayStart
+  // (portfolio.js) instead, the Prague day model the rest of the app compares
+  // dates in. It returns the UTC midnight of a Prague date, so year and month
+  // read back in UTC and a civil string round-trips unchanged.
+  const _dayYear  = dayKey => new Date(dayKey).getUTCFullYear();
+  const _dayMonth = dayKey => new Date(dayKey).getUTCMonth();
+  // A day key back as the 'YYYY-MM-DD' the calendar cells are keyed by.
+  const _dayYmd   = dayKey => new Date(dayKey).toISOString().slice(0, 10);
+
+  // Whole months from today to a target date. Counted in months, not days, so
+  // the projection steps with the monthly contributions it compounds.
+  function _monthsUntil(dateStr) {
+    const target = _dayStart(dateStr);
+    const today  = _dayStart(Date.now());
+    return Math.max(0,
+      (_dayYear(target) - _dayYear(today)) * 12 +
+      (_dayMonth(target) - _dayMonth(today))
+    );
+  }
+
   // ── Compound growth calculation ────────────────────────────────────────────
   function _calc(PV, dateStr, rate, contribOn, monthly) {
-    const target = new Date(dateStr);
-    const now    = new Date();
-    const n = Math.max(0,
-      (target.getFullYear() - now.getFullYear()) * 12 +
-      (target.getMonth()   - now.getMonth())
-    );
+    const n   = _monthsUntil(dateStr);
     const r   = rate / 100 / 12;
     const PMT = contribOn ? (monthly || 0) : 0;
     let FV;
@@ -450,9 +469,9 @@
 
     _calTriggerBtn = triggerBtn;   // store ref for collapse/cleanup
 
-    const selDate = new Date(S.date);
-    _calViewYear  = selDate.getFullYear();
-    _calViewMonth = selDate.getMonth();
+    const selDate = _dayStart(S.date);
+    _calViewYear  = _dayYear(selDate);
+    _calViewMonth = _dayMonth(selDate);
     _renderModalCal();
 
     triggerBtn.addEventListener('click', () => {
@@ -464,9 +483,7 @@
   }
 
   function _calcDurText(dateStr) {
-    const now = new Date();
-    const d   = new Date(dateStr);
-    const n   = Math.max(0, (d.getFullYear() - now.getFullYear()) * 12 + (d.getMonth() - now.getMonth()));
+    const n = _monthsUntil(dateStr);
     return n > 0 ? _durLabel(n) : '';
   }
 
@@ -643,7 +660,7 @@
   // ── Inline calendar rendering ──────────────────────────────────────────────
   function _renderModalCal() {
     if (!_calEl) return;
-    const todayStr = _ymd(new Date());
+    const todayStr = _dayYmd(_dayStart(Date.now()));
     const selStr   = S.date;
 
     _calEl.innerHTML = '';
@@ -655,9 +672,9 @@
     prev.type = 'button';
     prev.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 2.5L4 6l3.5 3.5"/></svg>';
     prev.title = LANG.calPrev;
-    const today = new Date();
+    const today = _dayStart(Date.now());
     const viewFirst = new Date(_calViewYear, _calViewMonth, 1);
-    const thisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const thisMonth = new Date(_dayYear(today), _dayMonth(today), 1);
     if (viewFirst <= thisMonth) prev.disabled = true;
     prev.addEventListener('click', () => {
       if (_calViewMonth === 0) { _calViewMonth = 11; _calViewYear--; }
