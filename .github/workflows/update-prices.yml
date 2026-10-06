@@ -2,25 +2,25 @@ name: Update prices
 
 on:
   schedule:
-    # Noon Prague, weekdays. Cron is UTC and has no notion of DST, so this
-    # is 12:07 during CEST (UTC+2) and 11:07 during CET (UTC+1) — switch to
-    # '7 11 * * 1-5' at the October changeover to hold noon through winter.
+    # Late morning Prague, weekdays. Cron is UTC and has no notion of DST, so
+    # this is 11:07 during CEST (UTC+2) and 10:07 during CET (UTC+1) — switch
+    # to '7 10 * * 1-5' at the October changeover to hold 11:07 through winter.
     #
     # The :07 is deliberate. GitHub dispatches scheduled runs from a shared
     # best-effort queue, and :00 is where most of the world schedules, so
     # runs asking for the top of the hour queue behind that spike — this
     # one was arriving ~50 min late, once 10 h late, and once not at all.
-    - cron: '7 10 * * 1-5'
+    - cron: '7 9 * * 1-5'
     #
-    # Backup, 17:41 Prague (16:41 during CET — same October caveat as above).
+    # Backup, 16:41 Prague (15:41 during CET — same October caveat as above).
     # Deliberately a different minute from the primary: if a given minute's
     # bucket is what gets dropped, two slots sharing :07 would fail together.
     # GitHub's queue is best effort and a missed dispatch is silent, so a
     # second slot covers the primary never arriving; European markets are
-    # still open at this hour, so the prices are as live as the noon ones.
+    # still open at this hour, so the prices are as live as the morning ones.
     # It runs with --only-if-missing and does nothing on a day the primary
-    # already recorded, which keeps the usual snapshot at noon.
-    - cron: '41 15 * * 1-5'
+    # already recorded, which keeps the usual snapshot in the late morning.
+    - cron: '41 14 * * 1-5'
   workflow_dispatch: # allow manual trigger
 
 jobs:
@@ -51,7 +51,10 @@ jobs:
           echo "Triggered by: ${{ github.event_name }} ${{ github.event.schedule }}"
           python scripts/update_prices.py $BACKUP_FLAG
         env:
-          BACKUP_FLAG: ${{ github.event.schedule == '41 15 * * 1-5' && '--only-if-missing' || '' }}
+          BACKUP_FLAG: ${{ github.event.schedule == '41 14 * * 1-5' && '--only-if-missing' || '' }}
+          # Lets the script tell which day this run was scheduled for, so one
+          # dispatched hours late and past midnight Prague records nothing.
+          SCHEDULED_SLOT: ${{ github.event.schedule }}
 
       - name: Commit and push if changed
         run: |

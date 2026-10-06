@@ -2,9 +2,10 @@
 """Fetch latest prices from Yahoo Finance and append a snapshot to history.js."""
 
 import json
+import os
 import re
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 import pytz
 import yfinance as yf
@@ -108,13 +109,41 @@ def _prague_day(ts: str, prague):
         .replace(tzinfo=pytz.utc).astimezone(prague).date()
 
 
+def _slot_day(cron: str, now, prague):
+    """Prague day of the cron slot a scheduled run was dispatched for.
+
+    GitHub does not report when a run was *meant* to start, only which cron
+    expression fired, so the slot is taken to be that expression's most
+    recent hour:minute (UTC) at or before now. That holds while dispatch
+    delays stay under 24 h, which is every delay seen so far.
+    """
+    minute, hour = cron.split()[:2]
+    now_utc = now.astimezone(pytz.utc)
+    slot = now_utc.replace(hour=int(hour), minute=int(minute), second=0, microsecond=0)
+    if slot > now_utc:
+        slot -= timedelta(days=1)
+    return slot.astimezone(prague).date()
+
+
 def main():
     prague = pytz.timezone('Europe/Prague')
     now = datetime.now(prague)
 
+    # A scheduled run that GitHub dispatches so late it lands on the next
+    # Prague day must record nothing. It is no longer a reading of the day it
+    # was scheduled for, and filing it under the day it woke up on creates a
+    # just-after-midnight entry — on a Friday slot, a Saturday one that no
+    # weekday run would ever replace. SCHEDULED_SLOT is empty for a manual
+    # dispatch, which therefore always records.
+    cron = os.environ.get('SCHEDULED_SLOT', '').strip()
+    if cron and _slot_day(cron, now, prague) != now.date():
+        print(f'Slot "{cron}" belongs to {_slot_day(cron, now, prague)} but it is already '
+              f'{now.date()} in Prague — run is too late, nothing recorded.')
+        return
+
     # --only-if-missing marks a backup run: it exists solely to cover a primary
     # run GitHub never dispatched, so on a day that already has a snapshot it
-    # must do nothing. Without this it would overwrite the noon entry (newest
+    # must do nothing. Without this it would overwrite the morning entry (newest
     # wins, below) and quietly turn every day into a late-afternoon reading.
     # Checked before the fetch — a no-op run should not call Yahoo at all.
     if '--only-if-missing' in sys.argv[1:]:
