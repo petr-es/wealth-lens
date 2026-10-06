@@ -7,6 +7,7 @@ import yfinance as yf
 
 TICKERS = {
     'FWRA_EUR':  'FWRA.MI',
+    'FWRAL_USD': 'FWRA.L',
     'ALLW_EUR':  'ALLW.DE',
     'AVWS_EUR':  'AVWS.DE',
     'SPYY_EUR':  'SPYY.DE',
