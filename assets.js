@@ -8,8 +8,6 @@ const ASSETS = {
     currency: 'EUR',
     holdings: { t212: 0, ibkr: 12283, rev: 27.6 },
   },
-  // Same fund as `fwra` (same ISIN), USD line on LSE — a separate asset because
-  // it is quoted in its own currency and so priced with the USD rate.
   fwral: {
     ticker:   'FWRA.L',
     priceKey: 'FWRAL_USD',
@@ -48,7 +46,7 @@ const ASSETS = {
     name:     'SentinelOne, Inc.',
     yahooUrl: 'https://finance.yahoo.com/quote/S',
     currency: 'USD',
-    holdings: { ibkr: 0, etrade: 390 },
+    holdings: { ibkr: 0, etrade: 1 },
   },
   alpha: {
     ticker:   'STOCKS',
