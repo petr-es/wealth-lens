@@ -693,9 +693,10 @@ function _renderHeaderTotal(totalCzk, animate) {
 //   grouped — by exposure. FWRA, FWRA.L, ALLW and SPYY track the same broad global
 //             market, so they collapse into one "Global" slice, and AVWS is
 //             labelled by what it actually adds to the mix — small caps.
-//   split   — by instrument, one row per position.
+//   split   — by instrument, one row per fund. The two FWRA listings (FWRA.MI,
+//             FWRA.L) count as one fund here.
 // Only this widget follows the setting; the assets table always lists every
-// position separately.
+// position separately, listings included.
 //
 // Depends on: safeStorage (lang-init.js).
 const ASSET_VIEW_KEY = 'wl.assetView';
@@ -733,9 +734,10 @@ function buildAssetItems(ctx) {
     // different unit prices, so a summed KS figure would be meaningless.
     ? [{ key: 'global', value: ctx.vFWRA + ctx.vFWRAL + ctx.vALLW + ctx.vSPYY, color: 'var(--global)', label: 'Global', shares: null }]
     : [
-        { key: 'fwra', value: ctx.vFWRA, color: 'var(--fwra)', label: 'FWRA', shares: ctx.fwra_total },
-        // Same colour as FWRA: one fund, two listings.
-        { key: 'fwral', value: ctx.vFWRAL, color: 'var(--fwra)', label: 'FWRA.L', shares: ctx.fwral_total },
+        // FWRA.MI and FWRA.L are two listings of one fund, so they share a row.
+        // Unlike the "Global" slice, the share counts do add up: a unit is the
+        // same unit on either exchange, only the quote currency differs.
+        { key: 'fwra', value: ctx.vFWRA + ctx.vFWRAL, color: 'var(--fwra)', label: 'FWRA', shares: ctx.fwra_total + ctx.fwral_total },
         { key: 'allw', value: ctx.vALLW, color: 'var(--allw)', label: 'ALLW', shares: ctx.allw_total },
         { key: 'spyy', value: ctx.vSPYY, color: 'var(--spyy)', label: 'SPYY', shares: ctx.spyy_total },
       ];
