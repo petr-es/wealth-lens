@@ -9,7 +9,7 @@
 
   /* Segment colors (shared across themes) */
   --fwra:   #4ade80;
-  --allw:   #2dd4bf;
+  --allw:   #7d72f4;
   --avws:   #38bdf8;
   --spyy:   #38bdf8;
   --s:      #fbbf24;
@@ -18,8 +18,8 @@
   --t212:   #38bdf8;
   --ibkr:   #f47274;
   --rev:    #c2c6cc;
-  --etrade: #a78bfa;
-  --cash:   #94a3b8;
+  --etrade: #7d72f4;
+  --cash:   #c2c6cc;
   
     /* Composition donut groups by exposure, not by instrument: FWRA + ALLW +
      SPYY are one "Global" slice, AVWS is the "Small" one. */

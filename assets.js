@@ -24,14 +24,6 @@ const ASSETS = {
     currency: 'EUR',
     holdings: { t212: 37.6, ibkr: 680.5 },
   },
-  spyy: {
-    ticker:   'SPYY.DE',
-    priceKey: 'SPYY_EUR',
-    name:     'SPDR MSCI All-Country World',
-    yahooUrl: 'https://finance.yahoo.com/quote/SPYY.DE',
-    currency: 'EUR',
-    holdings: { t212: 0, ibkr: 0 },   // sold in full 1.7.2026, replaced by AVWS; kept for history
-  },
   s: {
     ticker:   'S.NYSE',
     priceKey: 'S_USD',
@@ -39,6 +31,14 @@ const ASSETS = {
     yahooUrl: 'https://finance.yahoo.com/quote/S',
     currency: 'USD',
     holdings: { ibkr: 0, etrade: 1 },
+  },
+  spyy: {
+    ticker:   'SPYY.DE',
+    priceKey: 'SPYY_EUR',
+    name:     'SPDR MSCI All-Country World',
+    yahooUrl: 'https://finance.yahoo.com/quote/SPYY.DE',
+    currency: 'EUR',
+    holdings: { t212: 0, ibkr: 0 },   // sold in full 1.7.2026, replaced by AVWS; kept for history
   },
   alpha: {
     ticker:   'STOCKS',
