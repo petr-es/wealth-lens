@@ -8,14 +8,6 @@ const ASSETS = {
     currency: 'EUR',
     holdings: { t212: 0, ibkr: 12283, rev: 27.6 },
   },
-  fwral: {
-    ticker:   'FWRA.L',
-    priceKey: 'FWRAL_USD',
-    name:     'Invesco FTSE All-World (USD)',
-    yahooUrl: 'https://finance.yahoo.com/quote/FWRA.L',
-    currency: 'USD',
-    holdings: { ibkr: 0 },
-  },
   allw: {
     ticker:   'ALLW.DE',
     priceKey: 'ALLW_EUR',

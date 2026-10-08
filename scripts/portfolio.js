@@ -446,14 +446,13 @@ function _calcPortfolioValue(entry) {
   const EUR = entry.rates.EUR_CZK || 0;
   const USD = entry.rates.USD_CZK || 0;
   const F    = (entry.prices.FWRA_EUR  || 0) * EUR;
-  const FL   = (entry.prices.FWRAL_USD || 0) * USD;
-  const AW  = (entry.prices.ALLW_EUR  || 0) * EUR;
+  const AW   = (entry.prices.ALLW_EUR  || 0) * EUR;
   const AV   = (entry.prices.AVWS_EUR  || 0) * EUR;
   const P    = (entry.prices.SPYY_EUR  || 0) * EUR;
   const S    = (entry.prices.S_USD     || 0) * USD;
   const IB1T = (entry.prices.IB1T_EUR  || 0) * EUR;
   const a = entry.assets || {};
-  const fh = a.fwra || {}, flh = a.fwral || {}, awh = a.allw || {}, avh = a.avws || {}, ph = a.spyy || {}, sh = a.s || {}, bh = a.ib1t || {};
+  const fh = a.fwra || {}, awh = a.allw || {}, avh = a.avws || {}, ph = a.spyy || {}, sh = a.s || {}, bh = a.ib1t || {};
   const alpha = a.alpha ? (a.alpha.fixedCzk || 0) : 0;
   const ch = a.cash || {};
   const cashTis = (
@@ -462,7 +461,6 @@ function _calcPortfolioValue(entry) {
     ((ch.ibkr_usd||0) + (ch.t212_usd||0) + (ch.rev_usd||0)) * USD
   ) / 1000;
   return ((fh.t212||0)+(fh.ibkr||0)+(fh.rev||0)) * F / 1000
-       + ((flh.t212||0)+(flh.ibkr||0)) * FL / 1000
        + ((awh.t212||0)+(awh.ibkr||0)) * AW / 1000
        + ((avh.t212||0)+(avh.ibkr||0)) * AV / 1000
        + ((ph.t212||0)+(ph.ibkr||0)) * P / 1000
@@ -621,7 +619,6 @@ function _computePortfolio(p, a) {
   const EUR_CZK = p.rates.EUR_CZK;
   const USD_CZK = p.rates.USD_CZK;
   const FWRA_PX  = (p.prices.FWRA_EUR  || 0) * EUR_CZK;
-  const FWRAL_PX = (p.prices.FWRAL_USD || 0) * USD_CZK;
   const ALLW_PX  = (p.prices.ALLW_EUR  || 0) * EUR_CZK;
   const AVWS_PX  = (p.prices.AVWS_EUR  || 0) * EUR_CZK;
   const SPYY_PX  = (p.prices.SPYY_EUR  || 0) * EUR_CZK;
@@ -629,7 +626,6 @@ function _computePortfolio(p, a) {
   const IB1T_PX  = (p.prices.IB1T_EUR  || 0) * EUR_CZK;
 
   const fwra_total  = (a.fwra.holdings.t212 || 0) + (a.fwra.holdings.ibkr || 0) + (a.fwra.holdings.rev || 0);
-  const fwral_total = (a.fwral.holdings.t212 || 0) + (a.fwral.holdings.ibkr || 0);
   const allw_total  = (a.allw.holdings.t212 || 0) + (a.allw.holdings.ibkr || 0);
   const avws_total  = (a.avws.holdings.t212 || 0) + (a.avws.holdings.ibkr || 0);
   const spyy_total  = (a.spyy.holdings.t212 || 0) + (a.spyy.holdings.ibkr || 0);
@@ -644,7 +640,6 @@ function _computePortfolio(p, a) {
   const cashRev  = ((ch.rev_czk||0)  + (ch.rev_eur||0)  * EUR_CZK + (ch.rev_usd||0)  * USD_CZK) / 1000;
 
   const vFWRA  = fwra_total  * FWRA_PX  / 1000;
-  const vFWRAL = fwral_total * FWRAL_PX / 1000;
   const vALLW  = allw_total  * ALLW_PX  / 1000;
   const vAVWS  = avws_total  * AVWS_PX  / 1000;
   const vSPYY  = spyy_total  * SPYY_PX  / 1000;
@@ -652,7 +647,7 @@ function _computePortfolio(p, a) {
   const vIB1T  = ib1t_total  * IB1T_PX  / 1000;
   const vAlpha = a.alpha.fixedCzk;
   const vCash  = cashIBKR + cashT212 + cashRev;
-  const totalTis = vFWRA + vFWRAL + vALLW + vAVWS + vSPYY + vS + vIB1T + vAlpha + vCash;
+  const totalTis = vFWRA + vALLW + vAVWS + vSPYY + vS + vIB1T + vAlpha + vCash;
 
   const allw_t212 = (a.allw.holdings.t212 || 0) * ALLW_PX / 1000;
   const allw_ibkr = (a.allw.holdings.ibkr || 0) * ALLW_PX / 1000;
@@ -660,17 +655,15 @@ function _computePortfolio(p, a) {
   const avws_ibkr = (a.avws.holdings.ibkr || 0) * AVWS_PX / 1000;
   const spyy_t212 = (a.spyy.holdings.t212 || 0) * SPYY_PX / 1000;
   const spyy_ibkr = (a.spyy.holdings.ibkr || 0) * SPYY_PX / 1000;
-  const fwral_t212 = (a.fwral.holdings.t212 || 0) * FWRAL_PX / 1000;
-  const fwral_ibkr = (a.fwral.holdings.ibkr || 0) * FWRAL_PX / 1000;
-  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + fwral_t212 + allw_t212 + avws_t212 + spyy_t212 + vAlpha + cashT212;
-  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + fwral_ibkr + allw_ibkr + avws_ibkr + spyy_ibkr + s_ibkr * S_PX / 1000 + vIB1T + cashIBKR;
+  const bT212   = (a.fwra.holdings.t212 || 0) * FWRA_PX / 1000 + allw_t212 + avws_t212 + spyy_t212 + vAlpha + cashT212;
+  const bIBKR   = (a.fwra.holdings.ibkr || 0) * FWRA_PX / 1000 + allw_ibkr + avws_ibkr + spyy_ibkr + s_ibkr * S_PX / 1000 + vIB1T + cashIBKR;
   const bRev    = (a.fwra.holdings.rev  || 0) * FWRA_PX / 1000 + cashRev;
   const bEtrade = s_etrade * S_PX / 1000;
 
   return {
-    EUR_CZK, USD_CZK, FWRA_PX, FWRAL_PX, ALLW_PX, AVWS_PX, SPYY_PX, S_PX, IB1T_PX,
-    fwra_total, fwral_total, allw_total, avws_total, spyy_total, s_total, ib1t_total,
-    vFWRA, vFWRAL, vALLW, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash,
+    EUR_CZK, USD_CZK, FWRA_PX, ALLW_PX, AVWS_PX, SPYY_PX, S_PX, IB1T_PX,
+    fwra_total, allw_total, avws_total, spyy_total, s_total, ib1t_total,
+    vFWRA, vALLW, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash,
     totalTis, totalCzk: totalTis * 1000,
     bT212, bIBKR, bRev, bEtrade,
   };
@@ -690,13 +683,12 @@ function _renderHeaderTotal(totalCzk, animate) {
 // ── Asset composition view ──────────────────────────────────────────────────
 // The composition donut can be read two ways, and the switch in its card label
 // picks which:
-//   grouped — by exposure. FWRA, FWRA.L, ALLW and SPYY track the same broad global
+//   grouped — by exposure. FWRA, ALLW and SPYY track the same broad global
 //             market, so they collapse into one "Global" slice, and AVWS is
 //             labelled by what it actually adds to the mix — small caps.
-//   split   — by instrument, one row per fund. The two FWRA listings (FWRA.MI,
-//             FWRA.L) count as one fund here.
+//   split   — by instrument, one row per position.
 // Only this widget follows the setting; the assets table always lists every
-// position separately, listings included.
+// position separately.
 //
 // Depends on: safeStorage (lang-init.js).
 const ASSET_VIEW_KEY = 'wl.assetView';
@@ -732,12 +724,9 @@ function buildAssetItems(ctx) {
   const global = ASSET_VIEW === 'grouped'
     // Shares are deliberately omitted for the merged slice: the ETFs have
     // different unit prices, so a summed KS figure would be meaningless.
-    ? [{ key: 'global', value: ctx.vFWRA + ctx.vFWRAL + ctx.vALLW + ctx.vSPYY, color: 'var(--global)', label: 'Global', shares: null }]
+    ? [{ key: 'global', value: ctx.vFWRA + ctx.vALLW + ctx.vSPYY, color: 'var(--global)', label: 'Global', shares: null }]
     : [
-        // FWRA.MI and FWRA.L are two listings of one fund, so they share a row.
-        // Unlike the "Global" slice, the share counts do add up: a unit is the
-        // same unit on either exchange, only the quote currency differs.
-        { key: 'fwra', value: ctx.vFWRA + ctx.vFWRAL, color: 'var(--fwra)', label: 'FWRA', shares: ctx.fwra_total + ctx.fwral_total },
+        { key: 'fwra', value: ctx.vFWRA, color: 'var(--fwra)', label: 'FWRA', shares: ctx.fwra_total },
         { key: 'allw', value: ctx.vALLW, color: 'var(--allw)', label: 'ALLW', shares: ctx.allw_total },
         { key: 'spyy', value: ctx.vSPYY, color: 'var(--spyy)', label: 'SPYY', shares: ctx.spyy_total },
       ];
@@ -831,7 +820,7 @@ function _renderDonut({ svgId, listId, centerId, items, totalTis, includeShares,
 }
 
 function _renderPriceTable(p, a, ctx, anchorTs) {
-  const { vFWRA, vFWRAL, vALLW, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash, fwra_total, fwral_total, allw_total, avws_total, spyy_total, s_total, ib1t_total } = ctx;
+  const { vFWRA, vALLW, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash, fwra_total, allw_total, avws_total, spyy_total, s_total, ib1t_total } = ctx;
   const ch = a.cash.holdings;
   const totalCashCzk = (ch.ibkr_czk||0) + (ch.t212_czk||0) + (ch.rev_czk||0);
   const totalCashEur = (ch.ibkr_eur||0) + (ch.t212_eur||0) + (ch.rev_eur||0);
@@ -847,11 +836,6 @@ function _renderPriceTable(p, a, ctx, anchorTs) {
       price: p.prices.FWRA_EUR ? `€${fmtNum(p.prices.FWRA_EUR, 2)}` : '—',
       qty: fmtShares(fwra_total),
       valCzk: vFWRA * 1000 },
-    { _v: vFWRAL, key: 'fwral', color: 'var(--fwra)',
-      ticker: a.fwral.ticker, name: a.fwral.name, url: a.fwral.yahooUrl,
-      price: p.prices.FWRAL_USD ? `$${fmtNum(p.prices.FWRAL_USD, 2)}` : '—',
-      qty: fmtShares(fwral_total),
-      valCzk: vFWRAL * 1000 },
     { _v: vALLW,  key: 'allw',  color: 'var(--allw)',
       ticker: a.allw.ticker, name: a.allw.name, url: a.allw.yahooUrl,
       price: p.prices.ALLW_EUR ? `€${fmtNum(p.prices.ALLW_EUR, 2)}` : '—',
