@@ -5914,17 +5914,17 @@ var PRICE_HISTORY=[
     }
   },
   {
-    "ts": "2026-10-08T16:24:28Z",
+    "ts": "2026-10-08T19:41:12Z",
     "rates": {
-      "EUR_CZK": 24.37,
-      "USD_CZK": 21.76
+      "EUR_CZK": 24.36,
+      "USD_CZK": 21.73
     },
     "prices": {
       "FWRA_EUR": 8.46,
       "ALLW_EUR": 9.61,
       "AVWS_EUR": 25.02,
       "SPYY_EUR": 292.85,
-      "S_USD": 25.29,
+      "S_USD": 25.27,
       "IB1T_EUR": 7.22
     },
     "assets": {
@@ -5954,7 +5954,7 @@ var PRICE_HISTORY=[
       },
       "cash": {
         "ibkr_czk": 0.0,
-        "ibkr_eur": 0.0,
+        "ibkr_eur": 8830.0,
         "ibkr_usd": 0.0,
         "t212_czk": 0.0,
         "t212_eur": 0.0,
