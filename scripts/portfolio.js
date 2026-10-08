@@ -665,6 +665,9 @@ function _computePortfolio(p, a) {
     fwra_total, allw_total, avws_total, spyy_total, s_total, ib1t_total,
     vFWRA, vALLW, vAVWS, vSPYY, vS, vIB1T, vAlpha, vCash,
     totalTis, totalCzk: totalTis * 1000,
+    // Everything that is actually invested. Cash earns no market return, so
+    // the projection compounds this figure rather than the full total.
+    investedCzk: (totalTis - vCash) * 1000,
     bT212, bIBKR, bRev, bEtrade,
   };
 }
@@ -1023,7 +1026,7 @@ function render(p, a, { animate = true, isLive = true, anchorTs = null } = {}) {
 
   _renderPriceTable(p, a, ctx, anchorTs);
   _renderFooter(p);
-  document.dispatchEvent(new CustomEvent('wl:render', { detail: { totalCzk: ctx.totalCzk } }));
+  document.dispatchEvent(new CustomEvent('wl:render', { detail: { totalCzk: ctx.totalCzk, investedCzk: ctx.investedCzk } }));
 }
 
 // ── History entries helpers (used by calendar.js) ───────────────────────────

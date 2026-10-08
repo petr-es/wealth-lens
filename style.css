@@ -9,22 +9,22 @@
 
   /* Segment colors (shared across themes) */
   --fwra:   #4ade80;
-  --allw:   #7d72f4;
-  --avws:   #38bdf8;
-  --spyy:   #38bdf8;
-  --s:      #fbbf24;
+  --allw:   #fbbf24;
+  --avws:   #38a8f8;
+  --spyy:   #38a8f8;
+  --s:      #8076ef;
   --alpha:  #e879f9;
   --ib1t:   #f47274;
-  --t212:   #38bdf8;
+  --t212:   #38a8f8;
   --ibkr:   #f47274;
-  --rev:    #c2c6cc;
-  --etrade: #7d72f4;
-  --cash:   #c2c6cc;
+  --rev:    #b8bdc6;
+  --etrade: #8076ef;
+  --cash:   #b8bdc6;
   
     /* Composition donut groups by exposure, not by instrument: FWRA + ALLW +
      SPYY are one "Global" slice, AVWS is the "Small" one. */
   --global: #4ade80;
-  --small:  #38bdf8;
+  --small:  #38a8f8;
 
   /* Dark theme (default) */
   --bg-0: oklch(0.13 0.015 260);

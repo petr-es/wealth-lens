@@ -1,10 +1,13 @@
 // Portfolio projection widget — vanilla JS, mirrors the React handoff design.
 // Depends on: safeStorage (lang-init.js), LANG (ui.js), fmtMoney / fmtDate /
 //             animateNumber (portfolio.js), toDisplay / fromDisplay
-//             (currency.js). Receives current portfolio total via the
+//             (currency.js). Receives the current invested value via the
 //             'wl:render' custom event dispatched from portfolio.js.
 //
-// The whole projection is computed in CZK — the currency the portfolio total
+// The projection starts from the invested value, not the portfolio total:
+// cash is left out because it does not earn the assumed market return.
+//
+// The whole projection is computed in CZK — the currency the invested value
 // arrives in and the one the persisted settings are stored in — and converted
 // only when formatted. Switching display currency therefore never changes the
 // plan, just how it reads.
@@ -12,7 +15,7 @@
   'use strict';
 
   // ── State (persisted to localStorage) ─────────────────────────────────────
-  let _currentTotal = 0;
+  let _currentInvested = 0;
   let _prevFV = 0;
 
   function _defaultDate() {
@@ -165,7 +168,7 @@
   function renderCard() {
     if (!_resultEl) return;
 
-    const PV = _currentTotal;
+    const PV = _currentInvested;
     const { FV, n, totalContrib, interestEarned } = _calc(PV, S.date, S.rate, S.contribOn, S.monthly);
     const stackTotal = PV + totalContrib + interestEarned || 1;
     const valid = n > 0 && FV > PV;
@@ -766,10 +769,10 @@
     renderCard();
   }
 
-  // Receive current portfolio total after each render
+  // Receive the current invested value (portfolio total minus cash) after each render
   document.addEventListener('wl:render', (e) => {
-    const prev = _currentTotal;
-    _currentTotal = (e.detail && e.detail.totalCzk) || 0;
+    const prev = _currentInvested;
+    _currentInvested = (e.detail && e.detail.investedCzk) || 0;
     if (prev === 0) _prevFV = 0; // start animation from zero on first load
     renderCard();
   });
