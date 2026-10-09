@@ -6,7 +6,7 @@ const ASSETS = {
     name:     'Invesco FTSE All-World',
     yahooUrl: 'https://finance.yahoo.com/quote/FWRA.MI',
     currency: 'EUR',
-    holdings: { t212: 0, ibkr: 12283, rev: 27.6 },
+    holdings: { t212: 0, ibkr: 13165, rev: 28 },
   },
   allw: {
     ticker:   'ALLW.DE',
@@ -22,7 +22,7 @@ const ASSETS = {
     name:     'Avantis Global Small Cap Value',
     yahooUrl: 'https://finance.yahoo.com/quote/AVWS.DE',
     currency: 'EUR',
-    holdings: { t212: 37.6, ibkr: 680.5 },
+    holdings: { t212: 38, ibkr: 733 },
   },
   s: {
     ticker:   'S.NYSE',
@@ -63,7 +63,7 @@ const ASSETS = {
     currency: null,   // multi-currency: value derived from holdings + FX rates
     // Amounts in each native currency, all held at IBKR.
     holdings: {
-      ibkr_czk: 0,      ibkr_eur: 8830,    ibkr_usd: 0,
+      ibkr_czk: 0,      ibkr_eur: 0,    ibkr_usd: 0,
       t212_czk: 0,      t212_eur: 0,    t212_usd: 0,
       rev_czk:  0,      rev_eur:  0,    rev_usd:  0,
     },
